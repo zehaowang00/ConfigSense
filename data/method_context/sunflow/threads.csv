@@ -1,0 +1,76 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.sunflow.core.Scene:render(org.sunflow.core.Options,org.sunflow.core.ImageSampler,org.sunflow.core.Display)","(M)org.sunflow.core.Options:getInt(java.lang.String,int)","org.sunflow.core.Options:getInt(java.lang.String,int)",threads,render,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/sunflow/src/org/sunflow/core/Scene.java,Scene,../data/xml/sunflow/Scene.xml,"public void render(Options options, ImageSampler sampler, Display display) {
+        if (display == null)
+            display = new FrameDisplay();
+
+        if (bakingInstance != null) {
+            UI.printDetailed(Module.SCENE, ""Creating primitives for lightmapping ..."");
+            bakingPrimitives = bakingInstance.getBakingPrimitives();
+            if (bakingPrimitives == null) {
+                UI.printError(Module.SCENE, ""Lightmap baking is not supported for the given instance."");
+                return;
+            }
+            int n = bakingPrimitives.getNumPrimitives();
+            UI.printInfo(Module.SCENE, ""Building acceleration structure for lightmapping (%d num primitives) ..."", n);
+            bakingAccel = AccelerationStructureFactory.create(""auto"", n, true);
+            bakingAccel.build(bakingPrimitives);
+        } else {
+            bakingPrimitives = null;
+            bakingAccel = null;
+        }
+        bakingViewDependent = options.getBoolean(""baking.viewdep"", bakingViewDependent);
+
+        if ((bakingInstance != null && bakingViewDependent && camera == null) || (bakingInstance == null && camera == null)) {
+            UI.printError(Module.SCENE, ""No camera found"");
+            return;
+        }
+
+        // read from options
+        threads = options.getInt(""threads"", 0);
+        lowPriority = options.getBoolean(""threads.lowPriority"", true);
+        imageWidth = options.getInt(""resolutionX"", 640);
+        imageHeight = options.getInt(""resolutionY"", 480);
+        // limit resolution to 16k
+        imageWidth = MathUtils.clamp(imageWidth, 1, 1 << 14);
+        imageHeight = MathUtils.clamp(imageHeight, 1, 1 << 14);
+
+        // get acceleration structure info
+        // count scene primitives
+        long numPrimitives = 0;
+        for (int i = 0; i < instanceList.getNumPrimitives(); i++)
+            numPrimitives += instanceList.getNumPrimitives(i);
+        UI.printInfo(Module.SCENE, ""Scene stats:"");
+        UI.printInfo(Module.SCENE, ""  * Infinite instances:  %d"", infiniteInstanceList.getNumPrimitives());
+        UI.printInfo(Module.SCENE, ""  * Instances:           %d"", instanceList.getNumPrimitives());
+        UI.printInfo(Module.SCENE, ""  * Primitives:          %d"", numPrimitives);
+        String accelName = options.getString(""accel"", null);
+        if (accelName != null) {
+            rebuildAccel = rebuildAccel || !acceltype.equals(accelName);
+            acceltype = accelName;
+        }
+        UI.printInfo(Module.SCENE, ""  * Instance accel:      %s"", acceltype);
+        if (rebuildAccel) {
+            intAccel = AccelerationStructureFactory.create(acceltype, instanceList.getNumPrimitives(), false);
+            intAccel.build(instanceList);
+            rebuildAccel = false;
+        }
+        UI.printInfo(Module.SCENE, ""  * Scene bounds:        %s"", getBounds());
+        UI.printInfo(Module.SCENE, ""  * Scene center:        %s"", getBounds().getCenter());
+        UI.printInfo(Module.SCENE, ""  * Scene diameter:      %.2f"", getBounds().getExtents().length());
+        UI.printInfo(Module.SCENE, ""  * Lightmap bake:       %s"", bakingInstance != null ? (bakingViewDependent ? ""view"" : ""ortho"") : ""off"");
+        if (sampler == null)
+            return;
+        if (!lightServer.build(options))
+            return;
+        // render
+        UI.printInfo(Module.SCENE, ""Rendering ..."");
+        sampler.prepare(options, this, imageWidth, imageHeight);
+        sampler.render(display);
+        lightServer.showStats();
+        // discard baking tesselation/accel structure
+        bakingPrimitives = null;
+        bakingAccel = null;
+        UI.printInfo(Module.SCENE, ""Done."");
+    }
+
+    "

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "MAX_QUERY_TIMEOUT",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public void setQueryTimeout(int queryTimeout) {\n        int max = database.getSettings().maxQueryTimeout;\n        if (max != 0 && (max < queryTimeout || queryTimeout == 0)) {\n            // the value must be at most max\n            queryTimeout = max;\n        }\n        this.queryTimeout = queryTimeout;\n        // must reset the cancel at here,\n        // otherwise it is still used\n        cancelAtNs = 0L;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `setQueryTimeout` method primarily adjusts the timeout value for database queries based on a maximum limit. While the timeout can influence the duration of query execution, the method itself does not perform any time-intensive or memory-intensive operations. The impact of changing the query timeout is generally moderate and does not directly lead to significant performance variations in the system, as it mainly affects how long a query can run before being canceled rather than the execution efficiency of the queries themselves."
+        }
+    ]
+}

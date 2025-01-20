@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'native_transport_max_threads' in Cassandra determines the maximum number of threads that can handle incoming native transport connections. A higher number of threads allows for more simultaneous connections, which can significantly improve throughput and reduce latency under heavy load. Conversely, setting this value too low can lead to bottlenecks, increased response times, and overall degraded performance, especially in high-traffic scenarios. Therefore, changes to this configuration can have a notable impact on system performance, classifying it as performance-sensitive."
+}

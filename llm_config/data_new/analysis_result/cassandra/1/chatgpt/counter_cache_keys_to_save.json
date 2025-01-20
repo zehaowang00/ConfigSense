@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'counter_cache_keys_to_save' in Cassandra directly influences the caching strategy for counter data. A higher value can lead to increased memory usage as more keys are stored in the cache, potentially improving read performance by reducing disk I/O. Conversely, a lower value may decrease memory consumption but can significantly increase execution time for read operations due to more frequent cache misses and disk accesses. Therefore, changes to this configuration can lead to notable variations in both execution time and memory consumption, classifying it as performance-sensitive."
+}

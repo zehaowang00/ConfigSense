@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'start_native_transport' configuration in Cassandra is performance-sensitive because it controls whether the native transport layer is enabled or disabled. When enabled, it allows clients to communicate with the Cassandra database using a more efficient binary protocol, which can significantly reduce latency and improve throughput for data operations. Disabling this option can lead to increased execution time and higher resource consumption due to the fallback to less efficient communication methods. Therefore, changes to this configuration directly impact system performance, making it performance-sensitive."
+}

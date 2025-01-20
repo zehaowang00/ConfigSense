@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'ALLOWED_SCRIPT_TYPES' configuration in the Batik software project directly influences the types of scripts that can be executed. Changing this configuration can lead to significant variations in execution time and memory consumption, particularly if the new script types require different processing resources or if they introduce additional overhead. For instance, allowing more complex or resource-intensive script types could increase the execution time and memory usage, while restricting script types could enhance performance by reducing the processing load. Therefore, this configuration is considered performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'server_encryption_options' configuration in Cassandra is performance-sensitive because it directly influences the overhead associated with data encryption and decryption processes. Enabling encryption can significantly increase CPU usage and latency due to the additional computational resources required for encrypting and decrypting data during read and write operations. Variations in the configuration values, such as the choice of encryption algorithms or key sizes, can lead to notable differences in execution time and resource consumption, thereby impacting overall system performance."
+}

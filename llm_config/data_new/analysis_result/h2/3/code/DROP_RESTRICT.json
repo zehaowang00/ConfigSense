@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "DROP_RESTRICT",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public DropView(SessionLocal session, Schema schema) {\n        super(session, schema);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT :\n                ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropTable(SessionLocal session) {\n        super(session);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT :\n                    ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropDomain(SessionLocal session, Schema schema) {\n        super(session, schema);\n        dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintActionType.RESTRICT\n                : ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropSchema(SessionLocal session) {\n        super(session);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;\n    }\n\n    \npublic AlterTableDropConstraint(SessionLocal session, Schema schema, boolean ifExists) {\n        super(session, schema);\n        this.ifExists = ifExists;\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the `DROP_RESTRICT` setting primarily influences the behavior of database operations (RESTRICT vs. CASCADE) rather than their execution performance. While it may affect the outcome of drop operations, it does not directly lead to significant variations in execution time or memory usage associated with those operations. The performance impact of these configurations is generally minor or moderate, as they do not involve time-intensive or memory-intensive operations that would classify them as performance-sensitive."
+        }
+    ]
+}

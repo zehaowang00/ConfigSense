@@ -1,0 +1,15 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.batik.transcoder.SVGAbstractTranscoder$SVGAbstractTranscoderUserAgent:getUserStyleSheetURI(),(M)org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),USER_STYLESHEET_URI,getUserStyleSheetURI,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/SVGAbstractTranscoder.java,SVGAbstractTranscoder$SVGAbstractTranscoderUserAgent,../data/xml/batik/SVGAbstractTranscoder.xml,"/**
+         * Returns the user stylesheet specified in the
+         * <code>TranscodingHints</code> or null if any.
+         */
+public String getUserStyleSheetURI() {
+            String s = (String)SVGAbstractTranscoder.this.hints.get
+                (KEY_USER_STYLESHEET_URI);
+            if (s != null)
+                return s;
+
+            return super.getUserStyleSheetURI();
+        }
+
+        "

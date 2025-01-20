@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "LOB_TIMEOUT",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private void removeTemporaryLobs(boolean onTimeout) {\n        if (temporaryLobs != null) {\n            for (ValueLob v : temporaryLobs) {\n                if (!v.isLinkedToTable()) {\n                    v.remove();\n                }\n            }\n            temporaryLobs.clear();\n        }\n        if (temporaryResultLobs != null && !temporaryResultLobs.isEmpty()) {\n            long keepYoungerThan = System.nanoTime() - database.getSettings().lobTimeout * 1_000_000L;\n            while (!temporaryResultLobs.isEmpty()) {\n                TimeoutValue tv = temporaryResultLobs.getFirst();\n                if (onTimeout && tv.created - keepYoungerThan >= 0) {\n                    break;\n                }\n                ValueLob v = temporaryResultLobs.removeFirst().value;\n                if (!v.isLinkedToTable()) {\n                    v.remove();\n                }\n            }\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The LOB_TIMEOUT configuration directly influences the duration of the while loop that processes temporaryResultLobs. A longer timeout value can lead to increased memory usage and processing time as more temporary result LOBs are retained and processed, potentially causing significant performance degradation in scenarios with a high volume of temporary LOBs. This configuration can lead to time-intensive operations, especially if many LOBs are present, thus impacting overall system performance."
+        }
+    ]
+}

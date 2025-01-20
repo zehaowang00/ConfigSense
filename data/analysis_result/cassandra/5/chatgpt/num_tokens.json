@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'num_tokens' configuration in Cassandra directly influences the distribution of data across the cluster. A change in the number of tokens can significantly affect the load balancing and partitioning of data, leading to variations in execution time for read and write operations. If the number of tokens is too low, it can result in hotspots and uneven data distribution, causing increased latency and memory consumption. Conversely, a higher number of tokens can improve data distribution but may also increase the overhead of managing more partitions. Therefore, adjustments to 'num_tokens' can have a substantial impact on overall system performance."
+}

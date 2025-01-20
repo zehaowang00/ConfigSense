@@ -1,0 +1,39 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.prevayler.PrevaylerFactory:journal(),(O)org.prevayler.PrevaylerFactory:prevalenceDirectory(),prevayler-factory-2.7-SNAPSHOT,org.prevayler.PrevaylerFactory:prevalenceDirectory(),_prevalenceDirectory,journal,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/prevayler/factory/src/main/java/org/prevayler/PrevaylerFactory.java,PrevaylerFactory,../data/xml/prevayler/PrevaylerFactory.xml,"private Journal<P> journal() throws IOException {
+    if (_transientMode) {
+      return new TransientJournal<P>();
+    } else {
+      PrevaylerDirectory directory = new PrevaylerDirectory(prevalenceDirectory());
+      return new PersistentJournal<P>(directory, _journalSizeThreshold, _journalAgeThreshold, _journalDiskSync,
+          journalSuffix(), monitor());
+    }
+  }
+
+  "
+M:org.prevayler.PrevaylerFactory:snapshotManager(),(O)org.prevayler.PrevaylerFactory:prevalenceDirectory(),prevayler-factory-2.7-SNAPSHOT,org.prevayler.PrevaylerFactory:prevalenceDirectory(),_prevalenceDirectory,snapshotManager,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/prevayler/factory/src/main/java/org/prevayler/PrevaylerFactory.java,PrevaylerFactory,../data/xml/prevayler/PrevaylerFactory.xml,"private GenericSnapshotManager<P> snapshotManager() throws Exception {
+    if (_nullSnapshotManager != null)
+      return _nullSnapshotManager;
+
+    PrevaylerDirectory directory = new PrevaylerDirectory(prevalenceDirectory());
+    if (!_snapshotSerializers.isEmpty())
+      return new GenericSnapshotManager<P>(_snapshotSerializers, _primarySnapshotSuffix, prevalentSystem(), directory,
+          journalSerializer());
+
+    String snapshotSuffix = ""snapshot"";
+    JavaSerializer snapshotSerializer = new JavaSerializer();
+    return new GenericSnapshotManager<P>(Collections.singletonMap(snapshotSuffix, snapshotSerializer), snapshotSuffix,
+        prevalentSystem(), directory, journalSerializer());
+  }
+
+  "
+,,,,,,,,,"  /**
+   * Configures the directory where the created Prevayler will read and write its
+   * .journal and .snapshot files. The default is a directory called
+   * ""PrevalenceBase"" under the current directory.
+   *
+   * @param prevalenceDirectory Will be ignored for the .snapshot files if a
+   *                            SnapshotManager is configured.
+   */
+  public void configurePrevalenceDirectory(String prevalenceDirectory) {
+    _prevalenceDirectory = prevalenceDirectory;
+  }"

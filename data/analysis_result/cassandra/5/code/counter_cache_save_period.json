@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "counter_cache_save_period",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private AutoSavingCache<CounterCacheKey, ClockAndCount> initCounterCache()\n    {\n        logger.info(\"Initializing counter cache with capacity of {} MBs\", DatabaseDescriptor.getCounterCacheSizeInMB());\n\n        long capacity = DatabaseDescriptor.getCounterCacheSizeInMB() * 1024 * 1024;\n\n        AutoSavingCache<CounterCacheKey, ClockAndCount> cache =\n            new AutoSavingCache<>(CaffeineCache.create(capacity),\n                                  CacheType.COUNTER_CACHE,\n                                  new CounterCacheSerializer());\n\n        int keysToSave = DatabaseDescriptor.getCounterCacheKeysToSave();\n\n        logger.info(\"Scheduling counter cache save to every {} seconds (going to save {} keys).\",\n                    DatabaseDescriptor.getCounterCacheSavePeriod(),\n                    keysToSave == Integer.MAX_VALUE ? \"all\" : keysToSave);\n\n        cache.scheduleSaving(DatabaseDescriptor.getCounterCacheSavePeriod(), keysToSave);\n\n        return cache;\n    }\n\n\n    \npublic int getCounterCacheSavePeriodInSeconds()\n    {\n        return DatabaseDescriptor.getCounterCacheSavePeriod();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The counter cache save period directly influences how frequently the cache is saved, which can lead to significant performance variations. If the save period is set too short, it may result in frequent, time-intensive save operations that could degrade performance. Conversely, if set too long, it may lead to excessive memory usage due to the accumulation of unsaved keys, impacting memory-intensive operations. Therefore, the configuration has substantial implications for system-level performance."
+        }
+    ]
+}

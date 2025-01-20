@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'corrupted_tombstone_strategy' configuration in Cassandra is performance-sensitive because it directly influences how the system handles tombstones, which are markers for deleted data. Changes to this configuration can lead to significant variations in execution time and memory consumption, particularly during read operations and compaction processes. If the strategy is not optimized, it can result in increased latency and higher resource usage, especially in scenarios with a large number of tombstones. Therefore, any modification to this setting can have a substantial impact on overall system performance."
+}

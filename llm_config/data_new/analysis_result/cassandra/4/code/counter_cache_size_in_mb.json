@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "counter_cache_size_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private AutoSavingCache<CounterCacheKey, ClockAndCount> initCounterCache()\n    {\n        logger.info(\"Initializing counter cache with capacity of {} MBs\", DatabaseDescriptor.getCounterCacheSizeInMB());\n\n        long capacity = DatabaseDescriptor.getCounterCacheSizeInMB() * 1024 * 1024;\n\n        AutoSavingCache<CounterCacheKey, ClockAndCount> cache =\n            new AutoSavingCache<>(CaffeineCache.create(capacity),\n                                  CacheType.COUNTER_CACHE,\n                                  new CounterCacheSerializer());\n\n        int keysToSave = DatabaseDescriptor.getCounterCacheKeysToSave();\n\n        logger.info(\"Scheduling counter cache save to every {} seconds (going to save {} keys).\",\n                    DatabaseDescriptor.getCounterCacheSavePeriod(),\n                    keysToSave == Integer.MAX_VALUE ? \"all\" : keysToSave);\n\n        cache.scheduleSaving(DatabaseDescriptor.getCounterCacheSavePeriod(), keysToSave);\n\n        return cache;\n    }\n\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The size of the counter cache directly influences memory usage, as it determines the capacity allocated for caching operations. A larger cache can significantly improve performance by reducing the need for frequent data retrieval from slower storage, while a smaller cache may lead to increased cache misses and thus more time-consuming operations. Given that the cache size is a critical factor in the overall performance of the system, especially in high-load scenarios, it qualifies as performance-sensitive due to its substantial impact on memory and potential latency in data access."
+        }
+    ]
+}

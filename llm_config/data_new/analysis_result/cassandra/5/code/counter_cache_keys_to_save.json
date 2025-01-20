@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "counter_cache_keys_to_save",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private AutoSavingCache<CounterCacheKey, ClockAndCount> initCounterCache()\n    {\n        logger.info(\"Initializing counter cache with capacity of {} MBs\", DatabaseDescriptor.getCounterCacheSizeInMB());\n\n        long capacity = DatabaseDescriptor.getCounterCacheSizeInMB() * 1024 * 1024;\n\n        AutoSavingCache<CounterCacheKey, ClockAndCount> cache =\n            new AutoSavingCache<>(CaffeineCache.create(capacity),\n                                  CacheType.COUNTER_CACHE,\n                                  new CounterCacheSerializer());\n\n        int keysToSave = DatabaseDescriptor.getCounterCacheKeysToSave();\n\n        logger.info(\"Scheduling counter cache save to every {} seconds (going to save {} keys).\",\n                    DatabaseDescriptor.getCounterCacheSavePeriod(),\n                    keysToSave == Integer.MAX_VALUE ? \"all\" : keysToSave);\n\n        cache.scheduleSaving(DatabaseDescriptor.getCounterCacheSavePeriod(), keysToSave);\n\n        return cache;\n    }\n\n\n    \npublic void setCounterCacheSavePeriodInSeconds(int seconds)\n    {\n        if (seconds < 0)\n            throw new RuntimeException(\"CounterCacheSavePeriodInSeconds must be non-negative.\");\n\n        DatabaseDescriptor.setCounterCacheSavePeriod(seconds);\n        counterCache.scheduleSaving(seconds, DatabaseDescriptor.getCounterCacheKeysToSave());\n    }\n\n    \npublic int getCounterCacheKeysToSave()\n    {\n        return DatabaseDescriptor.getCounterCacheKeysToSave();\n    }\n\n    \npublic void saveCaches() throws ExecutionException, InterruptedException\n    {\n        List<Future<?>> futures = new ArrayList<>(3);\n        logger.debug(\"submitting cache saves\");\n\n        futures.add(keyCache.submitWrite(DatabaseDescriptor.getKeyCacheKeysToSave()));\n        futures.add(rowCache.submitWrite(DatabaseDescriptor.getRowCacheKeysToSave()));\n        futures.add(counterCache.submitWrite(DatabaseDescriptor.getCounterCacheKeysToSave()));\n\n        FBUtilities.waitOnFutures(futures);\n        logger.debug(\"cache saves completed\");\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `counter_cache_keys_to_save` directly influences the number of keys that are saved during cache operations, which can lead to significant variations in performance. If a large number of keys are set to be saved, this can result in time-intensive operations during the `saveCaches` method, as it involves writing multiple keys to the cache. Additionally, the scheduling of cache saves is dependent on this configuration, which can further impact system performance during high-load scenarios."
+        }
+    ]
+}

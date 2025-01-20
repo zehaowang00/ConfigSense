@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'native_transport_flush_in_batches_legacy' in Cassandra directly influences how data is flushed to the native transport layer. Changes in this configuration can significantly impact the performance of data writes and reads, as it determines the batch size for flushing operations. A larger batch size may improve throughput but could increase memory consumption and latency, while a smaller batch size may reduce memory usage but could lead to increased execution time due to more frequent flushes. Therefore, variations in this configuration can lead to notable differences in execution time and resource utilization, classifying it as performance-sensitive."
+}

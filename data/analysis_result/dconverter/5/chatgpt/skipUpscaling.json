@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'skipUpscaling' configuration in the dconverter software project directly influences how data is processed and rendered. If this option is set to true, the system avoids upscaling lower resolution inputs, which can significantly reduce the computational load and memory usage during processing. Conversely, setting it to false may lead to increased execution time and higher memory consumption due to additional processing required for upscaling. Therefore, changes to this configuration can lead to notable variations in system performance, classifying it as performance-sensitive."
+}

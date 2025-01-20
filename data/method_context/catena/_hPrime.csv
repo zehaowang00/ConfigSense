@@ -1,0 +1,72 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:main.java.Catena:flap(int,byte[],byte[])",(M)main.java.Catena:get_hPrime(),main.java.Catena:get_hPrime(),_hPrime,flap,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * flap function from catena specification
+	 * 
+	 * @param g
+	 * @param xIn
+	 * @param gamma
+	 * @return
+	 */
+private byte[] flap(int g, byte[] xIn, byte[] gamma) {
+        this.get_hPrime().reset();
+        int iterations = (int)Math.pow(2.0, g);
+        byte[][] v = new byte[iterations + 2][this.get_k()];
+        byte[] xHinit = this.hInit(xIn);
+        System.arraycopy(xHinit, 0, v[0], 0, this.get_k());
+        System.arraycopy(xHinit, this.get_k(), v[1], 0, this.get_k());
+        int i = 2;
+        while (i < iterations + 2) {
+            this.get_hPrime().update(this.helper.concateByteArrays(v[i - 1], v[i - 2]));
+            v[i] = this.get_hPrime().doFinal();
+            ++i;
+        }
+        byte[][] v2 = new byte[iterations][this.get_k()];
+        System.arraycopy(v, 2, v2, 0, v2.length);
+        this.get_hPrime().reset();
+        v2 = this.gamma(g, v2, gamma);
+        this.get_hPrime().reset();
+        v2 = this.f(g, v2, this.get_lambda());
+        this.get_hPrime().reset();
+        v2 = this.phi(g, v2, v2[v2.length - 1]);
+        return v2[v2.length - 1];
+    }
+
+    "
+"M:main.java.Catena:init(main.java.components.hash.HashInterface,main.java.components.hash.HashInterface,main.java.components.gamma.GammaInterface,main.java.components.graph.GraphInterface,main.java.components.graph.algorithms.IdxInterface,main.java.components.phi.PhiInterface,int,int,int,java.lang.String)",(M)main.java.Catena:get_hPrime(),main.java.Catena:get_hPrime(),_hPrime,init,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * Initializes Catena
+	 * 
+	 * initializrs all needed variables and functions with default values
+	 * 
+	 * @param h			main hash function
+	 * @param hPrime	reduced hash function
+	 * @param gamma		gamma function (e.g. SaltMix)
+	 * @param f			graph
+	 * @param idx		index function for graph
+	 * @param phi		phi function
+	 * @param gLow		minimum Garlic
+	 * @param gHigh		maximum Garlic
+	 * @param lambda	depth of graphs
+	 * @param vID		version ID
+	 */
+public void init(HashInterface h, HashInterface hPrime, GammaInterface gamma, GraphInterface f, IdxInterface idx, PhiInterface phi, int gLow, int gHigh, int lambda, String vID) {
+        this._h = h;
+        this._hPrime = hPrime;
+        this._gamma = gamma;
+        this._gamma.setH(this.get_h());
+        this._gamma.setHPrime(this.get_hPrime());
+        this._f = f;
+        this._f.setH(this.get_h());
+        this._f.setHPrime(this.get_hPrime());
+        this._f.setIndexing(idx);
+        this._phi = phi;
+        this._phi.setH(this.get_h());
+        this._phi.setHPrime(this.get_hPrime());
+        this._gLow = gLow;
+        this._gHigh = gHigh;
+        this._lambda = lambda;
+        this._n = this.get_h().getOutputSize();
+        this._k = this.get_hPrime().getOutputSize();
+        this._vId = vID;
+    }
+
+    "

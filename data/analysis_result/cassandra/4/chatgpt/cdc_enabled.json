@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'cdc_enabled' configuration in Cassandra controls whether Change Data Capture (CDC) is active. Enabling CDC can significantly impact system performance due to the additional overhead of tracking changes to data. This includes increased disk I/O for writing change logs, additional memory usage for maintaining state, and potential latency in read and write operations as the system processes these changes. Consequently, toggling this configuration can lead to notable variations in execution time and resource consumption, classifying it as performance-sensitive."
+}

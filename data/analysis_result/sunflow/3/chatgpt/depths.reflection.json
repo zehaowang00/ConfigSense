@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'depths.reflection' configuration in the Sunflow software project directly influences the level of detail in ray tracing calculations. A change in this configuration can lead to significant variations in execution time due to the increased complexity of rendering scenes with more reflection depth. Higher values can lead to more recursive calculations, which can dramatically increase CPU usage and memory consumption, especially in complex scenes. Therefore, this configuration is classified as performance-sensitive."
+}

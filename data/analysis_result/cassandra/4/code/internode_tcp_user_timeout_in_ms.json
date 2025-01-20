@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "internode_tcp_user_timeout_in_ms",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public int tcpUserTimeoutInMS(ConnectionCategory category)\n    {\n        // Reusing tcpUserTimeoutInMS for both messaging and streaming, since the connection is created for either one of them.\n        if (tcpUserTimeoutInMS != null)\n            return tcpUserTimeoutInMS;\n\n        switch (category)\n        {\n            case MESSAGING: return DatabaseDescriptor.getInternodeTcpUserTimeoutInMS();\n            case STREAMING: return DatabaseDescriptor.getInternodeStreamingTcpUserTimeoutInMS();\n            default: throw new IllegalArgumentException(\"Unknown connection category: \" + category);\n        }\n    }\n\n    \npublic int getInternodeTcpUserTimeoutInMS()\n    {\n        return DatabaseDescriptor.getInternodeTcpUserTimeoutInMS();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the `internode_tcp_user_timeout_in_ms` configuration primarily retrieves timeout values from the `DatabaseDescriptor` and does not involve any time-intensive or memory-intensive operations. The operations performed are simple method calls that return integer values, which do not significantly impact system performance."
+        }
+    ]
+}

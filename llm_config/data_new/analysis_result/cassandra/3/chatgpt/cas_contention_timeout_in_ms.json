@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'cas_contention_timeout_in_ms' in Cassandra is performance-sensitive because it directly affects the timeouts for Compare-And-Swap (CAS) operations. A lower timeout value can lead to more frequent retries and increased contention, which can significantly impact execution time and throughput under high load. Conversely, a higher timeout may reduce contention but can also lead to longer wait times for operations, affecting overall system responsiveness. Therefore, changes to this configuration can lead to notable variations in execution time and resource utilization, classifying it as performance-sensitive."
+}

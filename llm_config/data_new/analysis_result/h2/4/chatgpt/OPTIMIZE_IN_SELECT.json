@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'OPTIMIZE_IN_SELECT' in the H2 database significantly impacts query execution performance. When enabled, it optimizes the selection process, which can lead to reduced execution times for queries, especially those involving complex joins or large datasets. Conversely, disabling this option may result in slower query performance and increased resource consumption, as the database engine may have to perform more computations to retrieve the same data. Therefore, changes to this configuration can lead to notable variations in execution time and overall system performance, classifying it as performance-sensitive."
+}

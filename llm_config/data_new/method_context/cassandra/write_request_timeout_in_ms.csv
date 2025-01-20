@@ -1,0 +1,836 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.batchlog.BatchlogManager:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/batchlog/BatchlogManager.java,BatchlogManager,../data/xml/cassandra/BatchlogManager.xml,"public class BatchlogManager implements BatchlogManagerMBean
+{
+    public static final String MBEAN_NAME = ""org.apache.cassandra.db:type=BatchlogManager"";
+    private static final long REPLAY_INTERVAL = 10 * 1000; // milliseconds
+    static final int DEFAULT_PAGE_SIZE = 128;
+
+    private static final Logger logger = LoggerFactory.getLogger(BatchlogManager.class);
+    public static final BatchlogManager instance = new BatchlogManager();
+    public static final long BATCHLOG_REPLAY_TIMEOUT = Long.getLong(""cassandra.batchlog.replay_timeout_in_ms"", DatabaseDescriptor.getWriteRpcTimeout(MILLISECONDS) * 2);
+
+    private volatile long totalBatchesReplayed = 0; // no concurrency protection necessary as only written by replay thread.
+    private volatile UUID lastReplayedUuid = UUIDGen.minTimeUUID(0);
+
+    // Single-thread executor service for scheduling and serializing log replay.
+    private final ScheduledExecutorService batchlogTasks;
+
+    private final RateLimiter rateLimiter = RateLimiter.create(Double.MAX_VALUE);
+
+    public BatchlogManager()
+    {
+        ScheduledThreadPoolExecutor executor = new DebuggableScheduledThreadPoolExecutor(""BatchlogTasks"");
+        executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+        batchlogTasks = executor;
+    }
+
+    public void start()
+    {
+        MBeanWrapper.instance.registerMBean(this, MBEAN_NAME);
+
+        batchlogTasks.scheduleWithFixedDelay(this::replayFailedBatches,
+                                             StorageService.RING_DELAY,
+                                             REPLAY_INTERVAL,
+                                             MILLISECONDS);
+    }
+
+    public void shutdownAndWait(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException
+    {
+        ExecutorUtils.shutdownAndWait(timeout, unit, batchlogTasks);
+    }
+
+    public static void remove(UUID id)
+    {
+        new Mutation(PartitionUpdate.fullPartitionDelete(SystemKeyspace.Batches,
+                                                         UUIDType.instance.decompose(id),
+                                                         FBUtilities.timestampMicros(),
+                                                         FBUtilities.nowInSeconds()))
+            .apply();
+    }
+
+    public static void store(Batch batch)
+    {
+        store(batch, true);
+    }
+
+    public static void store(Batch batch, boolean durableWrites)
+    {
+        List<ByteBuffer> mutations = new ArrayList<>(batch.encodedMutations.size() + batch.decodedMutations.size());
+        mutations.addAll(batch.encodedMutations);
+
+        for (Mutation mutation : batch.decodedMutations)
+        {
+            try (DataOutputBuffer buffer = new DataOutputBuffer())
+            {
+                Mutation.serializer.serialize(mutation, buffer, MessagingService.current_version);
+                mutations.add(buffer.buffer());
+            }
+            catch (IOException e)
+            {
+                // shouldn't happen
+                throw new AssertionError(e);
+            }
+        }
+
+        PartitionUpdate.SimpleBuilder builder = PartitionUpdate.simpleBuilder(SystemKeyspace.Batches, batch.id);
+        builder.row()
+               .timestamp(batch.creationTime)
+               .add(""version"", MessagingService.current_version)
+               .appendAll(""mutations"", mutations);
+
+        builder.buildAsMutation().apply(durableWrites);
+    }
+
+    @VisibleForTesting
+    public int countAllBatches()
+    {
+        String query = String.format(""SELECT count(*) FROM %s.%s"", SchemaConstants.SYSTEM_KEYSPACE_NAME, SystemKeyspace.BATCHES);
+        UntypedResultSet results = executeInternal(query);
+        if (results == null || results.isEmpty())
+            return 0;
+
+        return (int) results.one().getLong(""count"");
+    }
+
+    public long getTotalBatchesReplayed()
+    {
+        return totalBatchesReplayed;
+    }
+
+    public void forceBatchlogReplay() throws Exception
+    {
+        startBatchlogReplay().get();
+    }
+
+    public Future<?> startBatchlogReplay()
+    {
+        // If a replay is already in progress this request will be executed after it completes.
+        return batchlogTasks.submit(this::replayFailedBatches);
+    }
+
+    void performInitialReplay() throws InterruptedException, ExecutionException
+    {
+        // Invokes initial replay. Used for testing only.
+        batchlogTasks.submit(this::replayFailedBatches).get();
+    }
+
+    private void replayFailedBatches()
+    {
+        logger.trace(""Started replayFailedBatches"");
+
+        // rate limit is in bytes per second. Uses Double.MAX_VALUE if disabled (set to 0 in cassandra.yaml).
+        // max rate is scaled by the number of nodes in the cluster (same as for HHOM - see CASSANDRA-5272).
+        int endpointsCount = StorageService.instance.getTokenMetadata().getSizeOfAllEndpoints();
+        if (endpointsCount <= 0)
+        {
+            logger.trace(""Replay cancelled as there are no peers in the ring."");
+            return;
+        }
+        setRate(DatabaseDescriptor.getBatchlogReplayThrottleInKB());
+
+        UUID limitUuid = UUIDGen.maxTimeUUID(System.currentTimeMillis() - getBatchlogTimeout());
+        ColumnFamilyStore store = Keyspace.open(SchemaConstants.SYSTEM_KEYSPACE_NAME).getColumnFamilyStore(SystemKeyspace.BATCHES);
+        int pageSize = calculatePageSize(store);
+        // There cannot be any live content where token(id) <= token(lastReplayedUuid) as every processed batch is
+        // deleted, but the tombstoned content may still be present in the tables. To avoid walking over it we specify
+        // token(id) > token(lastReplayedUuid) as part of the query.
+        String query = String.format(""SELECT id, mutations, version FROM %s.%s WHERE token(id) > token(?) AND token(id) <= token(?)"",
+                                     SchemaConstants.SYSTEM_KEYSPACE_NAME,
+                                     SystemKeyspace.BATCHES);
+        UntypedResultSet batches = executeInternalWithPaging(query, pageSize, lastReplayedUuid, limitUuid);
+        processBatchlogEntries(batches, pageSize, rateLimiter);
+        lastReplayedUuid = limitUuid;
+        logger.trace(""Finished replayFailedBatches"");
+    }
+
+    /**
+     * Sets the rate for the current rate limiter. When {@code throttleInKB} is 0, this sets the rate to
+     * {@link Double#MAX_VALUE} bytes per second.
+     *
+     * @param throttleInKB throughput to set in KB per second
+     */
+    public void setRate(final int throttleInKB)
+    {
+        int endpointsCount = StorageService.instance.getTokenMetadata().getSizeOfAllEndpoints();
+        if (endpointsCount > 0)
+        {
+            int endpointThrottleInKB = throttleInKB / endpointsCount;
+            double throughput = endpointThrottleInKB == 0 ? Double.MAX_VALUE : endpointThrottleInKB * 1024.0;
+            if (rateLimiter.getRate() != throughput)
+            {
+                logger.debug(""Updating batchlog replay throttle to {} KB/s, {} KB/s per endpoint"", throttleInKB, endpointThrottleInKB);
+                rateLimiter.setRate(throughput);
+            }
+        }
+    }
+
+    // read less rows (batches) per page if they are very large
+    static int calculatePageSize(ColumnFamilyStore store)
+    {
+        double averageRowSize = store.getMeanPartitionSize();
+        if (averageRowSize <= 0)
+            return DEFAULT_PAGE_SIZE;
+
+        return (int) Math.max(1, Math.min(DEFAULT_PAGE_SIZE, 4 * 1024 * 1024 / averageRowSize));
+    }
+
+    private void processBatchlogEntries(UntypedResultSet batches, int pageSize, RateLimiter rateLimiter)
+    {
+        int positionInPage = 0;
+        ArrayList<ReplayingBatch> unfinishedBatches = new ArrayList<>(pageSize);
+
+        Set<UUID> hintedNodes = new HashSet<>();
+        Set<UUID> replayedBatches = new HashSet<>();
+        Exception caughtException = null;
+        int skipped = 0;
+
+        // Sending out batches for replay without waiting for them, so that one stuck batch doesn't affect others
+        for (UntypedResultSet.Row row : batches)
+        {
+            UUID id = row.getUUID(""id"");
+            int version = row.getInt(""version"");
+            try
+            {
+                ReplayingBatch batch = new ReplayingBatch(id, version, row.getList(""mutations"", BytesType.instance));
+                if (batch.replay(rateLimiter, hintedNodes) > 0)
+                {
+                    unfinishedBatches.add(batch);
+                }
+                else
+                {
+                    remove(id); // no write mutations were sent (either expired or all CFs involved truncated).
+                    ++totalBatchesReplayed;
+                }
+            }
+            catch (IOException e)
+            {
+                logger.warn(""Skipped batch replay of {} due to {}"", id, e.getMessage());
+                caughtException = e;
+                remove(id);
+                ++skipped;
+            }
+
+            if (++positionInPage == pageSize)
+            {
+                // We have reached the end of a batch. To avoid keeping more than a page of mutations in memory,
+                // finish processing the page before requesting the next row.
+                finishAndClearBatches(unfinishedBatches, hintedNodes, replayedBatches);
+                positionInPage = 0;
+            }
+        }
+
+        // finalize the incomplete last page of batches
+        if (positionInPage > 0)
+            finishAndClearBatches(unfinishedBatches, hintedNodes, replayedBatches);
+
+        if (caughtException != null)
+            logger.warn(String.format(""Encountered %d unexpected exceptions while sending out batches"", skipped), caughtException);
+
+        // to preserve batch guarantees, we must ensure that hints (if any) have made it to disk, before deleting the batches
+        HintsService.instance.flushAndFsyncBlockingly(hintedNodes);
+
+        // once all generated hints are fsynced, actually delete the batches
+        replayedBatches.forEach(BatchlogManager::remove);
+    }
+
+    private void finishAndClearBatches(ArrayList<ReplayingBatch> batches, Set<UUID> hintedNodes, Set<UUID> replayedBatches)
+    {
+        // schedule hints for timed out deliveries
+        for (ReplayingBatch batch : batches)
+        {
+            batch.finish(hintedNodes);
+            replayedBatches.add(batch.id);
+        }
+
+        totalBatchesReplayed += batches.size();
+        batches.clear();
+    }
+
+    public static long getBatchlogTimeout()
+    {
+        return BATCHLOG_REPLAY_TIMEOUT; // enough time for the actual write + BM removal mutation
+    }
+
+    private static class ReplayingBatch
+    {
+        private final UUID id;
+        private final long writtenAt;
+        private final List<Mutation> mutations;
+        private final int replayedBytes;
+
+        private List<ReplayWriteResponseHandler<Mutation>> replayHandlers;
+
+        ReplayingBatch(UUID id, int version, List<ByteBuffer> serializedMutations) throws IOException
+        {
+            this.id = id;
+            this.writtenAt = UUIDGen.unixTimestamp(id);
+            this.mutations = new ArrayList<>(serializedMutations.size());
+            this.replayedBytes = addMutations(version, serializedMutations);
+        }
+
+        public int replay(RateLimiter rateLimiter, Set<UUID> hintedNodes) throws IOException
+        {
+            logger.trace(""Replaying batch {}"", id);
+
+            if (mutations.isEmpty())
+                return 0;
+
+            int gcgs = gcgs(mutations);
+            if (MILLISECONDS.toSeconds(writtenAt) + gcgs <= FBUtilities.nowInSeconds())
+                return 0;
+
+            replayHandlers = sendReplays(mutations, writtenAt, hintedNodes);
+
+            rateLimiter.acquire(replayedBytes); // acquire afterwards, to not mess up ttl calculation.
+
+            return replayHandlers.size();
+        }
+
+        public void finish(Set<UUID> hintedNodes)
+        {
+            for (int i = 0; i < replayHandlers.size(); i++)
+            {
+                ReplayWriteResponseHandler<Mutation> handler = replayHandlers.get(i);
+                try
+                {
+                    handler.get();
+                }
+                catch (WriteTimeoutException|WriteFailureException e)
+                {
+                    logger.trace(""Failed replaying a batched mutation to a node, will write a hint"");
+                    logger.trace(""Failure was : {}"", e.getMessage());
+                    // writing hints for the rest to hints, starting from i
+                    writeHintsForUndeliveredEndpoints(i, hintedNodes);
+                    return;
+                }
+            }
+        }
+
+        private int addMutations(int version, List<ByteBuffer> serializedMutations) throws IOException
+        {
+            int ret = 0;
+            for (ByteBuffer serializedMutation : serializedMutations)
+            {
+                ret += serializedMutation.remaining();
+                try (DataInputBuffer in = new DataInputBuffer(serializedMutation, true))
+                {
+                    addMutation(Mutation.serializer.deserialize(in, version));
+                }
+            }
+
+            return ret;
+        }
+
+        // Remove CFs that have been truncated since. writtenAt and SystemTable#getTruncatedAt() both return millis.
+        // We don't abort the replay entirely b/c this can be considered a success (truncated is same as delivered then
+        // truncated.
+        private void addMutation(Mutation mutation)
+        {
+            for (TableId tableId : mutation.getTableIds())
+                if (writtenAt <= SystemKeyspace.getTruncatedAt(tableId))
+                    mutation = mutation.without(tableId);
+
+            if (!mutation.isEmpty())
+                mutations.add(mutation);
+        }
+
+        private void writeHintsForUndeliveredEndpoints(int startFrom, Set<UUID> hintedNodes)
+        {
+            int gcgs = gcgs(mutations);
+
+            // expired
+            if (MILLISECONDS.toSeconds(writtenAt) + gcgs <= FBUtilities.nowInSeconds())
+                return;
+
+            Set<UUID> nodesToHint = new HashSet<>();
+            for (int i = startFrom; i < replayHandlers.size(); i++)
+            {
+                ReplayWriteResponseHandler<Mutation> handler = replayHandlers.get(i);
+                Mutation undeliveredMutation = mutations.get(i);
+
+                if (handler != null)
+                {
+                    for (InetAddressAndPort address : handler.undelivered)
+                    {
+                        UUID hostId = StorageService.instance.getHostIdForEndpoint(address);
+                        if (null != hostId)
+                            nodesToHint.add(hostId);
+                    }
+                    if (!nodesToHint.isEmpty())
+                        HintsService.instance.write(nodesToHint, Hint.create(undeliveredMutation, writtenAt));
+                    hintedNodes.addAll(nodesToHint);
+                    nodesToHint.clear();
+                }
+            }
+        }
+
+        private static List<ReplayWriteResponseHandler<Mutation>> sendReplays(List<Mutation> mutations,
+                                                                              long writtenAt,
+                                                                              Set<UUID> hintedNodes)
+        {
+            List<ReplayWriteResponseHandler<Mutation>> handlers = new ArrayList<>(mutations.size());
+            for (Mutation mutation : mutations)
+            {
+                ReplayWriteResponseHandler<Mutation> handler = sendSingleReplayMutation(mutation, writtenAt, hintedNodes);
+                handlers.add(handler);
+            }
+            return handlers;
+        }
+
+        /**
+         * We try to deliver the mutations to the replicas ourselves if they are alive and only resort to writing hints
+         * when a replica is down or a write request times out.
+         *
+         * @return direct delivery handler to wait on
+         */
+        private static ReplayWriteResponseHandler<Mutation> sendSingleReplayMutation(final Mutation mutation,
+                                                                                     long writtenAt,
+                                                                                     Set<UUID> hintedNodes)
+        {
+            String ks = mutation.getKeyspaceName();
+            Keyspace keyspace = Keyspace.open(ks);
+            Token tk = mutation.key().getToken();
+
+            // TODO: this logic could do with revisiting at some point, as it is unclear what its rationale is
+            // we perform a local write, ignoring errors and inline in this thread (potentially slowing replay down)
+            // effectively bumping CL for locally owned writes and also potentially stalling log replay if an error occurs
+            // once we decide how it should work, it can also probably be simplified, and avoid constructing a ReplicaPlan directly
+            ReplicaLayout.ForTokenWrite liveAndDown = ReplicaLayout.forTokenWriteLiveAndDown(keyspace, tk);
+            Replicas.temporaryAssertFull(liveAndDown.all()); // TODO in CASSANDRA-14549
+
+            Replica selfReplica = liveAndDown.all().selfIfPresent();
+            if (selfReplica != null)
+                mutation.apply();
+
+            ReplicaLayout.ForTokenWrite liveRemoteOnly = liveAndDown.filter(
+                    r -> FailureDetector.isReplicaAlive.test(r) && r != selfReplica);
+
+            for (Replica replica : liveAndDown.all())
+            {
+                if (replica == selfReplica || liveRemoteOnly.all().contains(replica))
+                    continue;
+
+                UUID hostId = StorageService.instance.getHostIdForEndpoint(replica.endpoint());
+                if (null != hostId)
+                {
+                    HintsService.instance.write(hostId, Hint.create(mutation, writtenAt));
+                    hintedNodes.add(hostId);
+                }
+            }
+
+            ReplicaPlan.ForTokenWrite replicaPlan = new ReplicaPlan.ForTokenWrite(keyspace, liveAndDown.replicationStrategy(),
+                    ConsistencyLevel.ONE, liveRemoteOnly.pending(), liveRemoteOnly.all(), liveRemoteOnly.all(), liveRemoteOnly.all());
+            ReplayWriteResponseHandler<Mutation> handler = new ReplayWriteResponseHandler<>(replicaPlan, System.nanoTime());
+            Message<Mutation> message = Message.outWithFlag(MUTATION_REQ, mutation, MessageFlag.CALL_BACK_ON_FAILURE);
+            for (Replica replica : liveRemoteOnly.all())
+                MessagingService.instance().sendWriteWithCallback(message, replica, handler, false);
+            return handler;
+        }
+
+        private static int gcgs(Collection<Mutation> mutations)
+        {
+            int gcgs = Integer.MAX_VALUE;
+            for (Mutation mutation : mutations)
+                gcgs = Math.min(gcgs, mutation.smallestGCGS());
+            return gcgs;
+        }
+
+        /**
+         * A wrapper of WriteResponseHandler that stores the addresses of the endpoints from
+         * which we did not receive a successful response.
+         */
+        private static class ReplayWriteResponseHandler<T> extends WriteResponseHandler<T>
+        {
+            private final Set<InetAddressAndPort> undelivered = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+            ReplayWriteResponseHandler(ReplicaPlan.ForTokenWrite replicaPlan, long queryStartNanoTime)
+            {
+                super(replicaPlan, null, WriteType.UNLOGGED_BATCH, queryStartNanoTime);
+                Iterables.addAll(undelivered, replicaPlan.contacts().endpoints());
+            }
+
+            @Override
+            protected int blockFor()
+            {
+                return this.replicaPlan.contacts().size();
+            }
+
+            @Override
+            public void onResponse(Message<T> m)
+            {
+                boolean removed = undelivered.remove(m == null ? FBUtilities.getBroadcastAddressAndPort() : m.from());
+                assert removed;
+                super.onResponse(m);
+            }
+        }
+    }
+}
+"
+M:org.apache.cassandra.config.DatabaseDescriptor:getMinRpcTimeout(java.util.concurrent.TimeUnit),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,getMinRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/config/DatabaseDescriptor.java,DatabaseDescriptor,../data/xml/cassandra/DatabaseDescriptor.xml,"/**
+     * @return the minimum configured {read, write, range, truncate, misc} timeout
+     */
+public static long getMinRpcTimeout(TimeUnit unit)
+    {
+        return Longs.min(getRpcTimeout(unit),
+                         getReadRpcTimeout(unit),
+                         getRangeRpcTimeout(unit),
+                         getWriteRpcTimeout(unit),
+                         getCounterWriteRpcTimeout(unit),
+                         getTruncateRpcTimeout(unit));
+    }
+
+    "
+M:org.apache.cassandra.cql3.QueryProcessor:useNewPreparedStatementBehaviour(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,useNewPreparedStatementBehaviour,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/QueryProcessor.java,QueryProcessor,../data/xml/cassandra/QueryProcessor.xml,"public boolean useNewPreparedStatementBehaviour()
+    {
+        if (newPreparedStatementBehaviour || DatabaseDescriptor.getForceNewPreparedStatementBehaviour())
+            return true;
+
+        synchronized (this)
+        {
+            CassandraVersion minVersion = Gossiper.instance.getMinVersion(DatabaseDescriptor.getWriteRpcTimeout(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+            if (minVersion != null &&
+                ((minVersion.major == 3 && minVersion.minor == 0 && minVersion.compareTo(NEW_PREPARED_STATEMENT_BEHAVIOUR_SINCE_30) >= 0) ||
+                 (minVersion.major == 3 && minVersion.minor > 0 && minVersion.compareTo(NEW_PREPARED_STATEMENT_BEHAVIOUR_SINCE_3X) >= 0) ||
+                 (minVersion.compareTo(NEW_PREPARED_STATEMENT_BEHAVIOUR_SINCE_40, true) >= 0)))
+            {
+                logger.info(""Fully upgraded to at least {}"", minVersion);
+                newPreparedStatementBehaviour = true;
+            }
+
+            return newPreparedStatementBehaviour;
+        }
+    }
+
+    "
+"M:org.apache.cassandra.db.ColumnFamilyStore:<init>(org.apache.cassandra.db.Keyspace,java.lang.String,int,org.apache.cassandra.schema.TableMetadataRef,org.apache.cassandra.db.Directories,boolean,boolean,boolean)",(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/ColumnFamilyStore.java,ColumnFamilyStore,../data/xml/cassandra/ColumnFamilyStore.xml,"@VisibleForTesting
+    public ColumnFamilyStore(Keyspace keyspace,
+                             String columnFamilyName,
+                             int generation,
+                             TableMetadataRef metadata,
+                             Directories directories,
+                             boolean loadSSTables,
+                             boolean registerBookeeping,
+                             boolean offline)
+    {
+        assert directories != null;
+        assert metadata != null : ""null metadata for "" + keyspace + ':' + columnFamilyName;
+
+        this.keyspace = keyspace;
+        this.metadata = metadata;
+        this.directories = directories;
+        name = columnFamilyName;
+        minCompactionThreshold = new DefaultValue<>(metadata.get().params.compaction.minCompactionThreshold());
+        maxCompactionThreshold = new DefaultValue<>(metadata.get().params.compaction.maxCompactionThreshold());
+        crcCheckChance = new DefaultValue<>(metadata.get().params.crcCheckChance);
+        viewManager = keyspace.viewManager.forTable(metadata.id);
+        fileIndexGenerator.set(generation);
+        sampleReadLatencyNanos = DatabaseDescriptor.getReadRpcTimeout(NANOSECONDS) / 2;
+        additionalWriteLatencyNanos = DatabaseDescriptor.getWriteRpcTimeout(NANOSECONDS) / 2;
+
+        logger.info(""Initializing {}.{}"", keyspace.getName(), name);
+
+        // Create Memtable only on online
+        Memtable initialMemtable = null;
+        if (DatabaseDescriptor.isDaemonInitialized())
+            initialMemtable = new Memtable(new AtomicReference<>(CommitLog.instance.getCurrentPosition()), this);
+        data = new Tracker(initialMemtable, loadSSTables);
+
+        // Note that this needs to happen before we load the first sstables, or the global sstable tracker will not
+        // be notified on the initial loading.
+        data.subscribe(StorageService.instance.sstablesTracker);
+
+        Collection<SSTableReader> sstables = null;
+        // scan for sstables corresponding to this cf and load them
+        if (data.loadsstables)
+        {
+            Directories.SSTableLister sstableFiles = directories.sstableLister(Directories.OnTxnErr.IGNORE).skipTemporary(true);
+            sstables = SSTableReader.openAll(sstableFiles.list().entrySet(), metadata);
+            data.addInitialSSTablesWithoutUpdatingSize(sstables);
+        }
+
+        // compaction strategy should be created after the CFS has been prepared
+        compactionStrategyManager = new CompactionStrategyManager(this);
+
+        if (maxCompactionThreshold.value() <= 0 || minCompactionThreshold.value() <=0)
+        {
+            logger.warn(""Disabling compaction strategy by setting compaction thresholds to 0 is deprecated, set the compaction option 'enabled' to 'false' instead."");
+            this.compactionStrategyManager.disable();
+        }
+
+        // create the private ColumnFamilyStores for the secondary column indexes
+        indexManager = new SecondaryIndexManager(this);
+        for (IndexMetadata info : metadata.get().indexes)
+        {
+            indexManager.addIndex(info, true);
+        }
+
+        metric = new TableMetrics(this);
+
+        if (data.loadsstables)
+        {
+            data.updateInitialSSTableSize(sstables);
+        }
+
+        if (registerBookeeping)
+        {
+            // register the mbean
+            mbeanName = getTableMBeanName(keyspace.getName(), name, isIndex());
+            oldMBeanName = getColumnFamilieMBeanName(keyspace.getName(), name, isIndex());
+
+            String[] objectNames = {mbeanName, oldMBeanName};
+            for (String objectName : objectNames)
+                MBeanWrapper.instance.registerMBean(this, objectName);
+        }
+        else
+        {
+            mbeanName = null;
+            oldMBeanName= null;
+        }
+        writeHandler = new CassandraTableWriteHandler(this);
+        streamManager = new CassandraStreamManager(this);
+        repairManager = new CassandraTableRepairManager(this);
+        sstableImporter = new SSTableImporter(this);
+    }
+
+    "
+"M:org.apache.cassandra.db.Keyspace:applyInternal(org.apache.cassandra.db.Mutation,boolean,boolean,boolean,boolean,java.util.concurrent.CompletableFuture)",(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,applyInternal,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/Keyspace.java,Keyspace,../data/xml/cassandra/Keyspace.xml,"/**
+     * This method appends a row to the global CommitLog, then updates memtables and indexes.
+     *
+     * @param mutation       the row to write.  Must not be modified after calling apply, since commitlog append
+     *                       may happen concurrently, depending on the CL Executor type.
+     * @param makeDurable    if true, don't return unless write has been made durable
+     * @param updateIndexes  false to disable index updates (used by CollationController ""defragmenting"")
+     * @param isDroppable    true if this should throw WriteTimeoutException if it does not acquire lock within write_request_timeout_in_ms
+     * @param isDeferrable   true if caller is not waiting for future to complete, so that future may be deferred
+     */
+private CompletableFuture<?> applyInternal(final Mutation mutation,
+                                               final boolean makeDurable,
+                                               boolean updateIndexes,
+                                               boolean isDroppable,
+                                               boolean isDeferrable,
+                                               CompletableFuture<?> future)
+    {
+        if (TEST_FAIL_WRITES && metadata.name.equals(TEST_FAIL_WRITES_KS))
+            throw new RuntimeException(""Testing write failures"");
+
+        Lock[] locks = null;
+
+        boolean requiresViewUpdate = updateIndexes && viewManager.updatesAffectView(Collections.singleton(mutation), false);
+
+        if (requiresViewUpdate)
+        {
+            mutation.viewLockAcquireStart.compareAndSet(0L, System.currentTimeMillis());
+
+            // the order of lock acquisition doesn't matter (from a deadlock perspective) because we only use tryLock()
+            Collection<TableId> tableIds = mutation.getTableIds();
+            Iterator<TableId> idIterator = tableIds.iterator();
+
+            locks = new Lock[tableIds.size()];
+            for (int i = 0; i < tableIds.size(); i++)
+            {
+                TableId tableId = idIterator.next();
+                int lockKey = Objects.hash(mutation.key().getKey(), tableId);
+                while (true)
+                {
+                    Lock lock = null;
+
+                    if (TEST_FAIL_MV_LOCKS_COUNT == 0)
+                        lock = ViewManager.acquireLockFor(lockKey);
+                    else
+                        TEST_FAIL_MV_LOCKS_COUNT--;
+
+                    if (lock == null)
+                    {
+                        //throw WTE only if request is droppable
+                        if (isDroppable && (approxTime.isAfter(mutation.approxCreatedAtNanos + DatabaseDescriptor.getWriteRpcTimeout(NANOSECONDS))))
+                        {
+                            for (int j = 0; j < i; j++)
+                                locks[j].unlock();
+
+                            if (logger.isTraceEnabled())
+                                logger.trace(""Could not acquire lock for {} and table {}"", ByteBufferUtil.bytesToHex(mutation.key().getKey()), columnFamilyStores.get(tableId).name);
+                            Tracing.trace(""Could not acquire MV lock"");
+                            if (future != null)
+                            {
+                                future.completeExceptionally(new WriteTimeoutException(WriteType.VIEW, ConsistencyLevel.LOCAL_ONE, 0, 1));
+                                return future;
+                            }
+                            else
+                                throw new WriteTimeoutException(WriteType.VIEW, ConsistencyLevel.LOCAL_ONE, 0, 1);
+                        }
+                        else if (isDeferrable)
+                        {
+                            for (int j = 0; j < i; j++)
+                                locks[j].unlock();
+
+                            // This view update can't happen right now. so rather than keep this thread busy
+                            // we will re-apply ourself to the queue and try again later
+                            final CompletableFuture<?> mark = future;
+                            Stage.MUTATION.execute(() ->
+                                                   applyInternal(mutation, makeDurable, true, isDroppable, true, mark)
+                            );
+                            return future;
+                        }
+                        else
+                        {
+                            // Retry lock on same thread, if mutation is not deferrable.
+                            // Mutation is not deferrable, if applied from MutationStage and caller is waiting for future to finish
+                            // If blocking caller defers future, this may lead to deadlock situation with all MutationStage workers
+                            // being blocked by waiting for futures which will never be processed as all workers are blocked
+                            try
+                            {
+                                // Wait a little bit before retrying to lock
+                                Thread.sleep(10);
+                            }
+                            catch (InterruptedException e)
+                            {
+                                // Just continue
+                            }
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        locks[i] = lock;
+                    }
+                    break;
+                }
+            }
+
+            long acquireTime = System.currentTimeMillis() - mutation.viewLockAcquireStart.get();
+            // Metrics are only collected for droppable write operations
+            // Bulk non-droppable operations (e.g. commitlog replay, hint delivery) are not measured
+            if (isDroppable)
+            {
+                for(TableId tableId : tableIds)
+                    columnFamilyStores.get(tableId).metric.viewLockAcquireTime.update(acquireTime, MILLISECONDS);
+            }
+        }
+        int nowInSec = FBUtilities.nowInSeconds();
+        try (WriteContext ctx = getWriteHandler().beginWrite(mutation, makeDurable))
+        {
+            for (PartitionUpdate upd : mutation.getPartitionUpdates())
+            {
+                ColumnFamilyStore cfs = columnFamilyStores.get(upd.metadata().id);
+                if (cfs == null)
+                {
+                    logger.error(""Attempting to mutate non-existant table {} ({}.{})"", upd.metadata().id, upd.metadata().keyspace, upd.metadata().name);
+                    continue;
+                }
+                AtomicLong baseComplete = new AtomicLong(Long.MAX_VALUE);
+
+                if (requiresViewUpdate)
+                {
+                    try
+                    {
+                        Tracing.trace(""Creating materialized view mutations from base table replica"");
+                        viewManager.forTable(upd.metadata().id).pushViewReplicaUpdates(upd, makeDurable, baseComplete);
+                    }
+                    catch (Throwable t)
+                    {
+                        JVMStabilityInspector.inspectThrowable(t);
+                        logger.error(String.format(""Unknown exception caught while attempting to update MaterializedView! %s"",
+                                                   upd.metadata().toString()), t);
+                        throw t;
+                    }
+                }
+
+                UpdateTransaction indexTransaction = updateIndexes
+                                                     ? cfs.indexManager.newUpdateTransaction(upd, ctx, nowInSec)
+                                                     : UpdateTransaction.NO_OP;
+                cfs.getWriteHandler().write(upd, ctx, indexTransaction);
+
+                if (requiresViewUpdate)
+                    baseComplete.set(System.currentTimeMillis());
+            }
+
+            if (future != null) {
+                future.complete(null);
+            }
+            return future;
+        }
+        finally
+        {
+            if (locks != null)
+            {
+                for (Lock lock : locks)
+                    if (lock != null)
+                        lock.unlock();
+            }
+        }
+    }
+
+    "
+M:org.apache.cassandra.db.Mutation:getTimeout(java.util.concurrent.TimeUnit),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,getTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/Mutation.java,Mutation,../data/xml/cassandra/Mutation.xml,"public long getTimeout(TimeUnit unit)
+    {
+        return DatabaseDescriptor.getWriteRpcTimeout(unit);
+    }
+
+    "
+M:org.apache.cassandra.db.virtual.VirtualMutation:getTimeout(java.util.concurrent.TimeUnit),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,getTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/virtual/VirtualMutation.java,VirtualMutation,../data/xml/cassandra/VirtualMutation.xml,"@Override
+    public long getTimeout(TimeUnit unit)
+    {
+        return DatabaseDescriptor.getWriteRpcTimeout(unit);
+    }
+
+    "
+M:org.apache.cassandra.service.AbstractWriteResponseHandler:currentTimeoutNanos(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,currentTimeoutNanos,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/AbstractWriteResponseHandler.java,AbstractWriteResponseHandler,../data/xml/cassandra/AbstractWriteResponseHandler.xml,"public final long currentTimeoutNanos()
+    {
+        long requestTimeout = writeType == WriteType.COUNTER
+                              ? DatabaseDescriptor.getCounterWriteRpcTimeout(NANOSECONDS)
+                              : DatabaseDescriptor.getWriteRpcTimeout(NANOSECONDS);
+        return requestTimeout - (System.nanoTime() - queryStartNanoTime);
+    }
+
+    "
+M:org.apache.cassandra.service.StorageProxy:getWriteRpcTimeout(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,getWriteRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public Long getWriteRpcTimeout() { return DatabaseDescriptor.getWriteRpcTimeout(MILLISECONDS); }
+    "
+M:org.apache.cassandra.service.StorageService:getWriteRpcTimeout(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,getWriteRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public long getWriteRpcTimeout()
+    {
+        return DatabaseDescriptor.getWriteRpcTimeout(MILLISECONDS);
+    }
+
+    "
+"M:org.apache.cassandra.service.StorageService:excise(java.util.Collection,org.apache.cassandra.locator.InetAddressAndPort)",(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,excise,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"private void excise(Collection<Token> tokens, InetAddressAndPort endpoint)
+    {
+        logger.info(""Removing tokens {} for {}"", tokens, endpoint);
+
+        UUID hostId = tokenMetadata.getHostId(endpoint);
+        if (hostId != null && tokenMetadata.isMember(endpoint))
+        {
+            // enough time for writes to expire and MessagingService timeout reporter callback to fire, which is where
+            // hints are mostly written from - using getMinRpcTimeout() / 2 for the interval.
+            long delay = DatabaseDescriptor.getMinRpcTimeout(MILLISECONDS) + DatabaseDescriptor.getWriteRpcTimeout(MILLISECONDS);
+            ScheduledExecutors.optionalTasks.schedule(() -> HintsService.instance.excise(hostId), delay, MILLISECONDS);
+        }
+
+        removeEndpoint(endpoint);
+        tokenMetadata.removeEndpoint(endpoint);
+        if (!tokens.isEmpty())
+            tokenMetadata.removeBootstrapTokens(tokens);
+        notifyLeft(endpoint);
+        PendingRangeCalculatorService.instance.update();
+    }
+
+    
+private void excise(Collection<Token> tokens, InetAddressAndPort endpoint, long expireTime)
+    {
+        addExpireTimeIfFound(endpoint, expireTime);
+        excise(tokens, endpoint);
+    }
+
+    "
+M:org.apache.cassandra.service.paxos.AbstractPaxosCallback:await(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getWriteRpcTimeout(java.util.concurrent.TimeUnit),write_request_timeout_in_ms,await,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/paxos/AbstractPaxosCallback.java,AbstractPaxosCallback,../data/xml/cassandra/AbstractPaxosCallback.xml,"public void await() throws WriteTimeoutException
+    {
+        try
+        {
+            long timeout = DatabaseDescriptor.getWriteRpcTimeout(NANOSECONDS) - (System.nanoTime() - queryStartNanoTime);
+            if (!latch.await(timeout, NANOSECONDS))
+                throw new WriteTimeoutException(WriteType.CAS, consistency, getResponseCount(), targets);
+        }
+        catch (InterruptedException ex)
+        {
+            throw new AssertionError(""This latch shouldn't have been interrupted."");
+        }
+    }
+}"

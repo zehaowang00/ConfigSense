@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'OPTIMIZE_IN_LIST' in the H2 database can significantly impact performance by altering how data is processed in lists. When this option is enabled, the database can optimize certain operations, leading to reduced execution time and lower memory consumption during query execution. Conversely, disabling this option may result in less efficient data handling, causing increased execution times and higher resource usage. Therefore, changes to this configuration can lead to notable variations in system performance, classifying it as performance-sensitive."
+}

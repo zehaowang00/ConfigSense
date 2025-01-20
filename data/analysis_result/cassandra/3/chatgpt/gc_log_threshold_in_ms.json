@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'gc_log_threshold_in_ms' configuration in Cassandra determines the threshold for logging garbage collection events. Changes to this threshold can significantly affect system performance, as it influences how frequently garbage collection logs are generated and how the garbage collector operates. If the threshold is set too low, it may lead to excessive logging, which can consume additional CPU and I/O resources, thereby impacting overall system performance. Conversely, if set too high, important garbage collection events may not be logged, making it difficult to diagnose performance issues related to memory management. Therefore, adjustments to this configuration can lead to notable variations in execution time and memory consumption, classifying it as performance-sensitive."
+}

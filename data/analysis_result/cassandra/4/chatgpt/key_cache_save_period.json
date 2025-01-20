@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'key_cache_save_period' configuration in Cassandra determines how often the key cache is persisted to disk. A change in this value can significantly impact system performance because it affects the frequency of cache writes and the amount of data retained in memory. If the save period is too short, it may lead to increased disk I/O, which can degrade performance due to higher latency and resource contention. Conversely, if the save period is too long, it may result in higher memory consumption and potential cache misses, leading to increased execution times for read operations. Therefore, variations in this configuration can cause notable changes in both execution time and memory usage, classifying it as performance-sensitive."
+}

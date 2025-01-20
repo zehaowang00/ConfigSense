@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "max_hints_file_size_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@SuppressWarnings(\"resource\")   // writer not closed here\n    private void flushInternal(Iterator<ByteBuffer> iterator, HintsStore store)\n    {\n        long maxHintsFileSize = DatabaseDescriptor.getMaxHintsFileSize();\n\n        HintsWriter writer = store.getOrOpenWriter();\n\n        try (HintsWriter.Session session = writer.newSession(writeBuffer))\n        {\n            while (iterator.hasNext())\n            {\n                session.append(iterator.next());\n                if (session.position() >= maxHintsFileSize)\n                    break;\n            }\n        }\n        catch (IOException e)\n        {\n            throw new FSWriteError(e, writer.descriptor().fileName());\n        }\n    }\n}"
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `maxHintsFileSize` directly influences how much data can be processed in a single session of writing hints. If this size is set too high, it could lead to excessive memory usage as the system attempts to handle large amounts of data, potentially causing memory exhaustion or degraded performance. Conversely, if set too low, it may lead to increased I/O operations, as the system would need to write more frequently, which can be time-intensive. Thus, the configuration has a substantial impact on system-level performance due to its influence on both memory and time-intensive operations."
+        }
+    ]
+}

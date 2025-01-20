@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The MAX_HEIGHT configuration in the Batik software project directly influences the rendering of SVG images. A change in this value can lead to significant variations in the layout and rendering performance, particularly for large or complex SVG files. If MAX_HEIGHT is set too low, it may result in excessive clipping or require additional processing to adapt the content, leading to increased execution time and memory consumption. Conversely, setting it too high may cause inefficient use of resources, as the system may allocate more memory than necessary for rendering. Thus, variations in MAX_HEIGHT can notably affect both execution time and memory usage, classifying it as performance-sensitive."
+}

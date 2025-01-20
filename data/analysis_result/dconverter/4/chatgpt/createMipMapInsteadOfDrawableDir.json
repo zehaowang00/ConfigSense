@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'createMipMapInsteadOfDrawableDir' directly affects how images are processed and rendered in the system. When this option is enabled, the system generates mipmaps for textures, which can significantly improve rendering performance and reduce memory consumption during texture sampling. Conversely, if this option is disabled, the system may experience increased execution time and higher memory usage due to the lack of mipmaps, leading to potential performance degradation, especially in graphics-intensive applications. Therefore, changes to this configuration can lead to notable variations in system performance."
+}

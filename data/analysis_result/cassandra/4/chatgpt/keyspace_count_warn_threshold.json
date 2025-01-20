@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'keyspace_count_warn_threshold' configuration in Cassandra determines the maximum number of keyspaces allowed before a warning is issued. If this threshold is set too low, it can lead to frequent warnings that may affect system performance by causing unnecessary overhead in monitoring and management tasks. Conversely, if set too high, it can lead to resource strain due to an excessive number of keyspaces being created, which can impact memory consumption and execution time for queries. Therefore, changes to this configuration can significantly affect system performance, making it performance-sensitive."
+}

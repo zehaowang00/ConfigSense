@@ -1,0 +1,15 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.io.sstable.IndexSummaryManager:<init>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getIndexSummaryCapacityInMB(),org.apache.cassandra.config.DatabaseDescriptor:getIndexSummaryCapacityInMB(),index_summary_capacity_in_mb,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/IndexSummaryManager.java,IndexSummaryManager,../data/xml/cassandra/IndexSummaryManager.xml,"private IndexSummaryManager()
+    {
+        executor = new DebuggableScheduledThreadPoolExecutor(1, ""IndexSummaryManager"", Thread.MIN_PRIORITY);
+
+        long indexSummarySizeInMB = DatabaseDescriptor.getIndexSummaryCapacityInMB();
+        int interval = DatabaseDescriptor.getIndexSummaryResizeIntervalInMinutes();
+        logger.info(""Initializing index summary manager with a memory pool size of {} MB and a resize interval of {} minutes"",
+                    indexSummarySizeInMB, interval);
+
+        setMemoryPoolCapacityInMB(DatabaseDescriptor.getIndexSummaryCapacityInMB());
+        setResizeIntervalInMinutes(DatabaseDescriptor.getIndexSummaryResizeIntervalInMinutes());
+    }
+
+    "

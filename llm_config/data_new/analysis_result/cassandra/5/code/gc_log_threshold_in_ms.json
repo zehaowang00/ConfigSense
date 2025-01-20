@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "gc_log_threshold_in_ms",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public GCInspector()\n    {\n        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();\n\n        try\n        {\n            ObjectName gcName = new ObjectName(ManagementFactory.GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE + \",*\");\n            for (ObjectName name : mbs.queryNames(gcName, null))\n            {\n                GarbageCollectorMXBean gc = ManagementFactory.newPlatformMXBeanProxy(mbs, name.getCanonicalName(), GarbageCollectorMXBean.class);\n                gcStates.put(gc.getName(), new GCState(gc, assumeGCIsPartiallyConcurrent(gc), assumeGCIsOldGen(gc)));\n            }\n            ObjectName me = new ObjectName(MBEAN_NAME);\n            if (!mbs.isRegistered(me))\n                MBeanWrapper.instance.registerMBean(this, new ObjectName(MBEAN_NAME));\n        }\n        catch (MalformedObjectNameException | IOException e)\n        {\n            throw new RuntimeException(e);\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The garbage collection (GC) process is critical for memory management in Java applications, and the `gc_log_threshold_in_ms` configuration directly influences how GC events are logged and monitored. If this threshold is set too low, it can lead to excessive logging during GC events, which can consume significant CPU and memory resources, especially in applications with high allocation rates or frequent GC cycles. This can result in performance degradation, making it a performance-sensitive configuration."
+        }
+    ]
+}

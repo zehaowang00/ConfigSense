@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'OPTIMIZE_DISTINCT' in the H2 database can significantly impact query performance, especially in scenarios involving large datasets. When enabled, it optimizes the execution of queries that utilize the DISTINCT keyword, potentially reducing execution time and memory usage by minimizing the amount of data processed and stored during query execution. Conversely, disabling this option may lead to increased resource consumption and longer execution times, particularly for complex queries. Therefore, changes in this configuration can lead to notable variations in system performance, classifying it as performance-sensitive."
+}

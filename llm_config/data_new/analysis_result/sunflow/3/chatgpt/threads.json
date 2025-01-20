@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'threads' configuration in the Sunflow software project directly influences the level of parallelism during rendering tasks. Increasing the number of threads can lead to significant reductions in execution time as more CPU cores are utilized for processing. Conversely, setting the number of threads too high may lead to contention and increased overhead, which can negatively impact performance. Therefore, changes to this configuration can cause notable variations in execution time and resource consumption, classifying it as performance-sensitive."
+}

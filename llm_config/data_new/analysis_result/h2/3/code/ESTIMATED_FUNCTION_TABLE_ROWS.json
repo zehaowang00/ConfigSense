@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "ESTIMATED_FUNCTION_TABLE_ROWS",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n    public double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder,\n            AllColumnsForPlan allColumnsSet) {\n        if (masks != null) {\n            throw DbException.getUnsupportedException(\"Virtual table\");\n        }\n        long expectedRows;\n        if (table.canGetRowCount(session)) {\n            expectedRows = table.getRowCountApproximation(session);\n        } else {\n            expectedRows = database.getSettings().estimatedFunctionTableRows;\n        }\n        return expectedRows * 10;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The use of `estimatedFunctionTableRows` directly influences the expected number of rows processed in the `getCost` method, which in turn affects the cost calculation significantly. If this configuration is set to a high value, it could lead to substantial increases in the computed cost, potentially causing performance degradation in scenarios where this method is invoked frequently or in a time-sensitive context. The reliance on this configuration for determining row counts indicates that it can have a major impact on performance, especially in large datasets or complex queries."
+        }
+    ]
+}

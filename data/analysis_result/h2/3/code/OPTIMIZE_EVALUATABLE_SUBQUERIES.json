@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "OPTIMIZE_EVALUATABLE_SUBQUERIES",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n    public boolean isEverything(ExpressionVisitor visitor) {\n        switch (visitor.getType()) {\n        case ExpressionVisitor.DETERMINISTIC: {\n            if (isForUpdate) {\n                return false;\n            }\n            for (TableFilter f : filters) {\n                if (!f.getTable().isDeterministic()) {\n                    return false;\n                }\n            }\n            break;\n        }\n        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {\n            for (TableFilter f : filters) {\n                long m = f.getTable().getMaxDataModificationId();\n                visitor.addDataModificationId(m);\n            }\n            break;\n        }\n        case ExpressionVisitor.EVALUATABLE: {\n            if (!session.getDatabase().getSettings().optimizeEvaluatableSubqueries) {\n                return false;\n            }\n            break;\n        }\n        case ExpressionVisitor.GET_DEPENDENCIES: {\n            for (TableFilter f : filters) {\n                Table table = f.getTable();\n                visitor.addDependency(table);\n                table.addDependencies(visitor.getDependencies());\n            }\n            break;\n        }\n        default:\n        }\n        ExpressionVisitor v2 = visitor.incrementQueryLevel(1);\n        for (Expression e : expressions) {\n            if (!e.isEverything(v2)) {\n                return false;\n            }\n        }\n        if (condition != null && !condition.isEverything(v2)) {\n            return false;\n        }\n        if (having != null && !having.isEverything(v2)) {\n            return false;\n        }\n        if (qualify != null && !qualify.isEverything(v2)) {\n            return false;\n        }\n        return true;\n    }\n\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The configuration `OPTIMIZE_EVALUATABLE_SUBQUERIES` is only checked in the context of whether it is enabled or not, and it does not directly lead to time-intensive or memory-intensive operations. The check simply returns false if the optimization is not enabled, without incurring additional computational cost or resource usage. Therefore, it does not have a substantial system-level performance impact."
+        }
+    ]
+}

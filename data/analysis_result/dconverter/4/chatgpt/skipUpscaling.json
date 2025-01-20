@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'skipUpscaling' configuration in the dconverter software project directly influences the processing of input data. When enabled, it bypasses the upscaling step, which can significantly reduce the computational load and memory usage during data conversion. This change can lead to notable variations in execution time, especially when handling large datasets. If the upscaling process is resource-intensive, skipping it can improve performance by decreasing latency and resource consumption, thereby classifying this configuration as performance-sensitive."
+}

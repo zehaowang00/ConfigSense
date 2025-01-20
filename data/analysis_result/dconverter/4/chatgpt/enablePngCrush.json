@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enablePngCrush' configuration option directly impacts the image processing pipeline within the dconverter software project. Enabling PNG crushing can significantly reduce the file size of PNG images, which in turn affects memory consumption and execution time during processing. If this option is set to 'true', the system may spend additional CPU cycles on image optimization, leading to variations in execution time. Conversely, if set to 'false', the system may process images faster but at the cost of larger file sizes, potentially increasing memory usage. Therefore, changes to this configuration can lead to notable variations in overall system performance."
+}

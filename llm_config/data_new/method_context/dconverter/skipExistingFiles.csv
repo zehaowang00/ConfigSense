@@ -1,0 +1,95 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:at.favre.tools.dconvert.converters.scaling.ImageHandler:saveToFile(java.io.File,at.favre.tools.dconvert.util.LoadedImage,java.awt.Dimension,boolean)",(M)at.favre.tools.dconvert.arg.Arguments:isSkipExistingFiles(),at.favre.tools.dconvert.arg.Arguments:isSkipExistingFiles(),skipExistingFiles,saveToFile,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/scaling/ImageHandler.java,ImageHandler,../data/xml/dconverter/ImageHandler.xml,"public List<File> saveToFile(File targetFile, LoadedImage imageData, Dimension targetDimension, boolean isNinePatch) throws Exception {
+
+        List<File> files = new ArrayList<>(2);
+        List<ImageType.ECompression> compressionList = Arguments.getOutCompressionForType(args.outputCompressionMode, Arguments.getImageType(imageData.getSourceFile()));
+        for (ImageType.ECompression compression : compressionList) {
+            File imageFile = new File(targetFile.getAbsolutePath() + ""."" + compression.extension);
+
+            if (imageFile.exists() && args.skipExistingFiles) {
+                break;
+            }
+
+            List<ScaleAlgorithm> algorithms = getScaleAlgorithm(getScalingAlgorithm(getScalingType(imageData, targetDimension)), getScalingType(imageData, targetDimension));
+
+            for (ScaleAlgorithm scaleAlgorithm : algorithms) {
+
+                if (!traceMap.containsKey(scaleAlgorithm)) {
+                    traceMap.put(scaleAlgorithm, 0L);
+                }
+
+                BufferedImage scaledImage;
+                if (isNinePatch && compression == ImageType.ECompression.PNG) {
+                    scaledImage = new NinePatchScaler().scale(imageData.getImage(), targetDimension, getAsScalingAlgorithm(scaleAlgorithm, compression));
+                } else {
+                    long startNanos = System.nanoTime();
+                    scaledImage = scale(scaleAlgorithm, imageData.getImage(), targetDimension.width, targetDimension.height, compression, DEFAULT_COLOR);
+                    traceMap.put(scaleAlgorithm, traceMap.get(scaleAlgorithm) + (System.nanoTime() - startNanos));
+                }
+
+                File fileToSave = imageFile;
+
+                if (algorithms.size() > 1) {
+                    fileToSave = new File(imageFile.getParentFile(), MiscUtil.getFileNameWithoutExtension(imageFile) + ""."" + scaleAlgorithm.toString() + ""."" + MiscUtil.getFileExtension(imageFile));
+                }
+
+                if (compression == ImageType.ECompression.JPG) {
+                    compressJpeg(scaledImage, null, args.compressionQuality, fileToSave);
+                } else {
+                    ImageIO.write(scaledImage, compression.name().toLowerCase(), fileToSave);
+                }
+                scaledImage.flush();
+                files.add(imageFile);
+            }
+        }
+        return files;
+    }
+
+    "
+M:at.favre.tools.dconvert.ui.GUIController:loadPrefs(),(M)at.favre.tools.dconvert.arg.Arguments:isSkipExistingFiles(),at.favre.tools.dconvert.arg.Arguments:isSkipExistingFiles(),skipExistingFiles,loadPrefs,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/ui/GUIController.java,GUIController,../data/xml/dconverter/GUIController.xml,"private void loadPrefs() {
+        Arguments args = preferenceStore.get();
+        if (args != null) {
+            textFieldSrcPath.setText(args.src != null ? args.src.getAbsolutePath() : """");
+            textFieldDstPath.setText(args.dst != null ? args.dst.getAbsolutePath() : """");
+
+            scaleSlider.setValue(Arguments.DEFAULT_SCALE);
+            textFieldDp.setText(String.valueOf((int) args.scale));
+
+            if (args.scaleMode == EScaleMode.FACTOR) {
+                rbFactor.setSelected(true);
+                scaleSlider.setValue(args.scale);
+                textFieldDp.setText("""");
+            } else if (args.scaleMode == EScaleMode.DP_WIDTH) {
+                rbDpWidth.setSelected(true);
+            } else if (args.scaleMode == EScaleMode.DP_HEIGHT) {
+                rbDpHeight.setSelected(true);
+            }
+
+            setPlatformToogles(args.platform);
+            choiceCompression.getSelectionModel().select(args.outputCompressionMode);
+            choiceCompressionQuality.getSelectionModel().select(toJpgQ(args.compressionQuality));
+            choiceRounding.getSelectionModel().select(args.roundingHandler);
+            choiceThreads.getSelectionModel().select(Integer.valueOf(args.threadCount));
+            choiceDownScale.getSelectionModel().select(args.downScalingAlgorithm);
+            choiceUpScale.getSelectionModel().select(args.upScalingAlgorithm);
+
+            cbSkipExisting.setSelected(args.skipExistingFiles);
+            cbSkipUpscaling.setSelected(args.skipUpscaling);
+            cbAndroidIncludeLdpiTvdpi.setSelected(args.includeAndroidLdpiTvdpi);
+            cbAntiAliasing.setSelected(args.enableAntiAliasing);
+            cbMipmapInsteadDrawable.setSelected(args.createMipMapInsteadOfDrawableDir);
+            cbHaltOnError.setSelected(args.haltOnError);
+            cbDryRun.setSelected(args.dryRun);
+            cbEnablePngCrush.setSelected(args.enablePngCrush);
+            cbPostConvertWebp.setSelected(args.postConvertWebp);
+            cbEnableMozJpeg.setSelected(args.enableMozJpeg);
+            cbKeepUnoptimized.setSelected(args.keepUnoptimizedFilesPostProcessor);
+            cbIosCreateImageset.setSelected(args.iosCreateImagesetFolders);
+            cbCleanBeforeConvert.setSelected(args.clearDirBeforeConvert);
+            rbOptAdvanced.setSelected(args.guiAdvancedOptions);
+            rbOptSimple.setSelected(!args.guiAdvancedOptions);
+
+        }
+    }
+
+    "

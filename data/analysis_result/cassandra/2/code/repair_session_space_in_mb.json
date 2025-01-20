@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "repair_session_space_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private static MerkleTrees createMerkleTrees(ValidationPartitionIterator validationIterator, Collection<Range<Token>> ranges, ColumnFamilyStore cfs)\n    {\n        MerkleTrees tree = new MerkleTrees(cfs.getPartitioner());\n        long allPartitions = validationIterator.estimatedPartitions();\n        Map<Range<Token>, Long> rangePartitionCounts = validationIterator.getRangePartitionCounts();\n\n        // The repair coordinator must hold RF trees in memory at once, so a given validation compaction can only\n        // use 1 / RF of the allowed space.\n        long availableBytes = (DatabaseDescriptor.getRepairSessionSpaceInMegabytes() * 1048576) /\n                              cfs.keyspace.getReplicationStrategy().getReplicationFactor().allReplicas;\n\n        for (Range<Token> range : ranges)\n        {\n            long numPartitions = rangePartitionCounts.get(range);\n            double rangeOwningRatio = allPartitions > 0 ? (double)numPartitions / allPartitions : 0;\n            // determine max tree depth proportional to range size to avoid blowing up memory with multiple tress,\n            // capping at a depth that does not exceed our memory budget (CASSANDRA-11390, CASSANDRA-14096)\n            int rangeAvailableBytes = Math.max(1, (int) (rangeOwningRatio * availableBytes));\n            // Try to estimate max tree depth that fits the space budget assuming hashes of 256 bits = 32 bytes\n            // note that estimatedMaxDepthForBytes cannot return a number lower than 1\n            int estimatedMaxDepth = MerkleTree.estimatedMaxDepthForBytes(cfs.getPartitioner(), rangeAvailableBytes, 32);\n            int maxDepth = rangeOwningRatio > 0\n                           ? Math.min(estimatedMaxDepth, DatabaseDescriptor.getRepairSessionMaxTreeDepth())\n                           : 0;\n            // determine tree depth from number of partitions, capping at max tree depth (CASSANDRA-5263)\n            int depth = numPartitions > 0 ? (int) Math.min(Math.ceil(Math.log(numPartitions) / Math.log(2)), maxDepth) : 0;\n            tree.addMerkleTree((int) Math.pow(2, depth), range);\n        }\n        if (logger.isDebugEnabled())\n        {\n            // MT serialize may take time\n            logger.debug(\"Created {} merkle trees with merkle trees size {}, {} partitions, {} bytes\", tree.ranges().size(), tree.size(), allPartitions, MerkleTrees.serializer.serializedSize(tree, 0));\n        }\n\n        return tree;\n    }\n\n    \n@Override\n    public int getRepairSessionSpaceInMegabytes()\n    {\n        return DatabaseDescriptor.getRepairSessionSpaceInMegabytes();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `repair_session_space_in_mb` directly influences the amount of memory allocated for holding RF trees during validation compaction. This affects the maximum depth of Merkle trees created, which in turn impacts both memory usage and the time taken for operations involving these trees. If the allocated space is insufficient, it could lead to excessive memory consumption or even failures in creating necessary data structures, resulting in significant performance degradation during repair sessions."
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "DEFAULT_ESCAPE",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n    public String getSearchStringEscape() {\n        return session.getDatabase().getSettings().defaultEscape;\n    }\n\n    \npublic CompareLike(Database db, Expression left, boolean not, boolean whenOperand, Expression right,\n            Expression escape, LikeType likeType) {\n        this(db.getCompareMode(), db.getSettings().defaultEscape, left, not, whenOperand, right, escape, likeType);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The defaultEscape setting is simply retrieved from the database settings and does not involve any time-intensive or memory-intensive operations. It is a straightforward access operation that does not significantly impact system performance."
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'repair_session_space_in_mb' in Cassandra directly impacts the amount of memory allocated for repair sessions. A higher value allows for larger repair operations to be conducted in memory, which can significantly reduce the execution time of repairs by minimizing the need for disk I/O. Conversely, a lower value may lead to increased execution times and higher memory consumption due to frequent garbage collection or out-of-memory errors. Therefore, changes in this configuration can lead to notable variations in system performance, making it performance-sensitive."
+}

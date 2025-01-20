@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'streaming_connections_per_host' configuration in Cassandra directly impacts the number of concurrent streaming connections that can be established with each host. A higher value allows for more simultaneous data transfers, which can significantly reduce the time taken for data replication and streaming operations. Conversely, a lower value may lead to bottlenecks, increased execution time for data operations, and higher memory consumption due to queued requests. Therefore, changes to this configuration can lead to notable variations in system performance, making it performance-sensitive."
+}

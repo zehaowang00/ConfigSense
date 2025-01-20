@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "OPTIMIZE_SIMPLE_SINGLE_ROW_SUBQUERIES",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n    public Expression optimize(SessionLocal session) {\n        query.prepare();\n        if (query.isConstantQuery()) {\n            setType();\n            return ValueExpression.get(getValue(session));\n        }\n        if (outerResolvers != null && session.getDatabase().getSettings().optimizeSimpleSingleRowSubqueries) {\n            Expression e = query.getIfSingleRow();\n            if (e != null && e.isEverything(ExpressionVisitor.getDecrementQueryLevelVisitor(outerResolvers, 0))) {\n                e.isEverything(ExpressionVisitor.getDecrementQueryLevelVisitor(outerResolvers, 1));\n                return e.optimize(session);\n            }\n        }\n        outerResolvers = null;\n        setType();\n        return this;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The optimization of simple single-row subqueries can significantly impact performance, especially in scenarios where the database operations involved are time-intensive. The presence of conditions that check for constant queries and the potential optimization of single-row queries indicates that this configuration can lead to substantial performance variations, particularly when dealing with complex queries or large datasets. If not optimized properly, it could result in increased execution time or memory usage, thus classifying it as performance-sensitive."
+        }
+    ]
+}

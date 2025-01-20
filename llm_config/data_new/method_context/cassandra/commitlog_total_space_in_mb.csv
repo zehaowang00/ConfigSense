@@ -1,0 +1,10 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.commitlog.AbstractCommitLogSegmentManager:unusedCapacity(),(S)org.apache.cassandra.config.DatabaseDescriptor:getTotalCommitlogSpaceInMB(),org.apache.cassandra.config.DatabaseDescriptor:getTotalCommitlogSpaceInMB(),commitlog_total_space_in_mb,unusedCapacity,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/AbstractCommitLogSegmentManager.java,AbstractCommitLogSegmentManager,../data/xml/cassandra/AbstractCommitLogSegmentManager.xml,"private long unusedCapacity()
+    {
+        long total = DatabaseDescriptor.getTotalCommitlogSpaceInMB() * 1024 * 1024;
+        long currentSize = size.get();
+        logger.trace(""Total active commitlog segment space used is {} out of {}"", currentSize, total);
+        return total - currentSize;
+    }
+
+    "

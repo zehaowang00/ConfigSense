@@ -1,0 +1,1771 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.ColumnFamilyStore:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getFlushWriters(),org.apache.cassandra.config.DatabaseDescriptor:getFlushWriters(),memtable_flush_writers,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/ColumnFamilyStore.java,ColumnFamilyStore,../data/xml/cassandra/ColumnFamilyStore.xml,"public class ColumnFamilyStore implements ColumnFamilyStoreMBean
+{
+    private static final Logger logger = LoggerFactory.getLogger(ColumnFamilyStore.class);
+
+    /*
+    We keep a pool of threads for each data directory, size of each pool is memtable_flush_writers.
+    When flushing we start a Flush runnable in the flushExecutor. Flush calculates how to split the
+    memtable ranges over the existing data directories and creates a FlushRunnable for each of the directories.
+    The FlushRunnables are executed in the perDiskflushExecutors and the Flush will block until all FlushRunnables
+    are finished. By having flushExecutor size the same size as each of the perDiskflushExecutors we make sure we can
+    have that many flushes going at the same time.
+    */
+    private static final ThreadPoolExecutor flushExecutor = new JMXEnabledThreadPoolExecutor(DatabaseDescriptor.getFlushWriters(),
+                                                                                             Stage.KEEP_ALIVE_SECONDS,
+                                                                                             TimeUnit.SECONDS,
+                                                                                             new LinkedBlockingQueue<>(),
+                                                                                             new NamedThreadFactory(""MemtableFlushWriter""),
+                                                                                             ""internal"");
+
+    private static final PerDiskFlushExecutors perDiskflushExecutors = new PerDiskFlushExecutors(DatabaseDescriptor.getFlushWriters(),
+                                                                                                 DatabaseDescriptor.getNonLocalSystemKeyspacesDataFileLocations(),
+                                                                                                 DatabaseDescriptor.useSpecificLocationForLocalSystemData());
+
+    // post-flush executor is single threaded to provide guarantee that any flush Future on a CF will never return until prior flushes have completed
+    private static final ThreadPoolExecutor postFlushExecutor = new JMXEnabledThreadPoolExecutor(1,
+                                                                                                 Stage.KEEP_ALIVE_SECONDS,
+                                                                                                 TimeUnit.SECONDS,
+                                                                                                 new LinkedBlockingQueue<>(),
+                                                                                                 new NamedThreadFactory(""MemtablePostFlush""),
+                                                                                                 ""internal"");
+
+    private static final ThreadPoolExecutor reclaimExecutor = new JMXEnabledThreadPoolExecutor(1,
+                                                                                               Stage.KEEP_ALIVE_SECONDS,
+                                                                                               TimeUnit.SECONDS,
+                                                                                               new LinkedBlockingQueue<>(),
+                                                                                               new NamedThreadFactory(""MemtableReclaimMemory""),
+                                                                                               ""internal"");
+
+    private static final String[] COUNTER_NAMES = new String[]{""table"", ""count"", ""error"", ""value""};
+    private static final String[] COUNTER_DESCS = new String[]
+    { ""keyspace.tablename"",
+      ""number of occurances"",
+      ""error bounds"",
+      ""value"" };
+    private static final CompositeType COUNTER_COMPOSITE_TYPE;
+
+    private static final String SAMPLING_RESULTS_NAME = ""SAMPLING_RESULTS"";
+
+    public static final String SNAPSHOT_TRUNCATE_PREFIX = ""truncated"";
+    public static final String SNAPSHOT_DROP_PREFIX = ""dropped"";
+
+    static
+    {
+        try
+        {
+            OpenType<?>[] counterTypes = new OpenType[] { SimpleType.STRING, SimpleType.LONG, SimpleType.LONG, SimpleType.STRING };
+            COUNTER_COMPOSITE_TYPE = new CompositeType(SAMPLING_RESULTS_NAME, SAMPLING_RESULTS_NAME, COUNTER_NAMES, COUNTER_DESCS, counterTypes);
+        } catch (OpenDataException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public final Keyspace keyspace;
+    public final String name;
+    public final TableMetadataRef metadata;
+    private final String mbeanName;
+    @Deprecated
+    private final String oldMBeanName;
+    private volatile boolean valid = true;
+
+    /**
+     * Memtables and SSTables on disk for this column family.
+     *
+     * We synchronize on the Tracker to ensure isolation when we want to make sure
+     * that the memtable we're acting on doesn't change out from under us.  I.e., flush
+     * syncronizes on it to make sure it can submit on both executors atomically,
+     * so anyone else who wants to make sure flush doesn't interfere should as well.
+     */
+    private final Tracker data;
+
+    /* The read order, used to track accesses to off-heap memtable storage */
+    public final OpOrder readOrdering = new OpOrder();
+
+    /* This is used to generate the next index for a SSTable */
+    private final AtomicInteger fileIndexGenerator = new AtomicInteger(0);
+
+    public final SecondaryIndexManager indexManager;
+    public final TableViews viewManager;
+
+    /* These are locally held copies to be changed from the config during runtime */
+    private volatile DefaultValue<Integer> minCompactionThreshold;
+    private volatile DefaultValue<Integer> maxCompactionThreshold;
+    private volatile DefaultValue<Double> crcCheckChance;
+
+    private final CompactionStrategyManager compactionStrategyManager;
+
+    private final Directories directories;
+
+    public final TableMetrics metric;
+    public volatile long sampleReadLatencyNanos;
+    public volatile long additionalWriteLatencyNanos;
+
+    private final CassandraTableWriteHandler writeHandler;
+    private final CassandraStreamManager streamManager;
+
+    private final TableRepairManager repairManager;
+
+    private final SSTableImporter sstableImporter;
+
+    private volatile boolean compactionSpaceCheck = true;
+
+    @VisibleForTesting
+    final DiskBoundaryManager diskBoundaryManager = new DiskBoundaryManager();
+
+    private volatile boolean neverPurgeTombstones = false;
+
+    public static void shutdownPostFlushExecutor() throws InterruptedException
+    {
+        postFlushExecutor.shutdown();
+        postFlushExecutor.awaitTermination(60, TimeUnit.SECONDS);
+    }
+
+    public static void shutdownExecutorsAndWait(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException
+    {
+        List<ExecutorService> executors = new ArrayList<>();
+        Collections.addAll(executors, reclaimExecutor, postFlushExecutor, flushExecutor);
+        perDiskflushExecutors.appendAllExecutors(executors);
+        ExecutorUtils.shutdownAndWait(timeout, unit, executors);
+    }
+
+    public void reload()
+    {
+        // metadata object has been mutated directly. make all the members jibe with new settings.
+
+        // only update these runtime-modifiable settings if they have not been modified.
+        if (!minCompactionThreshold.isModified())
+            for (ColumnFamilyStore cfs : concatWithIndexes())
+                cfs.minCompactionThreshold = new DefaultValue(metadata().params.compaction.minCompactionThreshold());
+        if (!maxCompactionThreshold.isModified())
+            for (ColumnFamilyStore cfs : concatWithIndexes())
+                cfs.maxCompactionThreshold = new DefaultValue(metadata().params.compaction.maxCompactionThreshold());
+        if (!crcCheckChance.isModified())
+            for (ColumnFamilyStore cfs : concatWithIndexes())
+                cfs.crcCheckChance = new DefaultValue(metadata().params.crcCheckChance);
+
+        compactionStrategyManager.maybeReload(metadata());
+
+        scheduleFlush();
+
+        indexManager.reload();
+
+        // If the CF comparator has changed, we need to change the memtable,
+        // because the old one still aliases the previous comparator.
+        if (data.getView().getCurrentMemtable().initialComparator != metadata().comparator)
+            switchMemtable();
+    }
+
+    void scheduleFlush()
+    {
+        int period = metadata().params.memtableFlushPeriodInMs;
+        if (period > 0)
+        {
+            logger.trace(""scheduling flush in {} ms"", period);
+            WrappedRunnable runnable = new WrappedRunnable()
+            {
+                protected void runMayThrow()
+                {
+                    synchronized (data)
+                    {
+                        Memtable current = data.getView().getCurrentMemtable();
+                        // if we're not expired, we've been hit by a scheduled flush for an already flushed memtable, so ignore
+                        if (current.isExpired())
+                        {
+                            if (current.isClean())
+                            {
+                                // if we're still clean, instead of swapping just reschedule a flush for later
+                                scheduleFlush();
+                            }
+                            else
+                            {
+                                // we'll be rescheduled by the constructor of the Memtable.
+                                forceFlush();
+                            }
+                        }
+                    }
+                }
+            };
+            ScheduledExecutors.scheduledTasks.schedule(runnable, period, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    public static Runnable getBackgroundCompactionTaskSubmitter()
+    {
+        return () -> {
+            for (Keyspace keyspace : Keyspace.all())
+                for (ColumnFamilyStore cfs : keyspace.getColumnFamilyStores())
+                    CompactionManager.instance.submitBackground(cfs);
+        };
+    }
+
+    public Map<String, String> getCompactionParameters()
+    {
+        return compactionStrategyManager.getCompactionParams().asMap();
+    }
+
+    public String getCompactionParametersJson()
+    {
+        return FBUtilities.json(getCompactionParameters());
+    }
+
+    public void setCompactionParameters(Map<String, String> options)
+    {
+        try
+        {
+            CompactionParams compactionParams = CompactionParams.fromMap(options);
+            compactionParams.validate();
+            compactionStrategyManager.setNewLocalCompactionStrategy(compactionParams);
+        }
+        catch (Throwable t)
+        {
+            logger.error(""Could not set new local compaction strategy"", t);
+            // dont propagate the ConfigurationException over jmx, user will only see a ClassNotFoundException
+            throw new IllegalArgumentException(""Could not set new local compaction strategy: ""+t.getMessage());
+        }
+    }
+
+    public void setCompactionParametersJson(String options)
+    {
+        setCompactionParameters(FBUtilities.fromJsonMap(options));
+    }
+
+    public Map<String,String> getCompressionParameters()
+    {
+        return metadata.getLocal().params.compression.asMap();
+    }
+
+    public String getCompressionParametersJson()
+    {
+        return FBUtilities.json(getCompressionParameters());
+    }
+
+    public void setCompressionParameters(Map<String,String> opts)
+    {
+        try
+        {
+            CompressionParams params = CompressionParams.fromMap(opts);
+            params.validate();
+            metadata.setLocalOverrides(metadata().unbuild().compression(params).build());
+        }
+        catch (ConfigurationException e)
+        {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    public void setCompressionParametersJson(String options)
+    {
+        setCompressionParameters(FBUtilities.fromJsonMap(options));
+    }
+
+    @VisibleForTesting
+    public ColumnFamilyStore(Keyspace keyspace,
+                             String columnFamilyName,
+                             int generation,
+                             TableMetadataRef metadata,
+                             Directories directories,
+                             boolean loadSSTables,
+                             boolean registerBookeeping,
+                             boolean offline)
+    {
+        assert directories != null;
+        assert metadata != null : ""null metadata for "" + keyspace + ':' + columnFamilyName;
+
+        this.keyspace = keyspace;
+        this.metadata = metadata;
+        this.directories = directories;
+        name = columnFamilyName;
+        minCompactionThreshold = new DefaultValue<>(metadata.get().params.compaction.minCompactionThreshold());
+        maxCompactionThreshold = new DefaultValue<>(metadata.get().params.compaction.maxCompactionThreshold());
+        crcCheckChance = new DefaultValue<>(metadata.get().params.crcCheckChance);
+        viewManager = keyspace.viewManager.forTable(metadata.id);
+        fileIndexGenerator.set(generation);
+        sampleReadLatencyNanos = DatabaseDescriptor.getReadRpcTimeout(NANOSECONDS) / 2;
+        additionalWriteLatencyNanos = DatabaseDescriptor.getWriteRpcTimeout(NANOSECONDS) / 2;
+
+        logger.info(""Initializing {}.{}"", keyspace.getName(), name);
+
+        // Create Memtable only on online
+        Memtable initialMemtable = null;
+        if (DatabaseDescriptor.isDaemonInitialized())
+            initialMemtable = new Memtable(new AtomicReference<>(CommitLog.instance.getCurrentPosition()), this);
+        data = new Tracker(initialMemtable, loadSSTables);
+
+        // Note that this needs to happen before we load the first sstables, or the global sstable tracker will not
+        // be notified on the initial loading.
+        data.subscribe(StorageService.instance.sstablesTracker);
+
+        Collection<SSTableReader> sstables = null;
+        // scan for sstables corresponding to this cf and load them
+        if (data.loadsstables)
+        {
+            Directories.SSTableLister sstableFiles = directories.sstableLister(Directories.OnTxnErr.IGNORE).skipTemporary(true);
+            sstables = SSTableReader.openAll(sstableFiles.list().entrySet(), metadata);
+            data.addInitialSSTablesWithoutUpdatingSize(sstables);
+        }
+
+        // compaction strategy should be created after the CFS has been prepared
+        compactionStrategyManager = new CompactionStrategyManager(this);
+
+        if (maxCompactionThreshold.value() <= 0 || minCompactionThreshold.value() <=0)
+        {
+            logger.warn(""Disabling compaction strategy by setting compaction thresholds to 0 is deprecated, set the compaction option 'enabled' to 'false' instead."");
+            this.compactionStrategyManager.disable();
+        }
+
+        // create the private ColumnFamilyStores for the secondary column indexes
+        indexManager = new SecondaryIndexManager(this);
+        for (IndexMetadata info : metadata.get().indexes)
+        {
+            indexManager.addIndex(info, true);
+        }
+
+        metric = new TableMetrics(this);
+
+        if (data.loadsstables)
+        {
+            data.updateInitialSSTableSize(sstables);
+        }
+
+        if (registerBookeeping)
+        {
+            // register the mbean
+            mbeanName = getTableMBeanName(keyspace.getName(), name, isIndex());
+            oldMBeanName = getColumnFamilieMBeanName(keyspace.getName(), name, isIndex());
+
+            String[] objectNames = {mbeanName, oldMBeanName};
+            for (String objectName : objectNames)
+                MBeanWrapper.instance.registerMBean(this, objectName);
+        }
+        else
+        {
+            mbeanName = null;
+            oldMBeanName= null;
+        }
+        writeHandler = new CassandraTableWriteHandler(this);
+        streamManager = new CassandraStreamManager(this);
+        repairManager = new CassandraTableRepairManager(this);
+        sstableImporter = new SSTableImporter(this);
+    }
+
+    public static String getTableMBeanName(String ks, String name, boolean isIndex)
+    {
+        return String.format(""org.apache.cassandra.db:type=%s,keyspace=%s,table=%s"",
+                      isIndex ? ""IndexTables"" : ""Tables"",
+                      ks, name);
+    }
+
+    public static String getColumnFamilieMBeanName(String ks, String name, boolean isIndex)
+    {
+       return String.format(""org.apache.cassandra.db:type=%s,keyspace=%s,columnfamily=%s"",
+                            isIndex ? ""IndexColumnFamilies"" : ""ColumnFamilies"",
+                            ks, name);
+    }
+
+    public void updateSpeculationThreshold()
+    {
+        try
+        {
+            sampleReadLatencyNanos = metadata().params.speculativeRetry.calculateThreshold(metric.coordinatorReadLatency.getSnapshot(), sampleReadLatencyNanos);
+            additionalWriteLatencyNanos = metadata().params.additionalWritePolicy.calculateThreshold(metric.coordinatorWriteLatency.getSnapshot(), additionalWriteLatencyNanos);
+        }
+        catch (Throwable e)
+        {
+            logger.error(""Exception caught while calculating speculative retry threshold for {}: {}"", metadata(), e);
+        }
+    }
+
+    public TableWriteHandler getWriteHandler()
+    {
+        return writeHandler;
+    }
+
+    public TableStreamManager getStreamManager()
+    {
+        return streamManager;
+    }
+
+    public TableRepairManager getRepairManager()
+    {
+        return repairManager;
+    }
+
+    public TableMetadata metadata()
+    {
+        return metadata.get();
+    }
+
+    public Directories getDirectories()
+    {
+        return directories;
+    }
+
+    public List<String> getDataPaths() throws IOException
+    {
+        List<String> dataPaths = new ArrayList<>();
+        for (File dataPath : directories.getCFDirectories())
+        {
+            dataPaths.add(dataPath.getCanonicalPath());
+        }
+
+        return dataPaths;
+    }
+
+    public SSTableMultiWriter createSSTableMultiWriter(Descriptor descriptor, long keyCount, long repairedAt, UUID pendingRepair, boolean isTransient, int sstableLevel, SerializationHeader header, LifecycleNewTracker lifecycleNewTracker)
+    {
+        MetadataCollector collector = new MetadataCollector(metadata().comparator).sstableLevel(sstableLevel);
+        return createSSTableMultiWriter(descriptor, keyCount, repairedAt, pendingRepair, isTransient, collector, header, lifecycleNewTracker);
+    }
+
+    public SSTableMultiWriter createSSTableMultiWriter(Descriptor descriptor, long keyCount, long repairedAt, UUID pendingRepair, boolean isTransient, MetadataCollector metadataCollector, SerializationHeader header, LifecycleNewTracker lifecycleNewTracker)
+    {
+        return getCompactionStrategyManager().createSSTableMultiWriter(descriptor, keyCount, repairedAt, pendingRepair, isTransient, metadataCollector, header, indexManager.listIndexes(), lifecycleNewTracker);
+    }
+
+    public boolean supportsEarlyOpen()
+    {
+        return compactionStrategyManager.supportsEarlyOpen();
+    }
+
+    /** call when dropping or renaming a CF. Performs mbean housekeeping and invalidates CFS to other operations */
+    public void invalidate()
+    {
+        invalidate(true);
+    }
+
+    public void invalidate(boolean expectMBean)
+    {
+        // disable and cancel in-progress compactions before invalidating
+        valid = false;
+
+        try
+        {
+            unregisterMBean();
+        }
+        catch (Exception e)
+        {
+            if (expectMBean)
+            {
+                JVMStabilityInspector.inspectThrowable(e);
+                // this shouldn't block anything.
+                logger.warn(""Failed unregistering mbean: {}"", mbeanName, e);
+            }
+        }
+
+        compactionStrategyManager.shutdown();
+        SystemKeyspace.removeTruncationRecord(metadata.id);
+
+        data.dropSSTables();
+        LifecycleTransaction.waitForDeletions();
+        indexManager.dropAllIndexes();
+
+        invalidateCaches();
+    }
+
+    /**
+     * Removes every SSTable in the directory from the Tracker's view.
+     * @param directory the unreadable directory, possibly with SSTables in it, but not necessarily.
+     */
+    void maybeRemoveUnreadableSSTables(File directory)
+    {
+        data.removeUnreadableSSTables(directory);
+    }
+
+    void unregisterMBean() throws MalformedObjectNameException
+    {
+        ObjectName[] objectNames = {new ObjectName(mbeanName), new ObjectName(oldMBeanName)};
+        for (ObjectName objectName : objectNames)
+        {
+            if (MBeanWrapper.instance.isRegistered(objectName))
+                MBeanWrapper.instance.unregisterMBean(objectName);
+        }
+
+        // unregister metrics
+        metric.release();
+    }
+
+
+    public static ColumnFamilyStore createColumnFamilyStore(Keyspace keyspace, TableMetadataRef metadata, boolean loadSSTables)
+    {
+        return createColumnFamilyStore(keyspace, metadata.name, metadata, loadSSTables);
+    }
+
+    public static synchronized ColumnFamilyStore createColumnFamilyStore(Keyspace keyspace,
+                                                                         String columnFamily,
+                                                                         TableMetadataRef metadata,
+                                                                         boolean loadSSTables)
+    {
+        Directories directories = new Directories(metadata.get());
+        return createColumnFamilyStore(keyspace, columnFamily, metadata, directories, loadSSTables, true, false);
+    }
+
+    /** This is only directly used by offline tools */
+    public static synchronized ColumnFamilyStore createColumnFamilyStore(Keyspace keyspace,
+                                                                         String columnFamily,
+                                                                         TableMetadataRef metadata,
+                                                                         Directories directories,
+                                                                         boolean loadSSTables,
+                                                                         boolean registerBookkeeping,
+                                                                         boolean offline)
+    {
+        // get the max generation number, to prevent generation conflicts
+        Directories.SSTableLister lister = directories.sstableLister(Directories.OnTxnErr.IGNORE).includeBackups(true);
+        List<Integer> generations = new ArrayList<>();
+        for (Map.Entry<Descriptor, Set<Component>> entry : lister.list().entrySet())
+        {
+            Descriptor desc = entry.getKey();
+            generations.add(desc.generation);
+            if (!desc.isCompatible())
+                throw new RuntimeException(String.format(""Incompatible SSTable found. Current version %s is unable to read file: %s. Please run upgradesstables."",
+                                                         desc.getFormat().getLatestVersion(), desc));
+        }
+        Collections.sort(generations);
+        int value = (generations.size() > 0) ? (generations.get(generations.size() - 1)) : 0;
+
+        return new ColumnFamilyStore(keyspace, columnFamily, value, metadata, directories, loadSSTables, registerBookkeeping, offline);
+    }
+
+    /**
+     * Removes unnecessary files from the cf directory at startup: these include temp files, orphans, zero-length files
+     * and compacted sstables. Files that cannot be recognized will be ignored.
+     */
+    public static void  scrubDataDirectories(TableMetadata metadata) throws StartupException
+    {
+        Directories directories = new Directories(metadata);
+        Set<File> cleanedDirectories = new HashSet<>();
+
+        // clear ephemeral snapshots that were not properly cleared last session (CASSANDRA-7357)
+        clearEphemeralSnapshots(directories);
+
+        directories.removeTemporaryDirectories();
+
+        logger.trace(""Removing temporary or obsoleted files from unfinished operations for table {}"", metadata.name);
+        if (!LifecycleTransaction.removeUnfinishedLeftovers(metadata))
+            throw new StartupException(StartupException.ERR_WRONG_DISK_STATE,
+                                       String.format(""Cannot remove temporary or obsoleted files for %s due to a problem with transaction "" +
+                                                     ""log files. Please check records with problems in the log messages above and fix them. "" +
+                                                     ""Refer to the 3.0 upgrading instructions in NEWS.txt "" +
+                                                     ""for a description of transaction log files."", metadata.toString()));
+
+        logger.trace(""Further extra check for orphan sstable files for {}"", metadata.name);
+        for (Map.Entry<Descriptor,Set<Component>> sstableFiles : directories.sstableLister(Directories.OnTxnErr.IGNORE).list().entrySet())
+        {
+            Descriptor desc = sstableFiles.getKey();
+            File directory = desc.directory;
+            Set<Component> components = sstableFiles.getValue();
+
+            if (!cleanedDirectories.contains(directory))
+            {
+                cleanedDirectories.add(directory);
+                for (File tmpFile : desc.getTemporaryFiles())
+                {
+                    logger.info(""Removing unfinished temporary file {}"", tmpFile);
+                    tmpFile.delete();
+                }
+            }
+
+            File dataFile = new File(desc.filenameFor(Component.DATA));
+            if (components.contains(Component.DATA) && dataFile.length() > 0)
+                // everything appears to be in order... moving on.
+                continue;
+
+            // missing the DATA file! all components are orphaned
+            logger.warn(""Removing orphans for {}: {}"", desc, components);
+            for (Component component : components)
+            {
+                File file = new File(desc.filenameFor(component));
+                if (file.exists())
+                    FileUtils.deleteWithConfirm(desc.filenameFor(component));
+            }
+        }
+
+        // cleanup incomplete saved caches
+        Pattern tmpCacheFilePattern = Pattern.compile(metadata.keyspace + '-' + metadata.name + ""-(Key|Row)Cache.*\\.tmp$"");
+        File dir = new File(DatabaseDescriptor.getSavedCachesLocation());
+
+        if (dir.exists())
+        {
+            assert dir.isDirectory();
+            for (File file : Objects.requireNonNull(dir.listFiles()))
+                if (tmpCacheFilePattern.matcher(file.getName()).matches())
+                    if (!file.delete())
+                        logger.warn(""could not delete {}"", file.getAbsolutePath());
+        }
+
+        // also clean out any index leftovers.
+        for (IndexMetadata index : metadata.indexes)
+            if (!index.isCustom())
+            {
+                TableMetadata indexMetadata = CassandraIndex.indexCfsMetadata(metadata, index);
+                scrubDataDirectories(indexMetadata);
+            }
+    }
+
+    /**
+     * See #{@code StorageService.importNewSSTables} for more info
+     *
+     * @param ksName The keyspace name
+     * @param cfName The columnFamily name
+     */
+    public static void loadNewSSTables(String ksName, String cfName)
+    {
+        /* ks/cf existence checks will be done by open and getCFS methods for us */
+        Keyspace keyspace = Keyspace.open(ksName);
+        keyspace.getColumnFamilyStore(cfName).loadNewSSTables();
+    }
+
+    @Deprecated
+    public void loadNewSSTables()
+    {
+
+        SSTableImporter.Options options = SSTableImporter.Options.options().resetLevel(true).build();
+        sstableImporter.importNewSSTables(options);
+    }
+
+    /**
+     * #{@inheritDoc}
+     */
+    public synchronized List<String> importNewSSTables(Set<String> srcPaths, boolean resetLevel, boolean clearRepaired, boolean verifySSTables, boolean verifyTokens, boolean invalidateCaches, boolean extendedVerify, boolean copyData)
+    {
+        SSTableImporter.Options options = SSTableImporter.Options.options(srcPaths)
+                                                                 .resetLevel(resetLevel)
+                                                                 .clearRepaired(clearRepaired)
+                                                                 .verifySSTables(verifySSTables)
+                                                                 .verifyTokens(verifyTokens)
+                                                                 .invalidateCaches(invalidateCaches)
+                                                                 .extendedVerify(extendedVerify)
+                                                                 .copyData(copyData).build();
+
+        return sstableImporter.importNewSSTables(options);
+    }
+
+    public List<String> importNewSSTables(Set<String> srcPaths, boolean resetLevel, boolean clearRepaired, boolean verifySSTables, boolean verifyTokens, boolean invalidateCaches, boolean extendedVerify)
+    {
+        return importNewSSTables(srcPaths, resetLevel, clearRepaired, verifySSTables, verifyTokens, invalidateCaches, extendedVerify, false);
+    }
+
+    Descriptor getUniqueDescriptorFor(Descriptor descriptor, File targetDirectory)
+    {
+        Descriptor newDescriptor;
+        do
+        {
+            newDescriptor = new Descriptor(descriptor.version,
+                                           targetDirectory,
+                                           descriptor.ksname,
+                                           descriptor.cfname,
+                                           // Increment the generation until we find a filename that doesn't exist. This is needed because the new
+                                           // SSTables that are being loaded might already use these generation numbers.
+                                           fileIndexGenerator.incrementAndGet(),
+                                           descriptor.formatType);
+        }
+        while (new File(newDescriptor.filenameFor(Component.DATA)).exists());
+        return newDescriptor;
+    }
+
+    public void rebuildSecondaryIndex(String idxName)
+    {
+        rebuildSecondaryIndex(keyspace.getName(), metadata.name, idxName);
+    }
+
+    public static void rebuildSecondaryIndex(String ksName, String cfName, String... idxNames)
+    {
+        ColumnFamilyStore cfs = Keyspace.open(ksName).getColumnFamilyStore(cfName);
+
+        logger.info(""User Requested secondary index re-build for {}/{} indexes: {}"", ksName, cfName, Joiner.on(',').join(idxNames));
+        cfs.indexManager.rebuildIndexesBlocking(Sets.newHashSet(Arrays.asList(idxNames)));
+    }
+
+    public AbstractCompactionStrategy createCompactionStrategyInstance(CompactionParams compactionParams)
+    {
+        try
+        {
+            Constructor<? extends AbstractCompactionStrategy> constructor =
+                compactionParams.klass().getConstructor(ColumnFamilyStore.class, Map.class);
+            return constructor.newInstance(this, compactionParams.options());
+        }
+        catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Deprecated
+    public String getColumnFamilyName()
+    {
+        return getTableName();
+    }
+
+    public String getTableName()
+    {
+        return name;
+    }
+
+    public Descriptor newSSTableDescriptor(File directory)
+    {
+        return newSSTableDescriptor(directory, SSTableFormat.Type.current().info.getLatestVersion(), SSTableFormat.Type.current());
+    }
+
+    public Descriptor newSSTableDescriptor(File directory, SSTableFormat.Type format)
+    {
+        return newSSTableDescriptor(directory, format.info.getLatestVersion(), format);
+    }
+
+    public Descriptor newSSTableDescriptor(File directory, Version version, SSTableFormat.Type format)
+    {
+        return new Descriptor(version,
+                              directory,
+                              keyspace.getName(),
+                              name,
+                              fileIndexGenerator.incrementAndGet(),
+                              format);
+    }
+
+    /**
+     * Switches the memtable iff the live memtable is the one provided
+     *
+     * @param memtable
+     */
+    public ListenableFuture<CommitLogPosition> switchMemtableIfCurrent(Memtable memtable)
+    {
+        synchronized (data)
+        {
+            if (data.getView().getCurrentMemtable() == memtable)
+                return switchMemtable();
+        }
+        logger.debug(""Memtable is no longer current, returning future that completes when current flushing operation completes"");
+        return waitForFlushes();
+    }
+
+    /*
+     * switchMemtable puts Memtable.getSortedContents on the writer executor.  When the write is complete,
+     * we turn the writer into an SSTableReader and add it to ssTables where it is available for reads.
+     * This method does not block except for synchronizing on Tracker, but the Future it returns will
+     * not complete until the Memtable (and all prior Memtables) have been successfully flushed, and the CL
+     * marked clean up to the position owned by the Memtable.
+     */
+    public ListenableFuture<CommitLogPosition> switchMemtable()
+    {
+        synchronized (data)
+        {
+            logFlush();
+            Flush flush = new Flush(false);
+            flushExecutor.execute(flush);
+            postFlushExecutor.execute(flush.postFlushTask);
+            return flush.postFlushTask;
+        }
+    }
+
+    // print out size of all memtables we're enqueuing
+    private void logFlush()
+    {
+        // reclaiming includes that which we are GC-ing;
+        float onHeapRatio = 0, offHeapRatio = 0;
+        long onHeapTotal = 0, offHeapTotal = 0;
+        Memtable memtable = getTracker().getView().getCurrentMemtable();
+        onHeapRatio +=  memtable.getAllocator().onHeap().ownershipRatio();
+        offHeapRatio += memtable.getAllocator().offHeap().ownershipRatio();
+        onHeapTotal += memtable.getAllocator().onHeap().owns();
+        offHeapTotal += memtable.getAllocator().offHeap().owns();
+
+        for (ColumnFamilyStore indexCfs : indexManager.getAllIndexColumnFamilyStores())
+        {
+            MemtableAllocator allocator = indexCfs.getTracker().getView().getCurrentMemtable().getAllocator();
+            onHeapRatio += allocator.onHeap().ownershipRatio();
+            offHeapRatio += allocator.offHeap().ownershipRatio();
+            onHeapTotal += allocator.onHeap().owns();
+            offHeapTotal += allocator.offHeap().owns();
+        }
+
+        logger.info(""Enqueuing flush of {}: {}"",
+                     name,
+                     String.format(""%s (%.0f%%) on-heap, %s (%.0f%%) off-heap"",
+                                   FBUtilities.prettyPrintMemory(onHeapTotal),
+                                   onHeapRatio * 100,
+                                   FBUtilities.prettyPrintMemory(offHeapTotal),
+                                   offHeapRatio * 100));
+    }
+
+
+    /**
+     * Flush if there is unflushed data in the memtables
+     *
+     * @return a Future yielding the commit log position that can be guaranteed to have been successfully written
+     *         to sstables for this table once the future completes
+     */
+    public ListenableFuture<CommitLogPosition> forceFlush()
+    {
+        synchronized (data)
+        {
+            Memtable current = data.getView().getCurrentMemtable();
+            for (ColumnFamilyStore cfs : concatWithIndexes())
+                if (!cfs.data.getView().getCurrentMemtable().isClean())
+                    return switchMemtableIfCurrent(current);
+            return waitForFlushes();
+        }
+    }
+
+    /**
+     * Flush if there is unflushed data that was written to the CommitLog before @param flushIfDirtyBefore
+     * (inclusive).
+     *
+     * @return a Future yielding the commit log position that can be guaranteed to have been successfully written
+     *         to sstables for this table once the future completes
+     */
+    public ListenableFuture<?> forceFlush(CommitLogPosition flushIfDirtyBefore)
+    {
+        // we don't loop through the remaining memtables since here we only care about commit log dirtiness
+        // and this does not vary between a table and its table-backed indexes
+        Memtable current = data.getView().getCurrentMemtable();
+        if (current.mayContainDataBefore(flushIfDirtyBefore))
+            return switchMemtableIfCurrent(current);
+        return waitForFlushes();
+    }
+
+    /**
+     * @return a Future yielding the commit log position that can be guaranteed to have been successfully written
+     *         to sstables for this table once the future completes
+     */
+    private ListenableFuture<CommitLogPosition> waitForFlushes()
+    {
+        // we grab the current memtable; once any preceding memtables have flushed, we know its
+        // commitLogLowerBound has been set (as this it is set with the upper bound of the preceding memtable)
+        final Memtable current = data.getView().getCurrentMemtable();
+        ListenableFutureTask<CommitLogPosition> task = ListenableFutureTask.create(() -> {
+            logger.debug(""forceFlush requested but everything is clean in {}"", name);
+            return current.getCommitLogLowerBound();
+        });
+        postFlushExecutor.execute(task);
+        return task;
+    }
+
+    public CommitLogPosition forceBlockingFlush()
+    {
+        return FBUtilities.waitOnFuture(forceFlush());
+    }
+
+    /**
+     * Both synchronises custom secondary indexes and provides ordering guarantees for futures on switchMemtable/flush
+     * etc, which expect to be able to wait until the flush (and all prior flushes) requested have completed.
+     */
+    private final class PostFlush implements Callable<CommitLogPosition>
+    {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final List<Memtable> memtables;
+        volatile Throwable flushFailure = null;
+
+        private PostFlush(List<Memtable> memtables)
+        {
+            this.memtables = memtables;
+        }
+
+        public CommitLogPosition call()
+        {
+            try
+            {
+                // we wait on the latch for the commitLogUpperBound to be set, and so that waiters
+                // on this task can rely on all prior flushes being complete
+                latch.await();
+            }
+            catch (InterruptedException e)
+            {
+                throw new IllegalStateException();
+            }
+
+            CommitLogPosition commitLogUpperBound = CommitLogPosition.NONE;
+            // If a flush errored out but the error was ignored, make sure we don't discard the commit log.
+            if (flushFailure == null && !memtables.isEmpty())
+            {
+                Memtable memtable = memtables.get(0);
+                commitLogUpperBound = memtable.getCommitLogUpperBound();
+                CommitLog.instance.discardCompletedSegments(metadata.id, memtable.getCommitLogLowerBound(), commitLogUpperBound);
+            }
+
+            metric.pendingFlushes.dec();
+
+            if (flushFailure != null)
+                throw Throwables.propagate(flushFailure);
+
+            return commitLogUpperBound;
+        }
+    }
+
+    /**
+     * Should only be constructed/used from switchMemtable() or truncate(), with ownership of the Tracker monitor.
+     * In the constructor the current memtable(s) are swapped, and a barrier on outstanding writes is issued;
+     * when run by the flushWriter the barrier is waited on to ensure all outstanding writes have completed
+     * before all memtables are immediately written, and the CL is either immediately marked clean or, if
+     * there are custom secondary indexes, the post flush clean up is left to update those indexes and mark
+     * the CL clean
+     */
+    private final class Flush implements Runnable
+    {
+        final OpOrder.Barrier writeBarrier;
+        final List<Memtable> memtables = new ArrayList<>();
+        final ListenableFutureTask<CommitLogPosition> postFlushTask;
+        final PostFlush postFlush;
+        final boolean truncate;
+
+        private Flush(boolean truncate)
+        {
+            if (logger.isTraceEnabled())
+                logger.trace(""Creating flush task {}@{}"", hashCode(), name);
+            // if true, we won't flush, we'll just wait for any outstanding writes, switch the memtable, and discard
+            this.truncate = truncate;
+
+            metric.pendingFlushes.inc();
+            /*
+             * To ensure correctness of switch without blocking writes, run() needs to wait for all write operations
+             * started prior to the switch to complete. We do this by creating a Barrier on the writeOrdering
+             * that all write operations register themselves with, and assigning this barrier to the memtables,
+             * after which we *.issue()* the barrier. This barrier is used to direct write operations started prior
+             * to the barrier.issue() into the memtable we have switched out, and any started after to its replacement.
+             * In doing so it also tells the write operations to update the commitLogUpperBound of the memtable, so
+             * that we know the CL position we are dirty to, which can be marked clean when we complete.
+             */
+            writeBarrier = Keyspace.writeOrder.newBarrier();
+
+            // submit flushes for the memtable for any indexed sub-cfses, and our own
+            AtomicReference<CommitLogPosition> commitLogUpperBound = new AtomicReference<>();
+            for (ColumnFamilyStore cfs : concatWithIndexes())
+            {
+                // switch all memtables, regardless of their dirty status, setting the barrier
+                // so that we can reach a coordinated decision about cleanliness once they
+                // are no longer possible to be modified
+                Memtable newMemtable = new Memtable(commitLogUpperBound, cfs);
+                Memtable oldMemtable = cfs.data.switchMemtable(truncate, newMemtable);
+                oldMemtable.setDiscarding(writeBarrier, commitLogUpperBound);
+                memtables.add(oldMemtable);
+            }
+
+            // we then ensure an atomic decision is made about the upper bound of the continuous range of commit log
+            // records owned by this memtable
+            setCommitLogUpperBound(commitLogUpperBound);
+
+            // we then issue the barrier; this lets us wait for all operations started prior to the barrier to complete;
+            // since this happens after wiring up the commitLogUpperBound, we also know all operations with earlier
+            // commit log segment position have also completed, i.e. the memtables are done and ready to flush
+            writeBarrier.issue();
+            postFlush = new PostFlush(memtables);
+            postFlushTask = ListenableFutureTask.create(postFlush);
+        }
+
+        public void run()
+        {
+            if (logger.isTraceEnabled())
+                logger.trace(""Flush task {}@{} starts executing, waiting on barrier"", hashCode(), name);
+
+            long start = System.nanoTime();
+
+            // mark writes older than the barrier as blocking progress, permitting them to exceed our memory limit
+            // if they are stuck waiting on it, then wait for them all to complete
+            writeBarrier.markBlocking();
+            writeBarrier.await();
+
+            if (logger.isTraceEnabled())
+                logger.trace(""Flush task for task {}@{} waited {} ms at the barrier"", hashCode(), name, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+
+            // mark all memtables as flushing, removing them from the live memtable list
+            for (Memtable memtable : memtables)
+                memtable.cfs.data.markFlushing(memtable);
+
+            metric.memtableSwitchCount.inc();
+
+            try
+            {
+                // Flush ""data"" memtable with non-cf 2i first;
+                flushMemtable(memtables.get(0), true);
+                for (int i = 1; i < memtables.size(); i++)
+                    flushMemtable(memtables.get(i), false);
+            }
+            catch (Throwable t)
+            {
+                JVMStabilityInspector.inspectThrowable(t);
+                postFlush.flushFailure = t;
+            }
+
+            if (logger.isTraceEnabled())
+                logger.trace(""Flush task {}@{} signaling post flush task"", hashCode(), name);
+
+            // signal the post-flush we've done our work
+            postFlush.latch.countDown();
+
+            if (logger.isTraceEnabled())
+                logger.trace(""Flush task task {}@{} finished"", hashCode(), name);
+        }
+
+        public Collection<SSTableReader> flushMemtable(Memtable memtable, boolean flushNonCf2i)
+        {
+            if (logger.isTraceEnabled())
+                logger.trace(""Flush task task {}@{} flushing memtable {}"", hashCode(), name, memtable);
+
+            if (memtable.isClean() || truncate)
+            {
+                memtable.cfs.replaceFlushed(memtable, Collections.emptyList());
+                reclaim(memtable);
+                return Collections.emptyList();
+            }
+
+            List<Future<SSTableMultiWriter>> futures = new ArrayList<>();
+            long totalBytesOnDisk = 0;
+            long maxBytesOnDisk = 0;
+            long minBytesOnDisk = Long.MAX_VALUE;
+            List<SSTableReader> sstables = new ArrayList<>();
+            try (LifecycleTransaction txn = LifecycleTransaction.offline(OperationType.FLUSH))
+            {
+                List<Memtable.FlushRunnable> flushRunnables = null;
+                List<SSTableMultiWriter> flushResults = null;
+
+                try
+                {
+                    // flush the memtable
+                    flushRunnables = memtable.flushRunnables(txn);
+                    ExecutorService[] executors = perDiskflushExecutors.getExecutorsFor(keyspace.getName(), name);
+
+                    for (int i = 0; i < flushRunnables.size(); i++)
+                        futures.add(executors[i].submit(flushRunnables.get(i)));
+
+                    /**
+                     * we can flush 2is as soon as the barrier completes, as they will be consistent with (or ahead of) the
+                     * flushed memtables and CL position, which is as good as we can guarantee.
+                     * TODO: SecondaryIndex should support setBarrier(), so custom implementations can co-ordinate exactly
+                     * with CL as we do with memtables/CFS-backed SecondaryIndexes.
+                     */
+                    if (flushNonCf2i)
+                        indexManager.flushAllNonCFSBackedIndexesBlocking();
+
+                    flushResults = Lists.newArrayList(FBUtilities.waitOnFutures(futures));
+                }
+                catch (Throwable t)
+                {
+                    t = memtable.abortRunnables(flushRunnables, t);
+                    t = txn.abort(t);
+                    throw Throwables.propagate(t);
+                }
+
+                try
+                {
+                    Iterator<SSTableMultiWriter> writerIterator = flushResults.iterator();
+                    while (writerIterator.hasNext())
+                    {
+                        @SuppressWarnings(""resource"")
+                        SSTableMultiWriter writer = writerIterator.next();
+                        if (writer.getFilePointer() > 0)
+                        {
+                            writer.setOpenResult(true).prepareToCommit();
+                        }
+                        else
+                        {
+                            maybeFail(writer.abort(null));
+                            writerIterator.remove();
+                        }
+                    }
+                }
+                catch (Throwable t)
+                {
+                    for (SSTableMultiWriter writer : flushResults)
+                        t = writer.abort(t);
+                    t = txn.abort(t);
+                    Throwables.propagate(t);
+                }
+
+                txn.prepareToCommit();
+
+                Throwable accumulate = null;
+                for (SSTableMultiWriter writer : flushResults)
+                    accumulate = writer.commit(accumulate);
+
+                maybeFail(txn.commit(accumulate));
+
+                for (SSTableMultiWriter writer : flushResults)
+                {
+                    Collection<SSTableReader> flushedSSTables = writer.finished();
+                    for (SSTableReader sstable : flushedSSTables)
+                    {
+                        if (sstable != null)
+                        {
+                            sstables.add(sstable);
+                            long size = sstable.bytesOnDisk();
+                            totalBytesOnDisk += size;
+                            maxBytesOnDisk = Math.max(maxBytesOnDisk, size);
+                            minBytesOnDisk = Math.min(minBytesOnDisk, size);
+                        }
+                    }
+                }
+            }
+            memtable.cfs.replaceFlushed(memtable, sstables);
+            reclaim(memtable);
+            memtable.cfs.compactionStrategyManager.compactionLogger.flush(sstables);
+            logger.debug(""Flushed to {} ({} sstables, {}), biggest {}, smallest {}"",
+                         sstables,
+                         sstables.size(),
+                         FBUtilities.prettyPrintMemory(totalBytesOnDisk),
+                         FBUtilities.prettyPrintMemory(maxBytesOnDisk),
+                         FBUtilities.prettyPrintMemory(minBytesOnDisk));
+            return sstables;
+        }
+
+        private void reclaim(final Memtable memtable)
+        {
+            // issue a read barrier for reclaiming the memory, and offload the wait to another thread
+            final OpOrder.Barrier readBarrier = readOrdering.newBarrier();
+            readBarrier.issue();
+            postFlushTask.addListener(new WrappedRunnable()
+            {
+                public void runMayThrow()
+                {
+                    readBarrier.await();
+                    memtable.setDiscarded();
+                }
+            }, reclaimExecutor);
+        }
+    }
+
+    // atomically set the upper bound for the commit log
+    private static void setCommitLogUpperBound(AtomicReference<CommitLogPosition> commitLogUpperBound)
+    {
+        // we attempt to set the holder to the current commit log context. at the same time all writes to the memtables are
+        // also maintaining this value, so if somebody sneaks ahead of us somehow (should be rare) we simply retry,
+        // so that we know all operations prior to the position have not reached it yet
+        CommitLogPosition lastReplayPosition;
+        while (true)
+        {
+            lastReplayPosition = new Memtable.LastCommitLogPosition((CommitLog.instance.getCurrentPosition()));
+            CommitLogPosition currentLast = commitLogUpperBound.get();
+            if ((currentLast == null || currentLast.compareTo(lastReplayPosition) <= 0)
+                && commitLogUpperBound.compareAndSet(currentLast, lastReplayPosition))
+                break;
+        }
+    }
+
+    /**
+     * Finds the largest memtable, as a percentage of *either* on- or off-heap memory limits, and immediately
+     * queues it for flushing. If the memtable selected is flushed before this completes, no work is done.
+     */
+    public static CompletableFuture<Boolean> flushLargestMemtable()
+    {
+        float largestRatio = 0f;
+        Memtable largest = null;
+        float liveOnHeap = 0, liveOffHeap = 0;
+        for (ColumnFamilyStore cfs : ColumnFamilyStore.all())
+        {
+            // we take a reference to the current main memtable for the CF prior to snapping its ownership ratios
+            // to ensure we have some ordering guarantee for performing the switchMemtableIf(), i.e. we will only
+            // swap if the memtables we are measuring here haven't already been swapped by the time we try to swap them
+            Memtable current = cfs.getTracker().getView().getCurrentMemtable();
+
+            // find the total ownership ratio for the memtable and all SecondaryIndexes owned by this CF,
+            // both on- and off-heap, and select the largest of the two ratios to weight this CF
+            float onHeap = 0f, offHeap = 0f;
+            onHeap += current.getAllocator().onHeap().ownershipRatio();
+            offHeap += current.getAllocator().offHeap().ownershipRatio();
+
+            for (ColumnFamilyStore indexCfs : cfs.indexManager.getAllIndexColumnFamilyStores())
+            {
+                MemtableAllocator allocator = indexCfs.getTracker().getView().getCurrentMemtable().getAllocator();
+                onHeap += allocator.onHeap().ownershipRatio();
+                offHeap += allocator.offHeap().ownershipRatio();
+            }
+
+            float ratio = Math.max(onHeap, offHeap);
+            if (ratio > largestRatio)
+            {
+                largest = current;
+                largestRatio = ratio;
+            }
+
+            liveOnHeap += onHeap;
+            liveOffHeap += offHeap;
+        }
+
+        CompletableFuture<Boolean> returnFuture = new CompletableFuture<>();
+
+        if (largest != null)
+        {
+            float usedOnHeap = Memtable.MEMORY_POOL.onHeap.usedRatio();
+            float usedOffHeap = Memtable.MEMORY_POOL.offHeap.usedRatio();
+            float flushingOnHeap = Memtable.MEMORY_POOL.onHeap.reclaimingRatio();
+            float flushingOffHeap = Memtable.MEMORY_POOL.offHeap.reclaimingRatio();
+            float thisOnHeap = largest.getAllocator().onHeap().ownershipRatio();
+            float thisOffHeap = largest.getAllocator().offHeap().ownershipRatio();
+            logger.debug(""Flushing largest {} to free up room. Used total: {}, live: {}, flushing: {}, this: {}"",
+                         largest.cfs, ratio(usedOnHeap, usedOffHeap), ratio(liveOnHeap, liveOffHeap),
+                         ratio(flushingOnHeap, flushingOffHeap), ratio(thisOnHeap, thisOffHeap));
+
+            ListenableFuture<CommitLogPosition> flushFuture = largest.cfs.switchMemtableIfCurrent(largest);
+            flushFuture.addListener(() -> {
+                try
+                {
+                    flushFuture.get();
+                    returnFuture.complete(true);
+                }
+                catch (Throwable t)
+                {
+                    returnFuture.completeExceptionally(t);
+                }
+            }, MoreExecutors.directExecutor());
+        }
+        else
+        {
+            logger.debug(""Flushing of largest memtable, not done, no memtable found"");
+
+            returnFuture.complete(false);
+        }
+
+        return returnFuture;
+    }
+
+    private static String ratio(float onHeap, float offHeap)
+    {
+        return String.format(""%.2f/%.2f"", onHeap, offHeap);
+    }
+
+    /**
+     * Insert/Update the column family for this key.
+     * Caller is responsible for acquiring Keyspace.switchLock
+     * param @ lock - lock that needs to be used.
+     * param @ key - key for update/insert
+     * param @ columnFamily - columnFamily changes
+     */
+    public void apply(PartitionUpdate update, UpdateTransaction indexer, OpOrder.Group opGroup, CommitLogPosition commitLogPosition)
+
+    {
+        long start = System.nanoTime();
+        try
+        {
+            Memtable mt = data.getMemtableFor(opGroup, commitLogPosition);
+            long timeDelta = mt.put(update, indexer, opGroup);
+            DecoratedKey key = update.partitionKey();
+            invalidateCachedPartition(key);
+            metric.topWritePartitionFrequency.addSample(key.getKey(), 1);
+            if (metric.topWritePartitionSize.isEnabled()) // dont compute datasize if not needed
+                metric.topWritePartitionSize.addSample(key.getKey(), update.dataSize());
+            StorageHook.instance.reportWrite(metadata.id, update);
+            metric.writeLatency.addNano(System.nanoTime() - start);
+            // CASSANDRA-11117 - certain resolution paths on memtable put can result in very
+            // large time deltas, either through a variety of sentinel timestamps (used for empty values, ensuring
+            // a minimal write, etc). This limits the time delta to the max value the histogram
+            // can bucket correctly. This also filters the Long.MAX_VALUE case where there was no previous value
+            // to update.
+            if(timeDelta < Long.MAX_VALUE)
+                metric.colUpdateTimeDeltaHistogram.update(Math.min(18165375903306L, timeDelta));
+        }
+        catch (RuntimeException e)
+        {
+            throw new RuntimeException(e.getMessage()
+                                       + "" for ks: ""
+                                       + keyspace.getName() + "", table: "" + name, e);
+        }
+    }
+
+    /**
+     * @param sstables
+     * @return sstables whose key range overlaps with that of the given sstables, not including itself.
+     * (The given sstables may or may not overlap with each other.)
+     */
+    public Collection<SSTableReader> getOverlappingLiveSSTables(Iterable<SSTableReader> sstables)
+    {
+        logger.trace(""Checking for sstables overlapping {}"", sstables);
+
+        // a normal compaction won't ever have an empty sstables list, but we create a skeleton
+        // compaction controller for streaming, and that passes an empty list.
+        if (!sstables.iterator().hasNext())
+            return ImmutableSet.of();
+
+        View view = data.getView();
+
+        List<SSTableReader> sortedByFirst = Lists.newArrayList(sstables);
+        Collections.sort(sortedByFirst, (o1, o2) -> o1.first.compareTo(o2.first));
+
+        List<AbstractBounds<PartitionPosition>> bounds = new ArrayList<>();
+        DecoratedKey first = null, last = null;
+        /*
+        normalize the intervals covered by the sstables
+        assume we have sstables like this (brackets representing first/last key in the sstable);
+        [   ] [   ]    [   ]   [  ]
+           [   ]         [       ]
+        then we can, instead of searching the interval tree 6 times, normalize the intervals and
+        only query the tree 2 times, for these intervals;
+        [         ]    [          ]
+         */
+        for (SSTableReader sstable : sortedByFirst)
+        {
+            if (first == null)
+            {
+                first = sstable.first;
+                last = sstable.last;
+            }
+            else
+            {
+                if (sstable.first.compareTo(last) <= 0) // we do overlap
+                {
+                    if (sstable.last.compareTo(last) > 0)
+                        last = sstable.last;
+                }
+                else
+                {
+                    bounds.add(AbstractBounds.bounds(first, true, last, true));
+                    first = sstable.first;
+                    last = sstable.last;
+                }
+            }
+        }
+        bounds.add(AbstractBounds.bounds(first, true, last, true));
+        Set<SSTableReader> results = new HashSet<>();
+
+        for (AbstractBounds<PartitionPosition> bound : bounds)
+            Iterables.addAll(results, view.liveSSTablesInBounds(bound.left, bound.right));
+
+        return Sets.difference(results, ImmutableSet.copyOf(sstables));
+    }
+
+    /**
+     * like getOverlappingSSTables, but acquires references before returning
+     */
+    public Refs<SSTableReader> getAndReferenceOverlappingLiveSSTables(Iterable<SSTableReader> sstables)
+    {
+        while (true)
+        {
+            Iterable<SSTableReader> overlapped = getOverlappingLiveSSTables(sstables);
+            Refs<SSTableReader> refs = Refs.tryRef(overlapped);
+            if (refs != null)
+                return refs;
+        }
+    }
+
+    /*
+     * Called after a BinaryMemtable flushes its in-memory data, or we add a file
+     * via bootstrap. This information is cached in the ColumnFamilyStore.
+     * This is useful for reads because the ColumnFamilyStore first looks in
+     * the in-memory store and the into the disk to find the key. If invoked
+     * during recoveryMode the onMemtableFlush() need not be invoked.
+     *
+     * param @ filename - filename just flushed to disk
+     */
+    public void addSSTable(SSTableReader sstable)
+    {
+        assert sstable.getColumnFamilyName().equals(name);
+        addSSTables(Collections.singletonList(sstable));
+    }
+
+    public void addSSTables(Collection<SSTableReader> sstables)
+    {
+        data.addSSTables(sstables);
+        CompactionManager.instance.submitBackground(this);
+    }
+
+    /**
+     * Calculate expected file size of SSTable after compaction.
+     *
+     * If operation type is {@code CLEANUP} and we're not dealing with an index sstable,
+     * then we calculate expected file size with checking token range to be eliminated.
+     *
+     * Otherwise, we just add up all the files' size, which is the worst case file
+     * size for compaction of all the list of files given.
+     *
+     * @param sstables SSTables to calculate expected compacted file size
+     * @param operation Operation type
+     * @return Expected file size of SSTable after compaction
+     */
+    public long getExpectedCompactedFileSize(Iterable<SSTableReader> sstables, OperationType operation)
+    {
+        if (operation != OperationType.CLEANUP || isIndex())
+        {
+            return SSTableReader.getTotalBytes(sstables);
+        }
+
+        // cleanup size estimation only counts bytes for keys local to this node
+        long expectedFileSize = 0;
+        Collection<Range<Token>> ranges = StorageService.instance.getLocalReplicas(keyspace.getName()).ranges();
+        for (SSTableReader sstable : sstables)
+        {
+            List<SSTableReader.PartitionPositionBounds> positions = sstable.getPositionsForRanges(ranges);
+            for (SSTableReader.PartitionPositionBounds position : positions)
+                expectedFileSize += position.upperPosition - position.lowerPosition;
+        }
+
+        double compressionRatio = metric.compressionRatio.getValue();
+        if (compressionRatio > 0d)
+            expectedFileSize *= compressionRatio;
+
+        return expectedFileSize;
+    }
+
+    /*
+     *  Find the maximum size file in the list .
+     */
+    public SSTableReader getMaxSizeFile(Iterable<SSTableReader> sstables)
+    {
+        long maxSize = 0L;
+        SSTableReader maxFile = null;
+        for (SSTableReader sstable : sstables)
+        {
+            if (sstable.onDiskLength() > maxSize)
+            {
+                maxSize = sstable.onDiskLength();
+                maxFile = sstable;
+            }
+        }
+        return maxFile;
+    }
+
+    public CompactionManager.AllSSTableOpStatus forceCleanup(int jobs) throws ExecutionException, InterruptedException
+    {
+        return CompactionManager.instance.performCleanup(ColumnFamilyStore.this, jobs);
+    }
+
+    public CompactionManager.AllSSTableOpStatus scrub(boolean disableSnapshot, boolean skipCorrupted, boolean checkData, boolean reinsertOverflowedTTL, int jobs) throws ExecutionException, InterruptedException
+    {
+        return scrub(disableSnapshot, skipCorrupted, reinsertOverflowedTTL, false, checkData, jobs);
+    }
+
+    @VisibleForTesting
+    public CompactionManager.AllSSTableOpStatus scrub(boolean disableSnapshot, boolean skipCorrupted, boolean reinsertOverflowedTTL, boolean alwaysFail, boolean checkData, int jobs) throws ExecutionException, InterruptedException
+    {
+        // skip snapshot creation during scrub, SEE JIRA 5891
+        if(!disableSnapshot)
+            snapshotWithoutFlush(""pre-scrub-"" + System.currentTimeMillis());
+
+        try
+        {
+            return CompactionManager.instance.performScrub(ColumnFamilyStore.this, skipCorrupted, checkData, reinsertOverflowedTTL, jobs);
+        }
+        catch(Throwable t)
+        {
+            if (!rebuildOnFailedScrub(t))
+                throw t;
+
+            return alwaysFail ? CompactionManager.AllSSTableOpStatus.ABORTED : CompactionManager.AllSSTableOpStatus.SUCCESSFUL;
+        }
+    }
+
+    /**
+     * CASSANDRA-5174 : For an index cfs we may be able to discard everything and just rebuild
+     * the index when a scrub fails.
+     *
+     * @return true if we are an index cfs and we successfully rebuilt the index
+     */
+    public boolean rebuildOnFailedScrub(Throwable failure)
+    {
+        if (!isIndex() || !SecondaryIndexManager.isIndexColumnFamilyStore(this))
+            return false;
+
+        truncateBlocking();
+
+        logger.warn(""Rebuilding index for {} because of <{}>"", name, failure.getMessage());
+
+        ColumnFamilyStore parentCfs = SecondaryIndexManager.getParentCfs(this);
+        assert parentCfs.indexManager.getAllIndexColumnFamilyStores().contains(this);
+
+        String indexName = SecondaryIndexManager.getIndexName(this);
+
+        parentCfs.rebuildSecondaryIndex(indexName);
+        return true;
+    }
+
+    public CompactionManager.AllSSTableOpStatus verify(Verifier.Options options) throws ExecutionException, InterruptedException
+    {
+        return CompactionManager.instance.performVerify(ColumnFamilyStore.this, options);
+    }
+
+    public CompactionManager.AllSSTableOpStatus sstablesRewrite(boolean excludeCurrentVersion, int jobs) throws ExecutionException, InterruptedException
+    {
+        return CompactionManager.instance.performSSTableRewrite(ColumnFamilyStore.this, excludeCurrentVersion, jobs);
+    }
+
+    public CompactionManager.AllSSTableOpStatus relocateSSTables(int jobs) throws ExecutionException, InterruptedException
+    {
+        return CompactionManager.instance.relocateSSTables(this, jobs);
+    }
+
+    public CompactionManager.AllSSTableOpStatus garbageCollect(TombstoneOption tombstoneOption, int jobs) throws ExecutionException, InterruptedException
+    {
+        return CompactionManager.instance.performGarbageCollection(this, tombstoneOption, jobs);
+    }
+
+    public void markObsolete(Collection<SSTableReader> sstables, OperationType compactionType)
+    {
+        assert !sstables.isEmpty();
+        maybeFail(data.dropSSTables(Predicates.in(sstables), compactionType, null));
+    }
+
+    void replaceFlushed(Memtable memtable, Collection<SSTableReader> sstables)
+    {
+        data.replaceFlushed(memtable, sstables);
+        if (sstables != null && !sstables.isEmpty())
+            CompactionManager.instance.submitBackground(this);
+    }
+
+    public boolean isValid()
+    {
+        return valid;
+    }
+
+    /**
+     * Package protected for access from the CompactionManager.
+     */
+    public Tracker getTracker()
+    {
+        return data;
+    }
+
+    public Set<SSTableReader> getLiveSSTables()
+    {
+        return data.getView().liveSSTables();
+    }
+
+    public Iterable<SSTableReader> getSSTables(SSTableSet sstableSet)
+    {
+        return data.getView().select(sstableSet);
+    }
+
+    public Iterable<SSTableReader> getUncompactingSSTables()
+    {
+        return data.getUncompacting();
+    }
+
+    public Map<UUID, PendingStat> getPendingRepairStats()
+    {
+        Map<UUID, PendingStat.Builder> builders = new HashMap<>();
+        for (SSTableReader sstable : getLiveSSTables())
+        {
+            UUID session = sstable.getPendingRepair();
+            if (session == null)
+                continue;
+
+            if (!builders.containsKey(session))
+                builders.put(session, new PendingStat.Builder());
+
+            builders.get(session).addSSTable(sstable);
+        }
+
+        Map<UUID, PendingStat> stats = new HashMap<>();
+        for (Map.Entry<UUID, PendingStat.Builder> entry : builders.entrySet())
+        {
+            stats.put(entry.getKey(), entry.getValue().build());
+        }
+        return stats;
+    }
+
+    /**
+     * promotes (or demotes) data attached to an incremental repair session that has either completed successfully,
+     * or failed
+     *
+     * @return session ids whose data could not be released
+     */
+    public CleanupSummary releaseRepairData(Collection<UUID> sessions, boolean force)
+    {
+        if (force)
+        {
+            Predicate<SSTableReader> predicate = sst -> {
+                UUID session = sst.getPendingRepair();
+                return session != null && sessions.contains(session);
+            };
+            return runWithCompactionsDisabled(() -> compactionStrategyManager.releaseRepairData(sessions),
+                                              predicate, false, true, true);
+        }
+        else
+        {
+            return compactionStrategyManager.releaseRepairData(sessions);
+        }
+    }
+
+    public boolean isFilterFullyCoveredBy(ClusteringIndexFilter filter,
+                                          DataLimits limits,
+                                          CachedPartition cached,
+                                          int nowInSec,
+                                          boolean enforceStrictLiveness)
+    {
+        // We can use the cached value only if we know that no data it doesn't contain could be covered
+        // by the query filter, that is if:
+        //   1) either the whole partition is cached
+        //   2) or we can ensure than any data the filter selects is in the cached partition
+
+        // We can guarantee that a partition is fully cached if the number of rows it contains is less than
+        // what we're caching. Wen doing that, we should be careful about expiring cells: we should count
+        // something expired that wasn't when the partition was cached, or we could decide that the whole
+        // partition is cached when it's not. This is why we use CachedPartition#cachedLiveRows.
+        if (cached.cachedLiveRows() < metadata().params.caching.rowsPerPartitionToCache())
+            return true;
+
+        // If the whole partition isn't cached, then we must guarantee that the filter cannot select data that
+        // is not in the cache. We can guarantee that if either the filter is a ""head filter"" and the cached
+        // partition has more live rows that queried (where live rows refers to the rows that are live now),
+        // or if we can prove that everything the filter selects is in the cached partition based on its content.
+        return (filter.isHeadFilter() && limits.hasEnoughLiveData(cached,
+                                                                  nowInSec,
+                                                                  filter.selectsAllPartition(),
+                                                                  enforceStrictLiveness))
+               || filter.isFullyCoveredBy(cached);
+    }
+
+    public int gcBefore(int nowInSec)
+    {
+        return nowInSec - metadata().params.gcGraceSeconds;
+    }
+
+    @SuppressWarnings(""resource"")
+    public RefViewFragment selectAndReference(Function<View, Iterable<SSTableReader>> filter)
+    {
+        long failingSince = -1L;
+        while (true)
+        {
+            ViewFragment view = select(filter);
+            Refs<SSTableReader> refs = Refs.tryRef(view.sstables);
+            if (refs != null)
+                return new RefViewFragment(view.sstables, view.memtables, refs);
+            if (failingSince <= 0)
+            {
+                failingSince = System.nanoTime();
+            }
+            else if (System.nanoTime() - failingSince > TimeUnit.MILLISECONDS.toNanos(100))
+            {
+                List<SSTableReader> released = new ArrayList<>();
+                for (SSTableReader reader : view.sstables)
+                    if (reader.selfRef().globalCount() == 0)
+                        released.add(reader);
+                NoSpamLogger.log(logger, NoSpamLogger.Level.WARN, 1, TimeUnit.SECONDS,
+                                 ""Spinning trying to capture readers {}, released: {}, "", view.sstables, released);
+                failingSince = System.nanoTime();
+            }
+        }
+    }
+
+    public ViewFragment select(Function<View, Iterable<SSTableReader>> filter)
+    {
+        View view = data.getView();
+        List<SSTableReader> sstables = Lists.newArrayList(Objects.requireNonNull(filter.apply(view)));
+        return new ViewFragment(sstables, view.getAllMemtables());
+    }
+
+    // WARNING: this returns the set of LIVE sstables only, which may be only partially written
+    public List<String> getSSTablesForKey(String key)
+    {
+        return getSSTablesForKey(key, false);
+    }
+
+    public List<String> getSSTablesForKey(String key, boolean hexFormat)
+    {
+        ByteBuffer keyBuffer = hexFormat ? ByteBufferUtil.hexToBytes(key) : metadata().partitionKeyType.fromString(key);
+        DecoratedKey dk = decorateKey(keyBuffer);
+        try (OpOrder.Group op = readOrdering.start())
+        {
+            List<String> files = new ArrayList<>();
+            for (SSTableReader sstr : select(View.select(SSTableSet.LIVE, dk)).sstables)
+            {
+                // check if the key actually exists in this sstable, without updating cache and stats
+                if (sstr.getPosition(dk, SSTableReader.Operator.EQ, false) != null)
+                    files.add(sstr.getFilename());
+            }
+            return files;
+        }
+    }
+
+    public void beginLocalSampling(String sampler, int capacity, int durationMillis)
+    {
+        metric.samplers.get(SamplerType.valueOf(sampler)).beginSampling(capacity, durationMillis);
+    }
+
+    @SuppressWarnings({ ""rawtypes"", ""unchecked"" })
+    public List<CompositeData> finishLocalSampling(String sampler, int count) throws OpenDataException
+    {
+        Sampler samplerImpl = metric.samplers.get(SamplerType.valueOf(sampler));
+        List<Sample> samplerResults = samplerImpl.finishSampling(count);
+        List<CompositeData> result = new ArrayList<>(count);
+        for (Sample counter : samplerResults)
+        {
+            //Not duplicating the buffer for safety because AbstractSerializer and ByteBufferUtil.bytesToHex
+            //don't modify position or limit
+            result.add(new CompositeDataSupport(COUNTER_COMPOSITE_TYPE, COUNTER_NAMES, new Object[] {
+                    keyspace.getName() + ""."" + name,
+                    counter.count,
+                    counter.error,
+                    samplerImpl.toString(counter.value) })); // string
+        }
+        return result;
+    }
+
+    public boolean isCompactionDiskSpaceCheckEnabled()
+    {
+        return compactionSpaceCheck;
+    }
+
+    public void compactionDiskSpaceCheck(boolean enable)
+    {
+        compactionSpaceCheck = enable;
+    }
+
+    public void cleanupCache()
+    {
+        Collection<Range<Token>> ranges = StorageService.instance.getLocalReplicas(keyspace.getName()).ranges();
+
+        for (Iterator<RowCacheKey> keyIter = CacheService.instance.rowCache.keyIterator();
+             keyIter.hasNext(); )
+        {
+            RowCacheKey key = keyIter.next();
+            DecoratedKey dk = decorateKey(ByteBuffer.wrap(key.key));
+            if (key.sameTable(metadata()) && !Range.isInRanges(dk.getToken(), ranges))
+                invalidateCachedPartition(dk);
+        }
+
+        if (metadata().isCounter())
+        {
+            for (Iterator<CounterCacheKey> keyIter = CacheService.instance.counterCache.keyIterator();
+                 keyIter.hasNext(); )
+            {
+                CounterCacheKey key = keyIter.next();
+                DecoratedKey dk = decorateKey(key.partitionKey());
+                if (key.sameTable(metadata()) && !Range.isInRanges(dk.getToken(), ranges))
+                    CacheService.instance.counterCache.remove(key);
+            }
+        }
+    }
+
+    public ClusteringComparator getComparator()
+    {
+        return metadata().comparator;
+    }
+
+    public void snapshotWithoutFlush(String snapshotName)
+    {
+        snapshotWithoutFlush(snapshotName, null, false, null);
+    }
+
+    /**
+     * @param ephemeral If this flag is set to true, the snapshot will be cleaned during next startup
+     */
+    public Set<SSTableReader> snapshotWithoutFlush(String snapshotName, Predicate<SSTableReader> predicate, boolean ephemeral, RateLimiter rateLimiter)
+    {
+        if (rateLimiter == null)
+            rateLimiter = DatabaseDescriptor.getSnapshotRateLimiter();
+
+        Set<SSTableReader> snapshottedSSTables = new HashSet<>();
+        final JSONArray filesJSONArr = new JSONArray();
+        for (ColumnFamilyStore cfs : concatWithIndexes())
+        {
+            try (RefViewFragment currentView = cfs.selectAndReference(View.select(SSTableSet.CANONICAL, (x) -> predicate == null || predicate.apply(x))))
+            {
+                for (SSTableReader ssTable : currentView.sstables)
+                {
+                    File snapshotDirectory = Directories.getSnapshotDirectory(ssTable.descriptor, snapshotName);
+                    ssTable.createLinks(snapshotDirectory.getPath(), rateLimiter); // hard links
+                    filesJSONArr.add(ssTable.descriptor.relativeFilenameFor(Component.DATA));
+
+                    if (logger.isTraceEnabled())
+                        logger.trace(""Snapshot for {} keyspace data file {} created in {}"", keyspace, ssTable.getFilename(), snapshotDirectory);
+                    snapshottedSSTables.add(ssTable);
+                }
+            }
+        }
+
+        writeSnapshotManifest(filesJSONArr, snapshotName);
+        if (!SchemaConstants.isLocalSystemKeyspace(metadata.keyspace) && !SchemaConstants.isReplicatedSystemKeyspace(metadata.keyspace))
+            writeSnapshotSchema(snapshotName);
+
+        if (ephemeral)
+            createEphemeralSnapshotMarkerFile(snapshotName);
+        return snapshottedSSTables;
+    }
+
+    "

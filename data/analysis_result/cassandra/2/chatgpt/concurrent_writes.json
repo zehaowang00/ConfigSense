@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'concurrent_writes' configuration in Cassandra directly influences how many write operations can be processed simultaneously. A higher value can lead to increased throughput and reduced latency under heavy load, while a lower value may cause bottlenecks and increased execution time for write operations. This sensitivity to value changes can significantly affect overall system performance, particularly in write-heavy workloads, making it a performance-sensitive configuration."
+}

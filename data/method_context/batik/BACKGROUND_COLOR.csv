@@ -1,0 +1,60 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.batik.transcoder.image.ImageTranscoder:transcode(org.w3c.dom.Document,java.lang.String,org.apache.batik.transcoder.TranscoderOutput)",(M)org.apache.batik.transcoder.TranscodingHints:getKey_BACKGROUND_COLOR(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:getKey_BACKGROUND_COLOR(java.lang.Object),BACKGROUND_COLOR,transcode,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/image/ImageTranscoder.java,ImageTranscoder,../data/xml/batik/ImageTranscoder.xml,"/**
+     * Transcodes the specified Document as an image in the specified output.
+     *
+     * @param document the document to transcode
+     * @param uri the uri of the document or null if any
+     * @param output the ouput where to transcode
+     * @exception TranscoderException if an error occured while transcoding
+     */
+protected void transcode(Document document,
+                             String uri,
+                             TranscoderOutput output)
+            throws TranscoderException {
+
+        // Sets up root, curTxf & curAoi
+        super.transcode(document, uri, output);
+
+        // prepare the image to be painted
+        int w = (int)(width+0.5);
+        int h = (int)(height+0.5);
+
+        // paint the SVG document using the bridge package
+        // create the appropriate renderer
+        ImageRenderer renderer = createRenderer();
+        renderer.updateOffScreen(w, h);
+        // curTxf.translate(0.5, 0.5);
+        renderer.setTransform(curTxf);
+        renderer.setTree(this.root);
+        this.root = null; // We're done with it...
+
+        try {
+            // now we are sure that the aoi is the image size
+            Shape raoi = new Rectangle2D.Float(0, 0, width, height);
+            // Warning: the renderer's AOI must be in user space
+            renderer.repaint(curTxf.createInverse().
+                             createTransformedShape(raoi));
+            BufferedImage rend = renderer.getOffScreen();
+            renderer = null; // We're done with it...
+
+            BufferedImage dest = createImage(w, h);
+
+            Graphics2D g2d = GraphicsUtil.createGraphics(dest);
+            if (hints.containsKey(KEY_BACKGROUND_COLOR)) {
+                Paint bgcolor = (Paint)hints.get(KEY_BACKGROUND_COLOR);
+                g2d.setComposite(AlphaComposite.SrcOver);
+                g2d.setPaint(bgcolor);
+                g2d.fillRect(0, 0, w, h);
+            }
+            if (rend != null) { // might be null if the svg document is empty
+                g2d.drawRenderedImage(rend, new AffineTransform());
+            }
+            g2d.dispose();
+            rend = null; // We're done with it...
+            writeImage(dest, output);
+        } catch (Exception ex) {
+            throw new TranscoderException(ex);
+        }
+    }
+
+    "

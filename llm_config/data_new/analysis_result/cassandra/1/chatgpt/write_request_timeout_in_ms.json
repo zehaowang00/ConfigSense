@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'write_request_timeout_in_ms' configuration in Cassandra directly influences the timeouts for write operations. If this value is set too low, it can lead to frequent timeouts and retries, significantly increasing the execution time for write operations and potentially causing a backlog of requests. Conversely, if set too high, it may lead to resource contention and increased memory consumption as the system waits longer for write operations to complete. Therefore, changes to this configuration can have a substantial impact on overall system performance, making it performance-sensitive."
+}

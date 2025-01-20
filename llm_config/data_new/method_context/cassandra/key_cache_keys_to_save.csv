@@ -1,0 +1,117 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.CacheService:initKeyCache(),(S)org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),key_cache_keys_to_save,initKeyCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"/**
+     * @return auto saving cache object
+     */
+private AutoSavingCache<KeyCacheKey, RowIndexEntry> initKeyCache()
+    {
+        logger.info(""Initializing key cache with capacity of {} MBs."", DatabaseDescriptor.getKeyCacheSizeInMB());
+
+        long keyCacheInMemoryCapacity = DatabaseDescriptor.getKeyCacheSizeInMB() * 1024 * 1024;
+
+        // as values are constant size we can use singleton weigher
+        // where 48 = 40 bytes (average size of the key) + 8 bytes (size of value)
+        ICache<KeyCacheKey, RowIndexEntry> kc;
+        kc = CaffeineCache.create(keyCacheInMemoryCapacity);
+        AutoSavingCache<KeyCacheKey, RowIndexEntry> keyCache = new AutoSavingCache<>(kc, CacheType.KEY_CACHE, new KeyCacheSerializer());
+
+        int keyCacheKeysToSave = DatabaseDescriptor.getKeyCacheKeysToSave();
+
+        keyCache.scheduleSaving(DatabaseDescriptor.getKeyCacheSavePeriod(), keyCacheKeysToSave);
+
+        return keyCache;
+    }
+
+    "
+M:org.apache.cassandra.service.CacheService:setKeyCacheSavePeriodInSeconds(int),(S)org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),key_cache_keys_to_save,setKeyCacheSavePeriodInSeconds,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"public void setKeyCacheSavePeriodInSeconds(int seconds)
+    {
+        if (seconds < 0)
+            throw new RuntimeException(""KeyCacheSavePeriodInSeconds must be non-negative."");
+
+        DatabaseDescriptor.setKeyCacheSavePeriod(seconds);
+        keyCache.scheduleSaving(seconds, DatabaseDescriptor.getKeyCacheKeysToSave());
+    }
+
+    "
+M:org.apache.cassandra.service.CacheService:getKeyCacheKeysToSave(),(S)org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),key_cache_keys_to_save,getKeyCacheKeysToSave,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"public int getKeyCacheKeysToSave()
+    {
+        return DatabaseDescriptor.getKeyCacheKeysToSave();
+    }
+
+    "
+M:org.apache.cassandra.service.CacheService:saveCaches(),(S)org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),key_cache_keys_to_save,saveCaches,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"public void saveCaches() throws ExecutionException, InterruptedException
+    {
+        List<Future<?>> futures = new ArrayList<>(3);
+        logger.debug(""submitting cache saves"");
+
+        futures.add(keyCache.submitWrite(DatabaseDescriptor.getKeyCacheKeysToSave()));
+        futures.add(rowCache.submitWrite(DatabaseDescriptor.getRowCacheKeysToSave()));
+        futures.add(counterCache.submitWrite(DatabaseDescriptor.getCounterCacheKeysToSave()));
+
+        FBUtilities.waitOnFutures(futures);
+        logger.debug(""cache saves completed"");
+    }
+
+    "
+M:org.apache.cassandra.utils.StatusLogger:logStatus(),(S)org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheKeysToSave(),key_cache_keys_to_save,logStatus,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/utils/StatusLogger.java,StatusLogger,../data/xml/cassandra/StatusLogger.xml,"private static void logStatus()
+    {
+        // everything from o.a.c.concurrent
+        logger.info(String.format(""%-28s%10s%10s%15s%10s%18s"", ""Pool Name"", ""Active"", ""Pending"", ""Completed"", ""Blocked"", ""All Time Blocked""));
+
+        for (ThreadPoolMetrics tpool : CassandraMetricsRegistry.Metrics.allThreadPoolMetrics())
+        {
+            logger.info(String.format(""%-28s%10s%10s%15s%10s%18s"",
+                                      tpool.poolName,
+                                      tpool.activeTasks.getValue(),
+                                      tpool.pendingTasks.getValue(),
+                                      tpool.completedTasks.getValue(),
+                                      tpool.currentBlocked.getCount(),
+                                      tpool.totalBlocked.getCount()));
+        }
+
+        // one offs
+        logger.info(String.format(""%-25s%10s%10s"",
+                                  ""CompactionManager"", CompactionManager.instance.getActiveCompactions(), CompactionManager.instance.getPendingTasks()));
+        int pendingLargeMessages = 0;
+        for (int n : MessagingService.instance().getLargeMessagePendingTasks().values())
+        {
+            pendingLargeMessages += n;
+        }
+        int pendingSmallMessages = 0;
+        for (int n : MessagingService.instance().getSmallMessagePendingTasks().values())
+        {
+            pendingSmallMessages += n;
+        }
+        logger.info(String.format(""%-25s%10s%10s"",
+                                  ""MessagingService"", ""n/a"", pendingLargeMessages + ""/"" + pendingSmallMessages));
+
+        // Global key/row cache information
+        AutoSavingCache<KeyCacheKey, RowIndexEntry> keyCache = CacheService.instance.keyCache;
+        AutoSavingCache<RowCacheKey, IRowCacheEntry> rowCache = CacheService.instance.rowCache;
+
+        int keyCacheKeysToSave = DatabaseDescriptor.getKeyCacheKeysToSave();
+        int rowCacheKeysToSave = DatabaseDescriptor.getRowCacheKeysToSave();
+
+        logger.info(String.format(""%-25s%10s%25s%25s"",
+                                  ""Cache Type"", ""Size"", ""Capacity"", ""KeysToSave""));
+        logger.info(String.format(""%-25s%10s%25s%25s"",
+                                  ""KeyCache"",
+                                  keyCache.weightedSize(),
+                                  keyCache.getCapacity(),
+                                  keyCacheKeysToSave == Integer.MAX_VALUE ? ""all"" : keyCacheKeysToSave));
+
+        logger.info(String.format(""%-25s%10s%25s%25s"",
+                                  ""RowCache"",
+                                  rowCache.weightedSize(),
+                                  rowCache.getCapacity(),
+                                  rowCacheKeysToSave == Integer.MAX_VALUE ? ""all"" : rowCacheKeysToSave));
+
+        // per-CF stats
+        logger.info(String.format(""%-25s%20s"", ""Table"", ""Memtable ops,data""));
+        for (ColumnFamilyStore cfs : ColumnFamilyStore.all())
+        {
+            logger.info(String.format(""%-25s%20s"",
+                                      cfs.keyspace.getName() + ""."" + cfs.name,
+                                      cfs.metric.memtableColumnsCount.getValue() + "","" + cfs.metric.memtableLiveDataSize.getValue()));
+        }
+    }
+}"

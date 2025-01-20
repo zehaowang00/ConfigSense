@@ -1,0 +1,247 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.auth.AuthenticatedUser:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),network_authorizer,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/AuthenticatedUser.java,AuthenticatedUser,../data/xml/cassandra/AuthenticatedUser.xml,"/**
+ * Returned from IAuthenticator#authenticate(), represents an authenticated user everywhere internally.
+ *
+ * Holds the name of the user and the roles that have been granted to the user. The roles will be cached
+ * for roles_validity_in_ms.
+ */
+public class AuthenticatedUser
+{
+    public static final String SYSTEM_USERNAME = ""system"";
+    public static final AuthenticatedUser SYSTEM_USER = new AuthenticatedUser(SYSTEM_USERNAME);
+
+    public static final String ANONYMOUS_USERNAME = ""anonymous"";
+    public static final AuthenticatedUser ANONYMOUS_USER = new AuthenticatedUser(ANONYMOUS_USERNAME);
+
+    // User-level permissions cache.
+    private static final PermissionsCache permissionsCache = new PermissionsCache(DatabaseDescriptor.getAuthorizer());
+    private static final NetworkAuthCache networkAuthCache = new NetworkAuthCache(DatabaseDescriptor.getNetworkAuthorizer());
+
+    private final String name;
+    // primary Role of the logged in user
+    private final RoleResource role;
+
+    public AuthenticatedUser(String name)
+    {
+        this.name = name;
+        this.role = RoleResource.role(name);
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public RoleResource getPrimaryRole()
+    {
+        return role;
+    }
+
+    /**
+     * Checks the user's superuser status.
+     * Only a superuser is allowed to perform CREATE USER and DROP USER queries.
+     * Im most cased, though not necessarily, a superuser will have Permission.ALL on every resource
+     * (depends on IAuthorizer implementation).
+     */
+    public boolean isSuper()
+    {
+        return !isAnonymous() && Roles.hasSuperuserStatus(role);
+    }
+
+    /**
+     * If IAuthenticator doesn't require authentication, this method may return true.
+     */
+    public boolean isAnonymous()
+    {
+        return this == ANONYMOUS_USER;
+    }
+
+    /**
+     * Some internal operations are performed on behalf of Cassandra itself, in those cases
+     * the system user should be used where an identity is required
+     * see CreateRoleStatement#execute() and overrides of AlterSchemaStatement#createdResources()
+     */
+    public boolean isSystem()
+    {
+        return this == SYSTEM_USER;
+    }
+
+    /**
+     * Get the roles that have been granted to the user via the IRoleManager
+     *
+     * @return a set of identifiers for the roles that have been granted to the user
+     */
+    public Set<RoleResource> getRoles()
+    {
+        return Roles.getRoles(role);
+    }
+
+    /**
+     * Get the detailed info on roles granted to the user via IRoleManager
+     *
+     * @return a set of Role objects detailing the roles granted to the user
+     */
+    public Set<Role> getRoleDetails()
+    {
+       return Roles.getRoleDetails(role);
+    }
+
+    public Set<Permission> getPermissions(IResource resource)
+    {
+        return permissionsCache.getPermissions(this, resource);
+    }
+
+    /**
+     * Check whether this user has login privileges.
+     * LOGIN is not inherited from granted roles, so must be directly granted to the primary role for this user
+     *
+     * @return true if the user is permitted to login, false otherwise.
+     */
+    public boolean canLogin()
+    {
+        return Roles.canLogin(getPrimaryRole());
+    }
+
+    /**
+     * Verify that there is not DC level restriction on this user accessing this node.
+     * Further extends the login privilege check by verifying that the primary role for this user is permitted
+     * to perform operations in the local (to this node) datacenter. Like LOGIN, this is not inherited from
+     * granted roles.
+     * @return true if the user is permitted to access nodes in this node's datacenter, false otherwise
+     */
+    public boolean hasLocalAccess()
+    {
+        return networkAuthCache.get(this.getPrimaryRole()).canAccess(Datacenters.thisDatacenter());
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format(""#<User %s>"", name);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+            return true;
+
+        if (!(o instanceof AuthenticatedUser))
+            return false;
+
+        AuthenticatedUser u = (AuthenticatedUser) o;
+
+        return Objects.equal(name, u.name);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(name);
+    }
+
+}
+"
+M:org.apache.cassandra.cql3.statements.AlterRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),network_authorizer,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/AlterRoleStatement.java,AlterRoleStatement,../data/xml/cassandra/AlterRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        if (!opts.isEmpty())
+            DatabaseDescriptor.getRoleManager().alterRole(state.getUser(), role, opts);
+        if (dcPermissions != null)
+            DatabaseDescriptor.getNetworkAuthorizer().setRoleDatacenters(role, dcPermissions);
+        return null;
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.CreateRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),network_authorizer,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/CreateRoleStatement.java,CreateRoleStatement,../data/xml/cassandra/CreateRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestExecutionException, RequestValidationException
+    {
+        // not rejected in validate()
+        if (ifNotExists && DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            return null;
+
+        DatabaseDescriptor.getRoleManager().createRole(state.getUser(), role, opts);
+        if (DatabaseDescriptor.getNetworkAuthorizer().requireAuthorization())
+        {
+            DatabaseDescriptor.getNetworkAuthorizer().setRoleDatacenters(role, dcPermissions);
+        }
+        grantPermissionsToCreator(state);
+        return null;
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.DropRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),network_authorizer,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/DropRoleStatement.java,DropRoleStatement,../data/xml/cassandra/DropRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        // not rejected in validate()
+        if (ifExists && !DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            return null;
+
+        // clean up grants and permissions of/on the dropped role.
+        DatabaseDescriptor.getRoleManager().dropRole(state.getUser(), role);
+        DatabaseDescriptor.getAuthorizer().revokeAllFrom(role);
+        DatabaseDescriptor.getAuthorizer().revokeAllOn(role);
+        DatabaseDescriptor.getNetworkAuthorizer().drop(role);
+        return null;
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.ListRolesStatement:formatResults(java.util.List),(S)org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),network_authorizer,formatResults,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListRolesStatement.java,ListRolesStatement,../data/xml/cassandra/ListRolesStatement.xml,"// overridden in ListUsersStatement to include legacy metadata
+protected ResultMessage formatResults(List<RoleResource> sortedRoles)
+    {
+        ResultSet.ResultMetadata resultMetadata = new ResultSet.ResultMetadata(metadata);
+        ResultSet result = new ResultSet(resultMetadata);
+
+        IRoleManager roleManager = DatabaseDescriptor.getRoleManager();
+        INetworkAuthorizer networkAuthorizer = DatabaseDescriptor.getNetworkAuthorizer();
+        for (RoleResource role : sortedRoles)
+        {
+            result.addColumnValue(UTF8Type.instance.decompose(role.getRoleName()));
+            result.addColumnValue(BooleanType.instance.decompose(roleManager.isSuper(role)));
+            result.addColumnValue(BooleanType.instance.decompose(roleManager.canLogin(role)));
+            result.addColumnValue(optionsType.decompose(roleManager.getCustomOptions(role)));
+            result.addColumnValue(UTF8Type.instance.decompose(networkAuthorizer.authorize(role).toString()));
+        }
+        return new ResultMessage.Rows(result);
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.ListUsersStatement:formatResults(java.util.List),(S)org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),network_authorizer,formatResults,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListUsersStatement.java,ListUsersStatement,../data/xml/cassandra/ListUsersStatement.xml,"@Override
+    protected ResultMessage formatResults(List<RoleResource> sortedRoles)
+    {
+        ResultSet.ResultMetadata resultMetadata = new ResultSet.ResultMetadata(metadata);
+        ResultSet result = new ResultSet(resultMetadata);
+
+        IRoleManager roleManager = DatabaseDescriptor.getRoleManager();
+        INetworkAuthorizer networkAuthorizer = DatabaseDescriptor.getNetworkAuthorizer();
+        for (RoleResource role : sortedRoles)
+        {
+            if (!roleManager.canLogin(role))
+                continue;
+            result.addColumnValue(UTF8Type.instance.decompose(role.getRoleName()));
+            result.addColumnValue(BooleanType.instance.decompose(Roles.hasSuperuserStatus(role)));
+            result.addColumnValue(UTF8Type.instance.decompose(networkAuthorizer.authorize(role).toString()));
+        }
+
+        return new ResultMessage.Rows(result);
+    }
+    
+    "
+M:org.apache.cassandra.service.StorageService:doAuthSetup(boolean),(S)org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getNetworkAuthorizer(),network_authorizer,doAuthSetup,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"@VisibleForTesting
+    public void doAuthSetup(boolean setUpSchema)
+    {
+        if (!authSetupCalled.getAndSet(true))
+        {
+            if (setUpSchema)
+            {
+                Optional<Mutation> mutation = evolveSystemKeyspace(AuthKeyspace.metadata(), AuthKeyspace.GENERATION);
+                mutation.ifPresent(value -> FBUtilities.waitOnFuture(MigrationManager.announceWithoutPush(Collections.singleton(value))));
+            }
+
+            DatabaseDescriptor.getRoleManager().setup();
+            DatabaseDescriptor.getAuthenticator().setup();
+            DatabaseDescriptor.getAuthorizer().setup();
+            DatabaseDescriptor.getNetworkAuthorizer().setup();
+            Schema.instance.registerListener(new AuthSchemaChangeListener());
+            authSetupComplete = true;
+        }
+    }
+
+    "

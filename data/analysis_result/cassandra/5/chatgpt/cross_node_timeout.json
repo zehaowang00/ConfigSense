@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'cross_node_timeout' configuration in Cassandra is performance-sensitive because it directly affects the timeouts for inter-node communication. If this value is set too low, it can lead to frequent timeouts and retries, significantly increasing the execution time for operations that require coordination between nodes. Conversely, if set too high, it may lead to prolonged waits for failed operations, impacting overall system responsiveness and resource utilization. Therefore, changes to this configuration can lead to notable variations in execution time and resource consumption, classifying it as performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'keepUnoptimizedFilesPostProcessor' configuration option directly influences the handling of files during the post-processing phase of the dconverter software. If this option is enabled, the system retains unoptimized files, which can lead to increased disk space usage and potentially affect I/O performance. Additionally, retaining these files may result in longer execution times during subsequent processing tasks, as the system may need to manage and access a larger volume of data. Therefore, changes to this configuration can significantly impact both memory consumption and execution time, classifying it as performance-sensitive."
+}

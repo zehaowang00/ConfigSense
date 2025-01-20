@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'tombstone_warn_threshold' configuration in Cassandra determines the threshold for the number of tombstones that can be present in a partition before a warning is issued. A change in this threshold can significantly impact performance, as a higher threshold may lead to increased tombstone accumulation, which can degrade read performance and increase latency. Conversely, a lower threshold may lead to more frequent warnings and potential operational overhead. Therefore, adjustments to this configuration can notably affect system performance, making it performance-sensitive."
+}

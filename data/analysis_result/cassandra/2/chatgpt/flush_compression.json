@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'flush_compression' configuration in Cassandra directly influences how data is written to disk. Changes in this setting can lead to significant variations in disk I/O performance, affecting overall system throughput and latency. If compression is enabled, it can reduce the amount of data written to disk, leading to faster flush operations and lower disk space usage. Conversely, disabling it may increase the amount of data written, resulting in longer execution times and higher memory consumption during flush operations. Therefore, variations in this configuration can notably impact system performance, making it performance-sensitive."
+}

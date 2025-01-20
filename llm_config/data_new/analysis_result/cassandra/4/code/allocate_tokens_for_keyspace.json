@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "allocate_tokens_for_keyspace",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * if initialtoken was specified, use that (split on comma).\n     * otherwise, if allocationKeyspace is specified use the token allocation algorithm to generate suitable tokens\n     * else choose num_tokens tokens at random\n     */\npublic static Collection<Token> getBootstrapTokens(final TokenMetadata metadata, InetAddressAndPort address, long schemaWaitDelay) throws ConfigurationException\n    {\n        String allocationKeyspace = DatabaseDescriptor.getAllocateTokensForKeyspace();\n        Integer allocationLocalRf = DatabaseDescriptor.getAllocateTokensForLocalRf();\n        Collection<String> initialTokens = DatabaseDescriptor.getInitialTokens();\n        if (initialTokens.size() > 0 && allocationKeyspace != null)\n            logger.warn(\"manually specified tokens override automatic allocation\");\n\n        // if user specified tokens, use those\n        if (initialTokens.size() > 0)\n        {\n            Collection<Token> tokens = getSpecifiedTokens(metadata, initialTokens);\n            BootstrapDiagnostics.useSpecifiedTokens(address, allocationKeyspace, tokens, DatabaseDescriptor.getNumTokens());\n            return tokens;\n        }\n\n        int numTokens = DatabaseDescriptor.getNumTokens();\n        if (numTokens < 1)\n            throw new ConfigurationException(\"num_tokens must be >= 1\");\n\n        if (allocationKeyspace != null)\n            return allocateTokens(metadata, address, allocationKeyspace, numTokens, schemaWaitDelay);\n\n        if (allocationLocalRf != null)\n            return allocateTokens(metadata, address, allocationLocalRf, numTokens, schemaWaitDelay);\n\n        if (numTokens == 1)\n            logger.warn(\"Picking random token for a single vnode.  You should probably add more vnodes and/or use the automatic token allocation mechanism.\");\n\n        Collection<Token> tokens = getRandomTokens(metadata, numTokens);\n        BootstrapDiagnostics.useRandomTokens(address, metadata, numTokens, tokens);\n        return tokens;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The allocation of tokens based on the `allocationKeyspace` can significantly impact system performance, especially in scenarios where token allocation algorithms are used. If this allocation is inefficient or poorly designed, it could lead to time-intensive operations that affect the overall performance of the system. Additionally, the choice of tokens directly influences how data is distributed across nodes, which can have substantial implications for read and write latencies, making this configuration critical for performance optimization."
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'dynamic_snitch_update_interval_in_ms' configuration in Cassandra determines how frequently the dynamic snitch updates its view of the performance of the nodes in the cluster. A shorter interval allows the system to react more quickly to changes in node performance, which can significantly impact request routing and load balancing. If this value is set too high, the system may continue to route requests to underperforming nodes, leading to increased latency and reduced throughput. Conversely, setting it too low could result in excessive overhead from frequent updates, also negatively impacting performance. Therefore, changes to this configuration can lead to notable variations in execution time and overall system performance, classifying it as performance-sensitive."
+}

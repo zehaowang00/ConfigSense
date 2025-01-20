@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'table_count_warn_threshold' configuration in Cassandra is performance-sensitive because it directly influences the number of tables that can be created before warnings are issued. A lower threshold may lead to frequent warnings, prompting developers to optimize their schema design, which can affect the overall performance of the system. Conversely, a higher threshold may allow for more tables but can lead to increased memory consumption and longer query execution times due to the overhead of managing more tables in the system. Thus, changes to this configuration can significantly impact system performance, making it performance-sensitive."
+}

@@ -1,0 +1,45 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.batik.transcoder.SVGAbstractTranscoder$SVGAbstractTranscoderUserAgent:getScriptSecurity(java.lang.String,org.apache.batik.util.ParsedURL,org.apache.batik.util.ParsedURL)",(M)org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),CONSTRAIN_SCRIPT_ORIGIN,getScriptSecurity,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/SVGAbstractTranscoder.java,SVGAbstractTranscoder$SVGAbstractTranscoderUserAgent,../data/xml/batik/SVGAbstractTranscoder.xml,"/**
+         * Returns the security settings for the given script
+         * type, script url and document url
+         *
+         * @param scriptType type of script, as found in the
+         *        type attribute of the &lt;script&gt; element.
+         * @param scriptPURL url for the script, as defined in
+         *        the script's xlink:href attribute. If that
+         *        attribute was empty, then this parameter should
+         *        be null
+         * @param docPURL url for the document into which the
+         *        script was found.
+         */
+public ScriptSecurity getScriptSecurity(String scriptType,
+                                                ParsedURL scriptPURL,
+                                                ParsedURL docPURL){
+            if (scripts == null){
+                computeAllowedScripts();
+            }
+
+            if (!scripts.contains(scriptType)) {
+                return new NoLoadScriptSecurity(scriptType);
+            }
+
+
+            boolean constrainOrigin = true;
+
+            if (SVGAbstractTranscoder.this.hints.containsKey
+                (KEY_CONSTRAIN_SCRIPT_ORIGIN)) {
+                constrainOrigin =
+                        (Boolean) SVGAbstractTranscoder.this.hints.get
+                                (KEY_CONSTRAIN_SCRIPT_ORIGIN);
+            }
+
+            if (constrainOrigin) {
+                return new DefaultScriptSecurity
+                    (scriptType,scriptPURL,docPURL);
+            } else {
+                return new RelaxedScriptSecurity
+                    (scriptType,scriptPURL,docPURL);
+            }
+        }
+
+        "

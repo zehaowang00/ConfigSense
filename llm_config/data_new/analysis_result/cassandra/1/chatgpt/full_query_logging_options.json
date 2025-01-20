@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'full_query_logging_options' configuration in Cassandra is performance-sensitive because enabling detailed query logging can significantly increase the amount of data written to disk and the overhead associated with logging operations. This can lead to increased execution time for queries, higher disk I/O, and increased memory consumption due to the storage of log data. As a result, changes to this configuration can have a notable impact on overall system performance, especially under high query loads."
+}

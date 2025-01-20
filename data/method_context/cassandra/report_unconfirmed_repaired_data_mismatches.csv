@@ -1,0 +1,96 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.StorageProxy:getReportingUnconfirmedRepairedDataMismatchesEnabled(),(S)org.apache.cassandra.config.DatabaseDescriptor:reportUnconfirmedRepairedDataMismatches(),org.apache.cassandra.config.DatabaseDescriptor:reportUnconfirmedRepairedDataMismatches(),report_unconfirmed_repaired_data_mismatches,getReportingUnconfirmedRepairedDataMismatchesEnabled,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"@Override
+    public boolean getReportingUnconfirmedRepairedDataMismatchesEnabled()
+    {
+        return DatabaseDescriptor.reportUnconfirmedRepairedDataMismatches();
+    }
+
+    "
+M:org.apache.cassandra.service.reads.repair.RepairedDataVerifier$SimpleVerifier:verify(org.apache.cassandra.service.reads.repair.RepairedDataTracker),(S)org.apache.cassandra.config.DatabaseDescriptor:reportUnconfirmedRepairedDataMismatches(),org.apache.cassandra.config.DatabaseDescriptor:reportUnconfirmedRepairedDataMismatches(),report_unconfirmed_repaired_data_mismatches,verify,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/reads/repair/RepairedDataVerifier.java,RepairedDataVerifier$SimpleVerifier,../data/xml/cassandra/RepairedDataVerifier.xml,"@Override
+        public void verify(RepairedDataTracker tracker)
+        {
+            Tracing.trace(""Verifying repaired data tracker {}"", tracker);
+
+            // some mismatch occurred between the repaired datasets on the replicas
+            if (tracker.digests.keySet().size() > 1)
+            {
+                // if any of the digests should be considered inconclusive, because there were
+                // pending repair sessions which had not yet been committed or unrepaired partition
+                // deletes which meant some sstables were skipped during reads, mark the inconsistency
+                // as confirmed
+                if (tracker.inconclusiveDigests.isEmpty())
+                {
+                    TableMetrics metrics = ColumnFamilyStore.metricsFor(command.metadata().id);
+                    metrics.confirmedRepairedInconsistencies.mark();
+                    NoSpamLogger.log(logger, NoSpamLogger.Level.WARN, 1, TimeUnit.MINUTES,
+                                     INCONSISTENCY_WARNING, command.metadata().keyspace,
+                                     command.metadata().name, command.toString(), tracker);
+                }
+                else if (DatabaseDescriptor.reportUnconfirmedRepairedDataMismatches())
+                {
+                    TableMetrics metrics = ColumnFamilyStore.metricsFor(command.metadata().id);
+                    metrics.unconfirmedRepairedInconsistencies.mark();
+                    NoSpamLogger.log(logger, NoSpamLogger.Level.WARN, 1, TimeUnit.MINUTES,
+                                     INCONSISTENCY_WARNING, command.metadata().keyspace,
+                                     command.metadata().name, command.toString(), tracker);
+                }
+            }
+        }
+    }
+public void verify(RepairedDataTracker tracker)
+        {
+            super.verify(tracker);
+            if (tracker.digests.keySet().size() > 1)
+            {
+                if (tracker.inconclusiveDigests.isEmpty() ||  DatabaseDescriptor.reportUnconfirmedRepairedDataMismatches())
+                {
+                    logger.warn(SNAPSHOTTING_WARNING, command.metadata().keyspace, command.metadata().name, command.toString(), tracker);
+                    DiagnosticSnapshotService.repairedDataMismatch(command.metadata(), tracker.digests.values());
+                }
+            }
+        }
+    }"
+M:org.apache.cassandra.service.reads.repair.RepairedDataVerifier$SnapshottingVerifier:verify(org.apache.cassandra.service.reads.repair.RepairedDataTracker),(S)org.apache.cassandra.config.DatabaseDescriptor:reportUnconfirmedRepairedDataMismatches(),org.apache.cassandra.config.DatabaseDescriptor:reportUnconfirmedRepairedDataMismatches(),report_unconfirmed_repaired_data_mismatches,verify,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/reads/repair/RepairedDataVerifier.java,RepairedDataVerifier$SnapshottingVerifier,../data/xml/cassandra/RepairedDataVerifier.xml,"@Override
+        public void verify(RepairedDataTracker tracker)
+        {
+            Tracing.trace(""Verifying repaired data tracker {}"", tracker);
+
+            // some mismatch occurred between the repaired datasets on the replicas
+            if (tracker.digests.keySet().size() > 1)
+            {
+                // if any of the digests should be considered inconclusive, because there were
+                // pending repair sessions which had not yet been committed or unrepaired partition
+                // deletes which meant some sstables were skipped during reads, mark the inconsistency
+                // as confirmed
+                if (tracker.inconclusiveDigests.isEmpty())
+                {
+                    TableMetrics metrics = ColumnFamilyStore.metricsFor(command.metadata().id);
+                    metrics.confirmedRepairedInconsistencies.mark();
+                    NoSpamLogger.log(logger, NoSpamLogger.Level.WARN, 1, TimeUnit.MINUTES,
+                                     INCONSISTENCY_WARNING, command.metadata().keyspace,
+                                     command.metadata().name, command.toString(), tracker);
+                }
+                else if (DatabaseDescriptor.reportUnconfirmedRepairedDataMismatches())
+                {
+                    TableMetrics metrics = ColumnFamilyStore.metricsFor(command.metadata().id);
+                    metrics.unconfirmedRepairedInconsistencies.mark();
+                    NoSpamLogger.log(logger, NoSpamLogger.Level.WARN, 1, TimeUnit.MINUTES,
+                                     INCONSISTENCY_WARNING, command.metadata().keyspace,
+                                     command.metadata().name, command.toString(), tracker);
+                }
+            }
+        }
+    }
+public void verify(RepairedDataTracker tracker)
+        {
+            super.verify(tracker);
+            if (tracker.digests.keySet().size() > 1)
+            {
+                if (tracker.inconclusiveDigests.isEmpty() ||  DatabaseDescriptor.reportUnconfirmedRepairedDataMismatches())
+                {
+                    logger.warn(SNAPSHOTTING_WARNING, command.metadata().keyspace, command.metadata().name, command.toString(), tracker);
+                    DiagnosticSnapshotService.repairedDataMismatch(command.metadata(), tracker.digests.values());
+                }
+            }
+        }
+    }"

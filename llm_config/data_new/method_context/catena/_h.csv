@@ -1,0 +1,243 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:main.java.Catena:catena(byte[],byte[],byte[],byte[],int)",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,catena,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * Main function of catena to hash a password
+	 * 
+	 * @param pwd			Password to be hashed
+	 * @param salt			Salt of arbitrary length
+	 * @param publicInput	User choosen public input
+	 * @param gamma			Input for graph size
+	 * @param m				User desired output length of hash
+	 * 
+	 * @return xTrun		Hash of pwd
+	 */
+public byte[] catena(byte[] pwd, byte[] salt, byte[] publicInput, byte[] gamma, int m) {
+        byte[] t = this.compTweak(this.get_vId(), this.get_d(), this.get_lambda(), m, salt.length, publicInput);
+        this.get_h().update(this.helper.concateByteArrays(t, pwd, salt));
+        byte[] x = this.get_h().doFinal();
+        this.erasePwd(pwd);
+        x = this.flap((this.get_gLow() + 1) / 2, x, gamma);
+        this.get_h().update(x);
+        x = this.get_h().doFinal();
+        byte[] gByte = new byte[1];
+        int g = this.get_gLow();
+        while (g <= this.get_gHigh()) {
+            if (x.length < this.get_n()) {
+                x = this.helper.paddWithZero(x, this.get_n());
+            }
+            x = this.flap(g, x, gamma);
+            gByte[0] = (byte)g;
+            this.get_h().update(this.helper.concateByteArrays(gByte, x));
+            x = this.get_h().doFinal();
+            x = this.helper.truncate(x, m);
+            ++g;
+        }
+        return x;
+    }
+    "
+M:main.java.Catena:hInit(byte[]),(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,hInit,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * Initialisation of the 2 values for flap rounds
+	 * 
+	 * @param x		Input Array
+	 * @return 		2 hashed values v_-1, V_-2 in one byte array
+	 * 				(output is already splitted in the middle and swapped)
+	 */
+private byte[] hInit(byte[] x) {
+        int l = 2 * this.get_k() / this.get_n();
+        byte[][] xLoop = new byte[l][this.get_n()];
+        byte[] iByte = new byte[1];
+        int i = 0;
+        while (i <= l - 1) {
+            iByte[0] = (byte)i;
+            this.get_h().update(this.helper.concateByteArrays(iByte, x));
+            xLoop[i] = this.get_h().doFinal();
+            this.get_h().reset();
+            ++i;
+        }
+        return this.helper.twoDimByteArrayToOne(xLoop);
+    }
+
+	"
+"M:main.java.Catena:compTweak(java.lang.String,int,int,int,int,byte[])",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,compTweak,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * Combine Tweak Array
+	 * 
+	 * @param vId		Version ID
+	 * @param mode		Mode of catena
+	 * @param lambda	Lambda
+	 * @param outLen	Output Length
+	 * @param sLen		Salt Length
+	 * @param aData		Additional Data
+	 * @return			Combined Tweak
+	 */
+private byte[] compTweak(String vId, int mode, int lambda, int outLen, int sLen, byte[] aData) {
+        byte[] modeByte = new byte[1];
+        byte[] lambdaByte = new byte[1];
+        byte[] outLenByte = this.helper.intToByteArrayLittleEndian(outLen, 2);
+        byte[] sLenByte = this.helper.intToByteArrayLittleEndian(sLen, 2);
+        this.get_h().update(this.helper.string2Bytes(vId));
+        byte[] vIdH = this.get_h().doFinal();
+        this.get_h().reset();
+        this.get_h().update(aData);
+        byte[] aDataH = this.get_h().doFinal();
+        this.get_h().reset();
+        modeByte[0] = (byte)mode;
+        lambdaByte[0] = (byte)lambda;
+        return this.helper.concateByteArrays(vIdH, modeByte, lambdaByte, outLenByte, sLenByte, aDataH);
+    }
+	"
+"M:main.java.Catena:init(main.java.components.hash.HashInterface,main.java.components.hash.HashInterface,main.java.components.gamma.GammaInterface,main.java.components.graph.GraphInterface,main.java.components.graph.algorithms.IdxInterface,main.java.components.phi.PhiInterface,int,int,int,java.lang.String)",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,init,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * Initializes Catena
+	 * 
+	 * initializrs all needed variables and functions with default values
+	 * 
+	 * @param h			main hash function
+	 * @param hPrime	reduced hash function
+	 * @param gamma		gamma function (e.g. SaltMix)
+	 * @param f			graph
+	 * @param idx		index function for graph
+	 * @param phi		phi function
+	 * @param gLow		minimum Garlic
+	 * @param gHigh		maximum Garlic
+	 * @param lambda	depth of graphs
+	 * @param vID		version ID
+	 */
+public void init(HashInterface h, HashInterface hPrime, GammaInterface gamma, GraphInterface f, IdxInterface idx, PhiInterface phi, int gLow, int gHigh, int lambda, String vID) {
+        this._h = h;
+        this._hPrime = hPrime;
+        this._gamma = gamma;
+        this._gamma.setH(this.get_h());
+        this._gamma.setHPrime(this.get_hPrime());
+        this._f = f;
+        this._f.setH(this.get_h());
+        this._f.setHPrime(this.get_hPrime());
+        this._f.setIndexing(idx);
+        this._phi = phi;
+        this._phi.setH(this.get_h());
+        this._phi.setHPrime(this.get_hPrime());
+        this._gLow = gLow;
+        this._gHigh = gHigh;
+        this._lambda = lambda;
+        this._n = this.get_h().getOutputSize();
+        this._k = this.get_hPrime().getOutputSize();
+        this._vId = vID;
+    }
+
+    "
+"M:main.java.Catena:computeKeyStream(byte[],byte[],int,int)",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,computeKeyStream,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"private byte[] computeKeyStream(byte[] serverKey, byte[] userID, int gHigh, int outLen) {
+        byte[] gByte = new byte[]{(byte)gHigh};
+        this.get_h().update(this.helper.concateByteArrays(serverKey, userID, gByte, serverKey));
+        byte[] output = this.get_h().doFinal();
+        output = this.helper.truncate(output, outLen);
+        return output;
+    }
+
+    "
+"M:main.java.Catena:clientIndependentUpdate(byte[],int,int,byte[],int)",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,clientIndependentUpdate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"public byte[] clientIndependentUpdate(byte[] hashOld, int gHighOld, int gHighNew, byte[] gamma, int outputLenth) throws Exception {
+        if (gHighOld >= gHighNew) {
+            throw new Exception(""New gHigh value should be bigger as the old one."");
+        }
+        int n = this.get_h().getOutputSize();
+        byte[] newHash = new byte[n];
+        byte[] gByte = new byte[1];
+        System.arraycopy(hashOld, 0, newHash, 0, hashOld.length);
+        int i = gHighOld + 1;
+        while (i < gHighNew + 1) {
+            if (newHash.length < this.get_n()) {
+                newHash = this.helper.paddWithZero(newHash, n);
+            }
+            newHash = this.flap(i, newHash, gamma);
+            gByte[0] = (byte)i;
+            this.get_h().update(this.helper.concateByteArrays(gByte, newHash));
+            newHash = this.get_h().doFinal();
+            this.get_h().reset();
+            newHash = this.helper.truncate(newHash, outputLenth);
+            ++i;
+        }
+        return newHash;
+    }
+
+    "
+"M:main.java.Catena:keyedPasswordHashing(byte[],byte[],byte[],byte[],byte[],int,byte[])",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,keyedPasswordHashing,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"public byte[] keyedPasswordHashing(byte[] pwd, byte[] key, byte[] salt, byte[] gamma, byte[] a_data, int out_len, byte[] userID) {
+        byte[] gHighBytes = new byte[]{(byte)this.get_gHigh()};
+        this.get_h().update(this.helper.concateByteArrays(key, userID, gHighBytes, key));
+        byte[] z = this.helper.truncate(this.get_h().doFinal(), out_len);
+        byte[] hash = this.catena(pwd, salt, a_data, gamma, out_len);
+        return this.helper.xor(z, hash);
+    }
+
+    "
+"M:main.java.Catena:keyDerivation(byte[],byte[],byte[],byte[],int,int,byte[])",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,keyDerivation,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"public byte[] keyDerivation(byte[] pwd, byte[] salt, byte[] publicInput, byte[] gamma, int outLen, int keySize, byte[] keyIdentifier) {
+        int d = 1;
+        byte[] tweak = this.compTweak(this.get_vId(), d, this.get_lambda(), outLen, salt.length, publicInput);
+        this.get_h().update(this.helper.concateByteArrays(tweak, pwd, salt));
+        byte[] x = this.get_h().doFinal();
+        x = this.flap((this.get_gLow() + 1) / 2, x, gamma);
+        this.erasePwd(pwd);
+        this.get_h().update(x);
+        x = this.get_h().doFinal();
+        byte[] gByte = new byte[1];
+        int g = this.get_gLow();
+        while (g <= this.get_gHigh()) {
+            if (x.length < this.get_n()) {
+                x = this.helper.paddWithZero(x, this.get_n());
+            }
+            x = this.flap(g, x, gamma);
+            gByte[0] = (byte)g;
+            this.get_h().update(this.helper.concateByteArrays(gByte, x));
+            x = this.get_h().doFinal();
+            x = this.helper.truncate(x, outLen);
+            ++g;
+        }
+        int limit = (int)Math.ceil((double)keySize / (double)this.get_h().getOutputSize());
+        byte[] outputKey = new byte[]{};
+        int i = 1;
+        while (i < limit + 1) {
+            byte[] iByte = this.helper.intToByteArrayLittleEndian(i, 2);
+            byte[] keySizeByte = this.helper.intToByteArrayLittleEndian(keySize, 2);
+            this.get_h().update(this.helper.concateByteArrays(iByte, keyIdentifier, keySizeByte, x));
+            byte[] tmp = this.get_h().doFinal();
+            outputKey = this.helper.concateByteArrays(outputKey, tmp);
+            ++i;
+        }
+        return this.helper.truncate(outputKey, keySize);
+    }
+
+    "
+"M:main.java.Catena:serverReliefClient(byte[],byte[],byte[],int,byte[])",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,serverReliefClient,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"public byte[] serverReliefClient(byte[] pwd, byte[] salt, byte[] aData, int outLen, byte[] gamma) {
+        int d = 0;
+        byte[] t = this.compTweak(this.get_vId(), d, this.get_lambda(), outLen, salt.length, aData);
+        this.get_h().update(this.helper.concateByteArrays(t, pwd, salt));
+        byte[] x = this.get_h().doFinal();
+        x = this.flap((this.get_gLow() + 1) / 2, x, gamma);
+        this.erasePwd(pwd);
+        this.get_h().update(x);
+        x = this.get_h().doFinal();
+        if (this.get_gHigh() > this.get_gLow()) {
+            byte[] gByte = new byte[1];
+            int g = this.get_gLow();
+            while (g < this.get_gHigh()) {
+                if (x.length < this.get_n()) {
+                    x = this.helper.paddWithZero(x, outLen);
+                }
+                x = this.flap(g, x, gamma);
+                gByte[0] = (byte)g;
+                this.get_h().update(this.helper.concateByteArrays(gByte, x));
+                x = this.get_h().doFinal();
+                x = this.helper.truncate(x, outLen);
+                ++g;
+            }
+        }
+        if (x.length < this.get_n()) {
+            x = this.helper.paddWithZero(x, this.get_n());
+        }
+        x = this.flap(this.get_gHigh(), x, gamma);
+        return x;
+    }
+
+    "
+"M:main.java.Catena:serverReliefServer(int,byte[])",(M)main.java.Catena:get_h(),main.java.Catena:get_h(),_h,serverReliefServer,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"public byte[] serverReliefServer(int outLen, byte[] lastHash) {
+        byte[] gByte = new byte[]{(byte)this.get_gHigh()};
+        this.get_h().update(this.helper.concateByteArrays(gByte, lastHash));
+        return this.helper.truncate(this.get_h().doFinal(), outLen);
+    }
+
+    "

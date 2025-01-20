@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "ANALYZE_SAMPLE",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public Analyze(SessionLocal session) {\n        super(session);\n        sampleRows = session.getDatabase().getSettings().analyzeSample;\n    }\n\n    \nprivate void analyzeTables() {\n        // On rare occasions it can be called concurrently (i.e. from close())\n        // without proper locking, but instead of oversynchronizing\n        // we just skip this optional operation in such case\n        if (tablesToAnalyze != null &&\n                Thread.holdsLock(this)) {\n            // take a local copy and clear because in rare cases we can call\n            // back into markTableForAnalyze while iterating here\n            HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;\n            tablesToAnalyze = null;\n            int rowCount = getDatabase().getSettings().analyzeSample / 10;\n            for (Table table : tablesToAnalyzeLocal) {\n                Analyze.analyzeTable(this, table, rowCount, false);\n            }\n            // analyze can lock the meta\n            database.unlockMeta(this);\n            // table analysis opens a new transaction(s),\n            // so we need to commit afterwards whatever leftovers might be\n            commit(true);\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `ANALYZE_SAMPLE` configuration directly influences the number of rows analyzed in the `analyzeTables` method, which can lead to significant performance variations during database analysis operations. A higher sample size could result in time-intensive operations, especially if the tables being analyzed are large, as it affects the overall execution time and resource utilization of the analysis process. This configuration can cause substantial delays or increased memory usage during execution, making it critical for performance sensitivity."
+        }
+    ]
+}

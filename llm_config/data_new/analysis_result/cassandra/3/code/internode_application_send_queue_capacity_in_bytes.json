@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "internode_application_send_queue_capacity_in_bytes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public int applicationSendQueueCapacityInBytes()\n    {\n        return applicationSendQueueCapacityInBytes != null ? applicationSendQueueCapacityInBytes\n                                                           : DatabaseDescriptor.getInternodeApplicationSendQueueCapacityInBytes();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method retrieves a configuration value that defaults to a database call if the value is not set. While the database call may have some overhead, it does not indicate a substantial system-level performance impact due to time-intensive or memory-intensive operations. The impact of this configuration on overall performance is likely minor, as it does not involve extensive computations or memory usage."
+        }
+    ]
+}

@@ -1,0 +1,163 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:at.favre.tools.dconvert.converters.IOSConverter:createMainSubFolder(java.io.File,java.lang.String,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isDryRun(),at.favre.tools.dconvert.arg.Arguments:isDryRun(),dryRun,createMainSubFolder,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/IOSConverter.java,IOSConverter,../data/xml/dconverter/IOSConverter.xml,"@Override
+    public File createMainSubFolder(File destinationFolder, String targetImageFileName, Arguments arguments) {
+        if (arguments.platform.size() > 1) {
+            destinationFolder = MiscUtil.createAndCheckFolder(new File(destinationFolder, IOS_FOLDER_NAME).getAbsolutePath(), arguments.dryRun);
+        }
+        if (arguments.iosCreateImagesetFolders) {
+            return MiscUtil.createAndCheckFolder(new File(destinationFolder, targetImageFileName + "".imageset"").getAbsolutePath(), arguments.dryRun);
+        } else {
+            return MiscUtil.createAndCheckFolder(new File(destinationFolder, ROOT_FOLDER).getAbsolutePath(), arguments.dryRun);
+        }
+    }
+
+    "
+"M:at.favre.tools.dconvert.converters.IOSConverter:onPreExecute(java.io.File,java.lang.String,java.util.List,at.favre.tools.dconvert.arg.ImageType,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isDryRun(),at.favre.tools.dconvert.arg.Arguments:isDryRun(),dryRun,onPreExecute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/IOSConverter.java,IOSConverter,../data/xml/dconverter/IOSConverter.xml,"@Override
+    public void onPreExecute(File dstFolder, String targetFileName, List<PostfixDescriptor> densityDescriptions, ImageType imageType, Arguments arguments) throws Exception {
+        if (!arguments.dryRun && arguments.iosCreateImagesetFolders) {
+            writeContentsJson(dstFolder, targetFileName, densityDescriptions, Arguments.getOutCompressionForType(arguments.outputCompressionMode, imageType));
+        }
+    }
+
+    "
+"M:at.favre.tools.dconvert.converters.WindowsConverter:createMainSubFolder(java.io.File,java.lang.String,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isDryRun(),at.favre.tools.dconvert.arg.Arguments:isDryRun(),dryRun,createMainSubFolder,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/WindowsConverter.java,WindowsConverter,../data/xml/dconverter/WindowsConverter.xml,"@Override
+    public File createMainSubFolder(File destinationFolder, String targetImageFileName, Arguments arguments) {
+        if (arguments.platform.size() > 1) {
+            destinationFolder = MiscUtil.createAndCheckFolder(new File(destinationFolder, WINDOWS_FOLDER_NAME).getAbsolutePath(), arguments.dryRun);
+        }
+        return MiscUtil.createAndCheckFolder(new File(destinationFolder, WindowsConverter.ROOT_FOLDER).getAbsolutePath(), arguments.dryRun);
+    }
+
+    "
+"M:at.favre.tools.dconvert.converters.APlatformConverter:convert(java.io.File,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isDryRun(),at.favre.tools.dconvert.arg.Arguments:isDryRun(),dryRun,convert,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/APlatformConverter.java,APlatformConverter,../data/xml/dconverter/APlatformConverter.xml,"@Override
+    public Result convert(File srcImage, Arguments args) {
+        try {
+            File destinationFolder = args.dst;
+            LoadedImage imageData = ImageUtil.loadImage(srcImage);
+            String targetImageFileName = MiscUtil.getFileNameWithoutExtension(srcImage);
+            ImageType imageType = Arguments.getImageType(srcImage);
+            boolean isNinePatch = AndroidConverter.isNinePatch(srcImage) && getClass() == AndroidConverter.class;
+
+            StringBuilder log = new StringBuilder();
+            log.append(getConverterName()).append("": "").append(targetImageFileName).append("" "")
+                    .append(imageData.getImage().getWidth()).append(""x"").append(imageData.getImage().getHeight()).append("" ("").append(args.scale).append(args.scaleMode == EScaleMode.FACTOR ? ""x"" : ""dp"").append("")\n"");
+
+            Map<T, Dimension> densityMap = DensityBucketUtil.getDensityBuckets(usedOutputDensities(args), new Dimension(imageData.getImage().getWidth(), imageData.getImage().getHeight()), args, args.scale, isNinePatch);
+
+            File mainSubFolder = createMainSubFolder(destinationFolder, targetImageFileName, args);
+
+            onPreExecute(mainSubFolder, targetImageFileName, usedOutputDensities(args), imageType, args);
+
+            List<File> allResultingFiles = new ArrayList<>();
+
+            for (Map.Entry<T, Dimension> entry : densityMap.entrySet()) {
+                File dstFolder = createFolderForOutputFile(mainSubFolder, entry.getKey(), entry.getValue(), targetImageFileName, args);
+
+                if ((dstFolder.isDirectory() && dstFolder.exists()) || args.dryRun) {
+                    File imageFile = new File(dstFolder, createDestinationFileNameWithoutExtension(entry.getKey(), entry.getValue(), targetImageFileName, args));
+
+                    log.append(""process "").append(imageFile).append("" with "").append(entry.getValue().width).append(""x"").append(entry.getValue().height).append("" (x"")
+                            .append(entry.getKey().scale).append("") "").append(isNinePatch ? ""(9-patch)"" : """").append(""\n"");
+
+                    if (!args.dryRun) {
+                        List<File> files = new ImageHandler(args).saveToFile(imageFile, imageData, entry.getValue(), isNinePatch);
+
+                        allResultingFiles.addAll(files);
+
+                        for (File file : files) {
+                            log.append(""compressed to disk: "").append(file).append("" ("").append(String.format(Locale.US, ""%.2f"", (float) file.length() / 1024f)).append(""kB)\n"");
+                        }
+
+                        if (files.isEmpty()) {
+                            log.append(""files skipped\n"");
+                        }
+                    }
+                } else {
+                    throw new IllegalStateException(""could not create "" + dstFolder);
+                }
+            }
+
+            onPostExecute(args);
+
+            imageData.getImage().flush();
+
+            return new Result(log.toString(), allResultingFiles);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Result(null, e, Collections.emptyList());
+        }
+    }
+
+    "
+"M:at.favre.tools.dconvert.converters.WebConverter:createMainSubFolder(java.io.File,java.lang.String,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isDryRun(),at.favre.tools.dconvert.arg.Arguments:isDryRun(),dryRun,createMainSubFolder,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/WebConverter.java,WebConverter,../data/xml/dconverter/WebConverter.xml,"@Override
+    public File createMainSubFolder(File destinationFolder, String targetImageFileName, Arguments arguments) {
+        if (arguments.platform.size() > 1) {
+            destinationFolder = MiscUtil.createAndCheckFolder(new File(destinationFolder, WEB_FOLDER_NAME).getAbsolutePath(), arguments.dryRun);
+        }
+        return MiscUtil.createAndCheckFolder(new File(destinationFolder, ROOT_FOLDER).getAbsolutePath(), arguments.dryRun);
+    }
+
+    "
+"M:at.favre.tools.dconvert.converters.AndroidConverter:createMainSubFolder(java.io.File,java.lang.String,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isDryRun(),at.favre.tools.dconvert.arg.Arguments:isDryRun(),dryRun,createMainSubFolder,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/AndroidConverter.java,AndroidConverter,../data/xml/dconverter/AndroidConverter.xml,"@Override
+    public File createMainSubFolder(File destinationFolder, String targetImageFileName, Arguments arguments) {
+        if (arguments.platform.size() > 1) {
+            return MiscUtil.createAndCheckFolder(new File(destinationFolder, ANDROID_FOLDER_NAME).getAbsolutePath(), arguments.dryRun);
+        } else {
+            return destinationFolder;
+        }
+    }
+
+    "
+"M:at.favre.tools.dconvert.converters.AndroidConverter:createFolderForOutputFile(java.io.File,at.favre.tools.dconvert.converters.descriptors.AndroidDensityDescriptor,java.awt.Dimension,java.lang.String,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isDryRun(),at.favre.tools.dconvert.arg.Arguments:isDryRun(),dryRun,createFolderForOutputFile,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/AndroidConverter.java,AndroidConverter,../data/xml/dconverter/AndroidConverter.xml,"@Override
+    public File createFolderForOutputFile(File mainSubFolder, AndroidDensityDescriptor density, Dimension dimension, String targetFileName, Arguments arguments) {
+        return MiscUtil.createAndCheckFolder(new File(mainSubFolder, density.folderName).getAbsolutePath(), arguments.dryRun);
+    }
+
+    "
+M:at.favre.tools.dconvert.ui.GUIController:loadPrefs(),(M)at.favre.tools.dconvert.arg.Arguments:isDryRun(),at.favre.tools.dconvert.arg.Arguments:isDryRun(),dryRun,loadPrefs,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/ui/GUIController.java,GUIController,../data/xml/dconverter/GUIController.xml,"private void loadPrefs() {
+        Arguments args = preferenceStore.get();
+        if (args != null) {
+            textFieldSrcPath.setText(args.src != null ? args.src.getAbsolutePath() : """");
+            textFieldDstPath.setText(args.dst != null ? args.dst.getAbsolutePath() : """");
+
+            scaleSlider.setValue(Arguments.DEFAULT_SCALE);
+            textFieldDp.setText(String.valueOf((int) args.scale));
+
+            if (args.scaleMode == EScaleMode.FACTOR) {
+                rbFactor.setSelected(true);
+                scaleSlider.setValue(args.scale);
+                textFieldDp.setText("""");
+            } else if (args.scaleMode == EScaleMode.DP_WIDTH) {
+                rbDpWidth.setSelected(true);
+            } else if (args.scaleMode == EScaleMode.DP_HEIGHT) {
+                rbDpHeight.setSelected(true);
+            }
+
+            setPlatformToogles(args.platform);
+            choiceCompression.getSelectionModel().select(args.outputCompressionMode);
+            choiceCompressionQuality.getSelectionModel().select(toJpgQ(args.compressionQuality));
+            choiceRounding.getSelectionModel().select(args.roundingHandler);
+            choiceThreads.getSelectionModel().select(Integer.valueOf(args.threadCount));
+            choiceDownScale.getSelectionModel().select(args.downScalingAlgorithm);
+            choiceUpScale.getSelectionModel().select(args.upScalingAlgorithm);
+
+            cbSkipExisting.setSelected(args.skipExistingFiles);
+            cbSkipUpscaling.setSelected(args.skipUpscaling);
+            cbAndroidIncludeLdpiTvdpi.setSelected(args.includeAndroidLdpiTvdpi);
+            cbAntiAliasing.setSelected(args.enableAntiAliasing);
+            cbMipmapInsteadDrawable.setSelected(args.createMipMapInsteadOfDrawableDir);
+            cbHaltOnError.setSelected(args.haltOnError);
+            cbDryRun.setSelected(args.dryRun);
+            cbEnablePngCrush.setSelected(args.enablePngCrush);
+            cbPostConvertWebp.setSelected(args.postConvertWebp);
+            cbEnableMozJpeg.setSelected(args.enableMozJpeg);
+            cbKeepUnoptimized.setSelected(args.keepUnoptimizedFilesPostProcessor);
+            cbIosCreateImageset.setSelected(args.iosCreateImagesetFolders);
+            cbCleanBeforeConvert.setSelected(args.clearDirBeforeConvert);
+            rbOptAdvanced.setSelected(args.guiAdvancedOptions);
+            rbOptSimple.setSelected(!args.guiAdvancedOptions);
+
+        }
+    }
+
+    "

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "internode_socket_send_buffer_size_in_bytes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public int socketSendBufferSizeInBytes()\n    {\n        return socketSendBufferSizeInBytes != null ? socketSendBufferSizeInBytes\n                                                   : DatabaseDescriptor.getInternodeSocketSendBufferSizeInBytes();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method retrieves a socket send buffer size, which is a configuration setting that does not directly influence performance in a substantial way. The operation involves a simple null check and a method call to retrieve a value, which are not time-intensive or memory-intensive operations. Therefore, it is unlikely to cause significant performance variations in the system."
+        }
+    ]
+}

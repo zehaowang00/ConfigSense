@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "counter_write_request_timeout_in_ms",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * @return the minimum configured {read, write, range, truncate, misc} timeout\n     */\npublic static long getMinRpcTimeout(TimeUnit unit)\n    {\n        return Longs.min(getRpcTimeout(unit),\n                         getReadRpcTimeout(unit),\n                         getRangeRpcTimeout(unit),\n                         getWriteRpcTimeout(unit),\n                         getCounterWriteRpcTimeout(unit),\n                         getTruncateRpcTimeout(unit));\n    }\n\n    \npublic long getTimeout(TimeUnit unit)\n    {\n        return DatabaseDescriptor.getCounterWriteRpcTimeout(unit);\n    }\n\n    \npublic final long currentTimeoutNanos()\n    {\n        long requestTimeout = writeType == WriteType.COUNTER\n                              ? DatabaseDescriptor.getCounterWriteRpcTimeout(NANOSECONDS)\n                              : DatabaseDescriptor.getWriteRpcTimeout(NANOSECONDS);\n        return requestTimeout - (System.nanoTime() - queryStartNanoTime);\n    }\n\n    \npublic Long getCounterWriteRpcTimeout() { return DatabaseDescriptor.getCounterWriteRpcTimeout(MILLISECONDS); }\n    \npublic long getCounterWriteRpcTimeout()\n    {\n        return DatabaseDescriptor.getCounterWriteRpcTimeout(MILLISECONDS);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `counter_write_request_timeout_in_ms` directly influences the timeout for counter write operations, which can be critical in high-throughput systems. If this timeout is set too low, it may lead to frequent timeouts and retries, causing significant performance degradation. Conversely, if set too high, it can lead to resource contention and delays in processing other requests. Given that write operations, especially for counters, can be time-intensive and affect overall system performance, this configuration has a substantial impact on system-level performance."
+        }
+    ]
+}

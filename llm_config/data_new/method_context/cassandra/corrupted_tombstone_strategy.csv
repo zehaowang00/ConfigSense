@@ -1,0 +1,75 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.db.UnfilteredValidation:maybeValidateUnfiltered(org.apache.cassandra.db.rows.Unfiltered,org.apache.cassandra.schema.TableMetadata,org.apache.cassandra.db.DecoratedKey,org.apache.cassandra.io.sstable.format.SSTableReader)",(S)org.apache.cassandra.config.DatabaseDescriptor:getCorruptedTombstoneStrategy(),org.apache.cassandra.config.DatabaseDescriptor:getCorruptedTombstoneStrategy(),corrupted_tombstone_strategy,maybeValidateUnfiltered,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/UnfilteredValidation.java,UnfilteredValidation,../data/xml/cassandra/UnfilteredValidation.xml,"public static void maybeValidateUnfiltered(Unfiltered unfiltered, TableMetadata metadata, DecoratedKey key, SSTableReader sstable)
+    {
+        Config.CorruptedTombstoneStrategy strat = DatabaseDescriptor.getCorruptedTombstoneStrategy();
+        if (strat != Config.CorruptedTombstoneStrategy.disabled && unfiltered != null && !unfiltered.isEmpty())
+        {
+            boolean hasInvalidDeletions = false;
+            try
+            {
+                hasInvalidDeletions = unfiltered.hasInvalidDeletions();
+            }
+            catch (Throwable t) // make sure no unknown exceptions fail the read/compaction
+            {
+                nospam1m.error(""Could not check if Unfiltered in {} had any invalid deletions"", sstable, t);
+            }
+
+            if (hasInvalidDeletions)
+            {
+                String content;
+                try
+                {
+                    content = unfiltered.toString(metadata, true);
+                }
+                catch (Throwable t)
+                {
+                    content = ""Could not get string representation: "" + t.getMessage();
+                }
+                handleInvalid(metadata, key, sstable, content);
+            }
+        }
+    }
+
+    "
+"M:org.apache.cassandra.db.UnfilteredValidation:handleInvalid(org.apache.cassandra.schema.TableMetadata,org.apache.cassandra.db.DecoratedKey,org.apache.cassandra.io.sstable.format.SSTableReader,java.lang.String)",(S)org.apache.cassandra.config.DatabaseDescriptor:getCorruptedTombstoneStrategy(),org.apache.cassandra.config.DatabaseDescriptor:getCorruptedTombstoneStrategy(),corrupted_tombstone_strategy,handleInvalid,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/UnfilteredValidation.java,UnfilteredValidation,../data/xml/cassandra/UnfilteredValidation.xml,"public static void handleInvalid(TableMetadata metadata, DecoratedKey key, SSTableReader sstable, String invalidContent)
+    {
+        Config.CorruptedTombstoneStrategy strat = DatabaseDescriptor.getCorruptedTombstoneStrategy();
+        String keyString;
+        try
+        {
+            keyString = metadata.partitionKeyType.getString(key.getKey());
+        }
+        catch (Throwable t)
+        {
+            keyString = ""[corrupt token=""+key.getToken()+""]"";
+        }
+
+        if (strat == Config.CorruptedTombstoneStrategy.exception)
+        {
+            String msg = String.format(""Key %s in %s.%s is invalid in %s: %s"",
+                                       keyString,
+                                       metadata.keyspace,
+                                       metadata.name,
+                                       sstable,
+                                       invalidContent);
+            // we mark suspect to make sure this sstable is not included in future compactions - it would just keep
+            // throwing exceptions
+            sstable.markSuspect();
+            throw new CorruptSSTableException(new MarshalException(msg), sstable.getFilename());
+        }
+        else if (strat == Config.CorruptedTombstoneStrategy.warn)
+        {
+            String msgTemplate = String.format(""Key {} in %s.%s is invalid in %s: {}"",
+                                               metadata.keyspace,
+                                               metadata.name,
+                                               sstable);
+            nospam1m.warn(msgTemplate, keyString, invalidContent);
+        }
+    }
+}"
+M:org.apache.cassandra.service.StorageService:getCorruptedTombstoneStrategy(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCorruptedTombstoneStrategy(),org.apache.cassandra.config.DatabaseDescriptor:getCorruptedTombstoneStrategy(),corrupted_tombstone_strategy,getCorruptedTombstoneStrategy,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public String getCorruptedTombstoneStrategy()
+    {
+        return DatabaseDescriptor.getCorruptedTombstoneStrategy().toString();
+    }
+
+    "

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'memtable_offheap_space_in_mb' configuration in Cassandra directly affects the amount of memory allocated for memtables, which are in-memory data structures used for write operations. A change in this configuration can significantly impact system performance, as insufficient off-heap memory can lead to increased garbage collection, higher latency for write operations, and potential out-of-memory errors. Conversely, allocating too much memory can lead to inefficient memory usage and affect the overall performance of the system. Therefore, variations in this configuration can cause notable changes in execution time and memory consumption, classifying it as performance-sensitive."
+}

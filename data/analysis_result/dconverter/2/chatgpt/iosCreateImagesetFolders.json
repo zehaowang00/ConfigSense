@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'iosCreateImagesetFolders' is performance-sensitive because it directly impacts how images are organized and stored in the system. If this configuration is set to create folders for each image set, it can lead to an increase in file system operations, which may significantly affect execution time and memory consumption during image processing tasks. Conversely, if it is disabled, the system may handle images differently, potentially reducing overhead but also affecting how quickly images can be accessed and processed. Therefore, changes to this configuration can lead to notable variations in overall system performance."
+}

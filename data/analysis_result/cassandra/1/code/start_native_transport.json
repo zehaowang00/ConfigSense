@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "start_native_transport",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private void startClientTransports()\n    {\n        String nativeFlag = System.getProperty(\"cassandra.start_native_transport\");\n        if ((nativeFlag != null && Boolean.parseBoolean(nativeFlag)) || (nativeFlag == null && DatabaseDescriptor.startNativeTransport()))\n        {\n            startNativeTransport();\n            StorageService.instance.setRpcReady(true);\n        }\n        else\n            logger.info(\"Not starting native transport as requested. Use JMX (StorageService->startNativeTransport()) or nodetool (enablebinary) to start it\");\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `start_native_transport` configuration directly influences whether the native transport layer of the Cassandra database is initiated. Starting native transport can significantly impact system performance due to the potential for increased throughput and reduced latency in handling client requests. If native transport is not enabled, the system may resort to less efficient communication methods, which can lead to substantial performance degradation in high-load scenarios. Therefore, this configuration has a considerable effect on system-level performance."
+        }
+    ]
+}

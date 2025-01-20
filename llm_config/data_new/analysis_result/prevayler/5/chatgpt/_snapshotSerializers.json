@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The '_snapshotSerializers' configuration in the Prevayler software project directly influences how snapshots of the system state are serialized and deserialized. Changes to this configuration can lead to significant variations in execution time and memory consumption, particularly during the snapshot creation and retrieval processes. If the serialization method is inefficient or not optimized for the specific data structures used, it can result in increased CPU usage and longer processing times, thereby impacting overall system performance. Therefore, this configuration is deemed performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'OPTIMIZE_SIMPLE_SINGLE_ROW_SUBQUERIES' in the H2 database is performance-sensitive because it directly influences how the database engine processes single-row subqueries. Enabling this optimization can lead to significant reductions in execution time for queries that involve simple subqueries, as it allows the database to execute them more efficiently. Conversely, disabling this option may result in longer execution times and increased resource consumption, especially in scenarios where such subqueries are prevalent. Therefore, changes to this configuration can notably affect overall system performance, making it performance-sensitive."
+}

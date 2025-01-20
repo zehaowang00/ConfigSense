@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'read_request_timeout_in_ms' configuration in Cassandra directly impacts how long the system waits for a read request to complete before timing out. A lower timeout value can lead to more frequent timeouts, which may cause increased retries and ultimately affect overall throughput and latency. Conversely, a higher timeout value can lead to prolonged wait times for clients, potentially causing delays in response and increased memory consumption due to pending requests. Therefore, changes to this configuration can significantly affect system performance, making it performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'enable_materialized_views' in Cassandra is performance-sensitive because enabling materialized views can significantly impact query performance and resource utilization. Materialized views allow for the pre-computation and storage of query results, which can lead to faster read operations. However, they also introduce overhead during write operations, as the system must maintain consistency between the base table and the materialized view. Changes in this configuration can lead to notable variations in execution time and memory consumption, especially in write-heavy workloads, making it critical for performance tuning."
+}

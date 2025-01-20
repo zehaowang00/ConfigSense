@@ -1,0 +1,173 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.commitlog.AbstractCommitLogSegmentManager:start(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),commitlog_segment_size_in_mb,start,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/AbstractCommitLogSegmentManager.java,AbstractCommitLogSegmentManager,../data/xml/cassandra/AbstractCommitLogSegmentManager.xml,"void start()
+    {
+        // The run loop for the manager thread
+        Runnable runnable = new WrappedRunnable()
+        {
+            public void runMayThrow() throws Exception
+            {
+                while (!shutdown)
+                {
+                    try
+                    {
+                        assert availableSegment == null;
+                        logger.trace(""No segments in reserve; creating a fresh one"");
+                        availableSegment = createSegment();
+                        if (shutdown)
+                        {
+                            // If shutdown() started and finished during segment creation, we are now left with a
+                            // segment that no one will consume. Discard it.
+                            discardAvailableSegment();
+                            return;
+                        }
+
+                        segmentPrepared.signalAll();
+                        Thread.yield();
+
+                        if (availableSegment == null && !atSegmentBufferLimit())
+                            // Writing threads need another segment now.
+                            continue;
+
+                        // Writing threads are not waiting for new segments, we can spend time on other tasks.
+                        // flush old Cfs if we're full
+                        maybeFlushToReclaim();
+                    }
+                    catch (Throwable t)
+                    {
+                        if (!CommitLog.handleCommitError(""Failed managing commit log segments"", t))
+                            return;
+                        // sleep some arbitrary period to avoid spamming CL
+                        Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+
+                        // If we offered a segment, wait for it to be taken before reentering the loop.
+                        // There could be a new segment in next not offered, but only on failure to discard it while
+                        // shutting down-- nothing more can or needs to be done in that case.
+                    }
+
+                    WaitQueue.waitOnCondition(managerThreadWaitCondition, managerThreadWaitQueue);
+                }
+            }
+        };
+
+        // For encrypted segments we want to keep the compression buffers on-heap as we need those bytes for encryption,
+        // and we want to avoid copying from off-heap (compression buffer) to on-heap encryption APIs
+        BufferType bufferType = commitLog.configuration.useEncryption() || !commitLog.configuration.useCompression()
+                              ? BufferType.ON_HEAP
+                              : commitLog.configuration.getCompressor().preferredBufferType();
+
+        this.bufferPool = new SimpleCachedBufferPool(DatabaseDescriptor.getCommitLogMaxCompressionBuffersInPool(),
+                                                     DatabaseDescriptor.getCommitLogSegmentSize(),
+                                                     bufferType);
+
+        shutdown = false;
+
+        managerThread = NamedThreadFactory.createThread(runnable, ""COMMIT-LOG-ALLOCATOR"");
+        managerThread.start();
+
+        // for simplicity, ensure the first segment is allocated before continuing
+        advanceAllocatingFrom(null);
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.CommitLog:addAdditionalInformationIfPossible(java.lang.String),(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),commitlog_segment_size_in_mb,addAdditionalInformationIfPossible,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLog.java,CommitLog,../data/xml/cassandra/CommitLog.xml,"/**
+     * Add additional information to the error message if the commit directory does not have enough free space.
+     *
+     * @param msg the original error message
+     * @return the message with additional information if possible
+     */
+private static String addAdditionalInformationIfPossible(String msg)
+    {
+        long unallocatedSpace = freeDiskSpace();
+        int segmentSize = DatabaseDescriptor.getCommitLogSegmentSize();
+
+        if (unallocatedSpace < segmentSize)
+        {
+            return String.format(""%s. %d bytes required for next commitlog segment but only %d bytes available. Check %s to see if not enough free space is the reason for this error."",
+                                 msg, segmentSize, unallocatedSpace, DatabaseDescriptor.getCommitLogLocation());
+        }
+        return msg;
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.CommitLogSegmentManagerCDC$CDCSizeTracker:defaultSegmentSize(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),commitlog_segment_size_in_mb,defaultSegmentSize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLogSegmentManagerCDC.java,CommitLogSegmentManagerCDC$CDCSizeTracker,../data/xml/cassandra/CommitLogSegmentManagerCDC.xml,"private int defaultSegmentSize()
+        {
+            return DatabaseDescriptor.getCommitLogSegmentSize();
+        }
+
+        "
+"M:org.apache.cassandra.db.commitlog.EncryptedSegment:write(int,int)",(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),commitlog_segment_size_in_mb,write,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/EncryptedSegment.java,EncryptedSegment,../data/xml/cassandra/EncryptedSegment.xml,"void write(int startMarker, int nextMarker)
+    {
+        int contentStart = startMarker + SYNC_MARKER_SIZE;
+        final int length = nextMarker - contentStart;
+        // The length may be 0 when the segment is being closed.
+        assert length > 0 || length == 0 && !isStillAllocating();
+
+        final ICompressor compressor = encryptionContext.getCompressor();
+        final int blockSize = encryptionContext.getChunkLength();
+        try
+        {
+            ByteBuffer inputBuffer = buffer.duplicate();
+            inputBuffer.limit(contentStart + length).position(contentStart);
+            ByteBuffer buffer = manager.getBufferPool().getThreadLocalReusableBuffer(DatabaseDescriptor.getCommitLogSegmentSize());
+
+            // save space for the sync marker at the beginning of this section
+            final long syncMarkerPosition = lastWrittenPos;
+            channel.position(syncMarkerPosition + ENCRYPTED_SECTION_HEADER_SIZE);
+
+            // loop over the segment data in encryption buffer sized chunks
+            while (contentStart < nextMarker)
+            {
+                int nextBlockSize = nextMarker - blockSize > contentStart ? blockSize : nextMarker - contentStart;
+                ByteBuffer slice = inputBuffer.duplicate();
+                slice.limit(contentStart + nextBlockSize).position(contentStart);
+
+                buffer = EncryptionUtils.compress(slice, buffer, true, compressor);
+
+                // reuse the same buffer for the input and output of the encryption operation
+                buffer = EncryptionUtils.encryptAndWrite(buffer, channel, true, cipher);
+
+                contentStart += nextBlockSize;
+                manager.addSize(buffer.limit() + ENCRYPTED_BLOCK_HEADER_SIZE);
+            }
+
+            lastWrittenPos = channel.position();
+
+            // rewind to the beginning of the section and write out the sync marker
+            buffer.position(0).limit(ENCRYPTED_SECTION_HEADER_SIZE);
+            writeSyncMarker(id, buffer, 0, (int) syncMarkerPosition, (int) lastWrittenPos);
+            buffer.putInt(SYNC_MARKER_SIZE, length);
+            buffer.rewind();
+            manager.addSize(buffer.limit());
+
+            channel.position(syncMarkerPosition);
+            channel.write(buffer);
+        }
+        catch (Exception e)
+        {
+            throw new FSWriteError(e, getPath());
+        }
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.MemoryMappedSegment:createBuffer(org.apache.cassandra.db.commitlog.CommitLog),(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),commitlog_segment_size_in_mb,createBuffer,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/MemoryMappedSegment.java,MemoryMappedSegment,../data/xml/cassandra/MemoryMappedSegment.xml,"ByteBuffer createBuffer(CommitLog commitLog)
+    {
+        try
+        {
+            MappedByteBuffer mappedFile = channel.map(FileChannel.MapMode.READ_WRITE, 0, DatabaseDescriptor.getCommitLogSegmentSize());
+            manager.addSize(DatabaseDescriptor.getCommitLogSegmentSize());
+            return mappedFile;
+        }
+        catch (IOException e)
+        {
+            throw new FSWriteError(e, logFile);
+        }
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.MemoryMappedSegment:onDiskSize(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSegmentSize(),commitlog_segment_size_in_mb,onDiskSize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/MemoryMappedSegment.java,MemoryMappedSegment,../data/xml/cassandra/MemoryMappedSegment.xml,"@Override
+    public long onDiskSize()
+    {
+        return DatabaseDescriptor.getCommitLogSegmentSize();
+    }
+
+    "

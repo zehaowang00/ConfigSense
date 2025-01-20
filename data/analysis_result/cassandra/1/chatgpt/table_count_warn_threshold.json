@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'table_count_warn_threshold' configuration in Cassandra determines the maximum number of tables a user can create before a warning is issued. Changing this threshold can significantly impact system performance, as a higher threshold may lead to an excessive number of tables being created, which can increase memory consumption and negatively affect query performance. Additionally, having too many tables can lead to increased overhead in managing schema changes and can degrade the efficiency of read and write operations, ultimately causing notable variations in execution time."
+}

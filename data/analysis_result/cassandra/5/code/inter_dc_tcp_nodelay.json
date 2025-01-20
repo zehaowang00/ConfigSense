@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "inter_dc_tcp_nodelay",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public boolean tcpNoDelay()\n    {\n        if (tcpNoDelay != null)\n            return tcpNoDelay;\n\n        if (isInLocalDC(getEndpointSnitch(), getBroadcastAddressAndPort(), to))\n            return INTRADC_TCP_NODELAY;\n\n        return DatabaseDescriptor.getInterDCTcpNoDelay();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the method `tcpNoDelay()` primarily checks a configuration value without performing any time-intensive or memory-intensive operations. The checks involve simple conditional statements and retrieving configuration values, which do not significantly impact system performance."
+        }
+    ]
+}

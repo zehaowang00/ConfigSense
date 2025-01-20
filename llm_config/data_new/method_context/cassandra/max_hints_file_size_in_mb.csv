@@ -1,0 +1,23 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.hints.HintsWriteExecutor:flushInternal(java.util.Iterator,org.apache.cassandra.hints.HintsStore)",(S)org.apache.cassandra.config.DatabaseDescriptor:getMaxHintsFileSize(),org.apache.cassandra.config.DatabaseDescriptor:getMaxHintsFileSize(),max_hints_file_size_in_mb,flushInternal,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/hints/HintsWriteExecutor.java,HintsWriteExecutor,../data/xml/cassandra/HintsWriteExecutor.xml,"@SuppressWarnings(""resource"")   // writer not closed here
+    private void flushInternal(Iterator<ByteBuffer> iterator, HintsStore store)
+    {
+        long maxHintsFileSize = DatabaseDescriptor.getMaxHintsFileSize();
+
+        HintsWriter writer = store.getOrOpenWriter();
+
+        try (HintsWriter.Session session = writer.newSession(writeBuffer))
+        {
+            while (iterator.hasNext())
+            {
+                session.append(iterator.next());
+                if (session.position() >= maxHintsFileSize)
+                    break;
+            }
+        }
+        catch (IOException e)
+        {
+            throw new FSWriteError(e, writer.descriptor().fileName());
+        }
+    }
+}"

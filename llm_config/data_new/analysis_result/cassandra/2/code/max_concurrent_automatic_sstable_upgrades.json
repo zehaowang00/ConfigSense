@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "max_concurrent_automatic_sstable_upgrades",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "boolean maybeRunUpgradeTask(CompactionStrategyManager strategy)\n        {\n            logger.debug(\"Checking for upgrade tasks {}.{}\", cfs.keyspace.getName(), cfs.getTableName());\n            try\n            {\n                if (currentlyBackgroundUpgrading.incrementAndGet() <= DatabaseDescriptor.maxConcurrentAutoUpgradeTasks())\n                {\n                    AbstractCompactionTask upgradeTask = strategy.findUpgradeSSTableTask();\n                    if (upgradeTask != null)\n                    {\n                        upgradeTask.execute(active);\n                        return true;\n                    }\n                }\n            }\n            finally\n            {\n                currentlyBackgroundUpgrading.decrementAndGet();\n            }\n            logger.trace(\"No tasks available\");\n            return false;\n        }\n    }\npublic int getMaxConcurrentAutoUpgradeTasks()\n    {\n        return DatabaseDescriptor.maxConcurrentAutoUpgradeTasks();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `max_concurrent_auto_upgrade_tasks` directly influences the number of concurrent upgrade tasks that can be executed, which can lead to significant variations in system performance. If too many upgrade tasks are allowed to run concurrently, it could lead to increased resource contention, higher memory usage, and potential degradation of overall system performance. Conversely, if the limit is set too low, it may result in underutilization of resources and slower upgrade processes. This configuration can thus have a substantial impact on system-level performance due to its influence on time-intensive operations related to data compaction and upgrades."
+        }
+    ]
+}

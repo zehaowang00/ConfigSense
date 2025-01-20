@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'compaction_throughput_mb_per_sec' configuration in Cassandra directly influences the rate at which data is compacted in the database. Changes to this setting can significantly affect the overall performance of the system, particularly during write-heavy operations or when handling large datasets. If the throughput is set too low, it can lead to increased latency for read and write operations, as data remains fragmented and unoptimized for longer periods. Conversely, setting it too high may consume excessive system resources, impacting other operations and potentially leading to performance degradation. Therefore, variations in this configuration can lead to notable changes in execution time and resource utilization, classifying it as performance-sensitive."
+}

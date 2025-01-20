@@ -1,0 +1,53 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.StorageService:getCachedReplicaRowsFailThreshold(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCachedReplicaRowsFailThreshold(),org.apache.cassandra.config.DatabaseDescriptor:getCachedReplicaRowsFailThreshold(),cached_rows_fail_threshold,getCachedReplicaRowsFailThreshold,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getCachedReplicaRowsFailThreshold()
+    {
+        return DatabaseDescriptor.getCachedReplicaRowsFailThreshold();
+    }
+
+    "
+"M:org.apache.cassandra.service.reads.DataResolver:resolveWithReplicaFilteringProtection(org.apache.cassandra.locator.Endpoints,org.apache.cassandra.service.reads.repair.RepairedDataTracker)",(S)org.apache.cassandra.config.DatabaseDescriptor:getCachedReplicaRowsFailThreshold(),org.apache.cassandra.config.DatabaseDescriptor:getCachedReplicaRowsFailThreshold(),cached_rows_fail_threshold,resolveWithReplicaFilteringProtection,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/reads/DataResolver.java,DataResolver,../data/xml/cassandra/DataResolver.xml,"@SuppressWarnings(""resource"")
+    private PartitionIterator resolveWithReplicaFilteringProtection(E replicas, RepairedDataTracker repairedDataTracker)
+    {
+        // Protecting against inconsistent replica filtering (some replica returning a row that is outdated but that
+        // wouldn't be removed by normal reconciliation because up-to-date replica have filtered the up-to-date version
+        // of that row) involves 3 main elements:
+        //   1) We combine short-read protection and a merge listener that identifies potentially ""out-of-date""
+        //      rows to create an iterator that is guaranteed to produce enough valid row results to satisfy the query
+        //      limit if enough actually exist. A row is considered out-of-date if its merged from is non-empty and we
+        //      receive not response from at least one replica. In this case, it is possible that filtering at the
+        //      ""silent"" replica has produced a more up-to-date result.
+        //   2) This iterator is passed to the standard resolution process with read-repair, but is first wrapped in a
+        //      response provider that lazily ""completes"" potentially out-of-date rows by directly querying them on the
+        //      replicas that were previously silent. As this iterator is consumed, it caches valid data for potentially
+        //      out-of-date rows, and this cached data is merged with the fetched data as rows are requested. If there
+        //      is no replica divergence, only rows in the partition being evalutated will be cached (then released
+        //      when the partition is consumed).
+        //   3) After a ""complete"" row is materialized, it must pass the row filter supplied by the original query
+        //      before it counts against the limit.
+
+        // We need separate contexts, as each context has his own counter
+        ResolveContext firstPhaseContext = new ResolveContext(replicas);
+        ResolveContext secondPhaseContext = new ResolveContext(replicas);
+        ReplicaFilteringProtection<E> rfp = new ReplicaFilteringProtection<>(replicaPlan().keyspace(),
+                                                                             command,
+                                                                             replicaPlan().consistencyLevel(),
+                                                                             queryStartNanoTime,
+                                                                             firstPhaseContext.replicas,
+                                                                             DatabaseDescriptor.getCachedReplicaRowsWarnThreshold(),
+                                                                             DatabaseDescriptor.getCachedReplicaRowsFailThreshold());
+
+        PartitionIterator firstPhasePartitions = resolveInternal(firstPhaseContext,
+                                                                 rfp.mergeController(),
+                                                                 i -> shortReadProtectedResponse(i, firstPhaseContext),
+                                                                 UnaryOperator.identity());
+
+        PartitionIterator completedPartitions = resolveWithReadRepair(secondPhaseContext,
+                                                                      i -> rfp.queryProtectedPartitions(firstPhasePartitions, i),
+                                                                      results -> command.rowFilter().filter(results, command.metadata(), command.nowInSec()),
+                                                                      repairedDataTracker);
+
+        // Ensure that the RFP instance has a chance to record metrics when the iterator closes.
+        return PartitionIterators.doOnClose(completedPartitions, firstPhasePartitions::close);
+    }
+
+    "

@@ -1,0 +1,78 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+"M:org.h2.expression.condition.ConditionInConstantSet:createIndexConditions(org.h2.engine.SessionLocal,org.h2.table.TableFilter)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
+        if (not || whenOperand || !(left instanceof ExpressionColumn)) {
+            return;
+        }
+        ExpressionColumn l = (ExpressionColumn) left;
+        if (filter != l.getTableFilter()) {
+            return;
+        }
+        if (session.getDatabase().getSettings().optimizeInList) {
+            TypeInfo colType = l.getType();
+            if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, type))) {
+                filter.addIndexCondition(IndexCondition.getInList(l, valueList));
+            }
+        }
+    }
+
+    ",OPTIMIZE_IN_LIST,createIndexConditions,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/expression/condition/ConditionInConstantSet.java,ConditionInConstantSet,../data/xml/h2/ConditionInConstantSet.xml
+"M:org.h2.expression.condition.ConditionInQuery:createIndexConditions(org.h2.engine.SessionLocal,org.h2.table.TableFilter)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
+        if (!session.getDatabase().getSettings().optimizeInList) {
+            return;
+        }
+        if (not || compareType != Comparison.EQUAL) {
+            return;
+        }
+        if (query.getColumnCount() != 1) {
+            return;
+        }
+        if (!(left instanceof ExpressionColumn)) {
+            return;
+        }
+        TypeInfo colType = left.getType();
+        TypeInfo queryType = query.getExpressions().get(0).getType();
+        if (!TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, queryType))) {
+            return;
+        }
+        int leftType = colType.getValueType();
+        if (!DataType.hasTotalOrdering(leftType) && leftType != queryType.getValueType()) {
+            return;
+        }
+        ExpressionColumn l = (ExpressionColumn) left;
+        if (filter != l.getTableFilter()) {
+            return;
+        }
+        ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
+        if (!query.isEverything(visitor)) {
+            return;
+        }
+        filter.addIndexCondition(IndexCondition.getInQuery(l, query));
+    }
+
+}
+",OPTIMIZE_IN_LIST,createIndexConditions,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/expression/condition/ConditionInQuery.java,ConditionInQuery,../data/xml/h2/ConditionInQuery.xml
+"M:org.h2.expression.condition.ConditionIn:createIndexConditions(org.h2.engine.SessionLocal,org.h2.table.TableFilter)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public void createIndexConditions(SessionLocal session, TableFilter filter) {
+        if (not || whenOperand || !(left instanceof ExpressionColumn)) {
+            return;
+        }
+        ExpressionColumn l = (ExpressionColumn) left;
+        if (filter != l.getTableFilter()) {
+            return;
+        }
+        if (session.getDatabase().getSettings().optimizeInList) {
+            ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
+            TypeInfo colType = l.getType();
+            for (Expression e : valueList) {
+                if (!e.isEverything(visitor)
+                        || !TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, e.getType()))) {
+                    return;
+                }
+            }
+            filter.addIndexCondition(IndexCondition.getInList(l, valueList));
+        }
+    }
+
+    ",OPTIMIZE_IN_LIST,createIndexConditions,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/expression/condition/ConditionIn.java,ConditionIn,../data/xml/h2/ConditionIn.xml

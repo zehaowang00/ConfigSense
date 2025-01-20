@@ -1,0 +1,57 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:main.java.Catena:flap(int,byte[],byte[])",(M)main.java.Catena:get_k(),main.java.Catena:get_k(),_k,flap,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * flap function from catena specification
+	 * 
+	 * @param g
+	 * @param xIn
+	 * @param gamma
+	 * @return
+	 */
+private byte[] flap(int g, byte[] xIn, byte[] gamma) {
+        this.get_hPrime().reset();
+        int iterations = (int)Math.pow(2.0, g);
+        byte[][] v = new byte[iterations + 2][this.get_k()];
+        byte[] xHinit = this.hInit(xIn);
+        System.arraycopy(xHinit, 0, v[0], 0, this.get_k());
+        System.arraycopy(xHinit, this.get_k(), v[1], 0, this.get_k());
+        int i = 2;
+        while (i < iterations + 2) {
+            this.get_hPrime().update(this.helper.concateByteArrays(v[i - 1], v[i - 2]));
+            v[i] = this.get_hPrime().doFinal();
+            ++i;
+        }
+        byte[][] v2 = new byte[iterations][this.get_k()];
+        System.arraycopy(v, 2, v2, 0, v2.length);
+        this.get_hPrime().reset();
+        v2 = this.gamma(g, v2, gamma);
+        this.get_hPrime().reset();
+        v2 = this.f(g, v2, this.get_lambda());
+        this.get_hPrime().reset();
+        v2 = this.phi(g, v2, v2[v2.length - 1]);
+        return v2[v2.length - 1];
+    }
+
+    "
+M:main.java.Catena:hInit(byte[]),(M)main.java.Catena:get_k(),main.java.Catena:get_k(),_k,hInit,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * Initialisation of the 2 values for flap rounds
+	 * 
+	 * @param x		Input Array
+	 * @return 		2 hashed values v_-1, V_-2 in one byte array
+	 * 				(output is already splitted in the middle and swapped)
+	 */
+private byte[] hInit(byte[] x) {
+        int l = 2 * this.get_k() / this.get_n();
+        byte[][] xLoop = new byte[l][this.get_n()];
+        byte[] iByte = new byte[1];
+        int i = 0;
+        while (i <= l - 1) {
+            iByte[0] = (byte)i;
+            this.get_h().update(this.helper.concateByteArrays(iByte, x));
+            xLoop[i] = this.get_h().doFinal();
+            this.get_h().reset();
+            ++i;
+        }
+        return this.helper.twoDimByteArrayToOne(xLoop);
+    }
+
+	"

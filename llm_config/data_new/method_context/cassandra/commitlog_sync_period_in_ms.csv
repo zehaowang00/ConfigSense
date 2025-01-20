@@ -1,0 +1,17 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.config.DatabaseDescriptor:getPeriodicCommitLogSyncBlock(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSyncPeriod(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSyncPeriod(),commitlog_sync_period_in_ms,getPeriodicCommitLogSyncBlock,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/config/DatabaseDescriptor.java,DatabaseDescriptor,../data/xml/cassandra/DatabaseDescriptor.xml,"public static long getPeriodicCommitLogSyncBlock()
+    {
+        Integer blockMillis = conf.periodic_commitlog_sync_lag_block_in_ms;
+        return blockMillis == null
+               ? (long)(getCommitLogSyncPeriod() * 1.5)
+               : blockMillis;
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.PeriodicCommitLogService:<init>(org.apache.cassandra.db.commitlog.CommitLog),(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSyncPeriod(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSyncPeriod(),commitlog_sync_period_in_ms,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogService.java,PeriodicCommitLogService,../data/xml/cassandra/PeriodicCommitLogService.xml,"public PeriodicCommitLogService(final CommitLog commitLog)
+    {
+        super(commitLog, ""PERIODIC-COMMIT-LOG-SYNCER"", DatabaseDescriptor.getCommitLogSyncPeriod(),
+              !(commitLog.configuration.useCompression() || commitLog.configuration.useEncryption()));
+    }
+
+    "

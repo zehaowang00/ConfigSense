@@ -1,0 +1,30 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.compaction.CompactionManager$BackgroundCompactionCandidate:maybeRunUpgradeTask(org.apache.cassandra.db.compaction.CompactionStrategyManager),(S)org.apache.cassandra.config.DatabaseDescriptor:maxConcurrentAutoUpgradeTasks(),org.apache.cassandra.config.DatabaseDescriptor:maxConcurrentAutoUpgradeTasks(),max_concurrent_automatic_sstable_upgrades,maybeRunUpgradeTask,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/compaction/CompactionManager.java,CompactionManager$BackgroundCompactionCandidate,../data/xml/cassandra/CompactionManager.xml,"boolean maybeRunUpgradeTask(CompactionStrategyManager strategy)
+        {
+            logger.debug(""Checking for upgrade tasks {}.{}"", cfs.keyspace.getName(), cfs.getTableName());
+            try
+            {
+                if (currentlyBackgroundUpgrading.incrementAndGet() <= DatabaseDescriptor.maxConcurrentAutoUpgradeTasks())
+                {
+                    AbstractCompactionTask upgradeTask = strategy.findUpgradeSSTableTask();
+                    if (upgradeTask != null)
+                    {
+                        upgradeTask.execute(active);
+                        return true;
+                    }
+                }
+            }
+            finally
+            {
+                currentlyBackgroundUpgrading.decrementAndGet();
+            }
+            logger.trace(""No tasks available"");
+            return false;
+        }
+    }"
+M:org.apache.cassandra.db.compaction.CompactionManager:getMaxConcurrentAutoUpgradeTasks(),(S)org.apache.cassandra.config.DatabaseDescriptor:maxConcurrentAutoUpgradeTasks(),org.apache.cassandra.config.DatabaseDescriptor:maxConcurrentAutoUpgradeTasks(),max_concurrent_automatic_sstable_upgrades,getMaxConcurrentAutoUpgradeTasks,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/compaction/CompactionManager.java,CompactionManager,../data/xml/cassandra/CompactionManager.xml,"public int getMaxConcurrentAutoUpgradeTasks()
+    {
+        return DatabaseDescriptor.maxConcurrentAutoUpgradeTasks();
+    }
+
+    "

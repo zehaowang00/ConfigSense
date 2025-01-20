@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'batchlog_replay_throttle_in_kb' in Cassandra controls the amount of data that can be replayed in a batch log at a time. Adjusting this value can significantly impact the system's performance, particularly in terms of execution time and resource utilization. A lower throttle value may lead to increased latency as the system processes smaller chunks of data more frequently, while a higher value can improve throughput but may also increase memory consumption and affect garbage collection. Therefore, changes to this configuration can lead to notable variations in system performance, making it performance-sensitive."
+}

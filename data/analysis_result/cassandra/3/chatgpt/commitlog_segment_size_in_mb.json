@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'commitlog_segment_size_in_mb' configuration in Cassandra directly influences how commit logs are managed and stored. A smaller segment size can lead to more frequent segment rollovers, which may increase disk I/O and impact write performance due to the overhead of managing multiple segments. Conversely, a larger segment size can improve write performance by reducing the frequency of rollovers but may lead to increased memory consumption and longer recovery times during failures. Therefore, changes to this configuration can significantly affect system performance, making it performance-sensitive."
+}

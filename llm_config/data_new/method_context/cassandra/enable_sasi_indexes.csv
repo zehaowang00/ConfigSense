@@ -1,0 +1,76 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.cql3.statements.schema.CreateIndexStatement:apply(org.apache.cassandra.schema.Keyspaces),(S)org.apache.cassandra.config.DatabaseDescriptor:getEnableSASIIndexes(),org.apache.cassandra.config.DatabaseDescriptor:getEnableSASIIndexes(),enable_sasi_indexes,apply,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/schema/CreateIndexStatement.java,CreateIndexStatement,../data/xml/cassandra/CreateIndexStatement.xml,"public Keyspaces apply(Keyspaces schema)
+    {
+        attrs.validate();
+
+        if (attrs.isCustom && attrs.customClass.equals(SASIIndex.class.getName()) && !DatabaseDescriptor.getEnableSASIIndexes())
+            throw new InvalidRequestException(""SASI indexes are disabled. Enable in cassandra.yaml to use."");
+
+        KeyspaceMetadata keyspace = schema.getNullable(keyspaceName);
+        if (null == keyspace)
+            throw ire(""Keyspace '%s' doesn't exist"", keyspaceName);
+
+        TableMetadata table = keyspace.getTableOrViewNullable(tableName);
+        if (null == table)
+            throw ire(""Table '%s' doesn't exist"", tableName);
+
+        if (null != indexName && keyspace.hasIndex(indexName))
+        {
+            if (ifNotExists)
+                return schema;
+
+            throw ire(""Index '%s' already exists"", indexName);
+        }
+
+        if (table.isCounter())
+            throw ire(""Secondary indexes on counter tables aren't supported"");
+
+        if (table.isView())
+            throw ire(""Secondary indexes on materialized views aren't supported"");
+
+        if (Keyspace.open(table.keyspace).getReplicationStrategy().hasTransientReplicas())
+            throw new InvalidRequestException(""Secondary indexes are not supported on transiently replicated keyspaces"");
+
+        List<IndexTarget> indexTargets = Lists.newArrayList(transform(rawIndexTargets, t -> t.prepare(table)));
+
+        if (indexTargets.isEmpty() && !attrs.isCustom)
+            throw ire(""Only CUSTOM indexes can be created without specifying a target column"");
+
+        if (indexTargets.size() > 1)
+        {
+            if (!attrs.isCustom)
+                throw ire(""Only CUSTOM indexes support multiple columns"");
+
+            Set<ColumnIdentifier> columns = new HashSet<>();
+            for (IndexTarget target : indexTargets)
+                if (!columns.add(target.column))
+                    throw ire(""Duplicate column '%s' in index target list"", target.column);
+        }
+
+        indexTargets.forEach(t -> validateIndexTarget(table, t));
+
+        String name = null == indexName ? generateIndexName(keyspace, indexTargets) : indexName;
+
+        IndexMetadata.Kind kind = attrs.isCustom ? IndexMetadata.Kind.CUSTOM : IndexMetadata.Kind.COMPOSITES;
+
+        Map<String, String> options = attrs.isCustom ? attrs.getOptions() : Collections.emptyMap();
+
+        IndexMetadata index = IndexMetadata.fromIndexTargets(indexTargets, name, kind, options);
+
+        // check to disallow creation of an index which duplicates an existing one in all but name
+        IndexMetadata equalIndex = tryFind(table.indexes, i -> i.equalsWithoutName(index)).orNull();
+        if (null != equalIndex)
+        {
+            if (ifNotExists)
+                return schema;
+
+            throw ire(""Index %s is a duplicate of existing index %s"", index.name, equalIndex.name);
+        }
+
+        TableMetadata newTable = table.withSwapped(table.indexes.with(index));
+        newTable.validate();
+
+        return schema.withAddedOrUpdated(keyspace.withSwapped(keyspace.tables.withSwapped(newTable)));
+    }
+
+    "

@@ -1,0 +1,46 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.repair.ValidationManager:createMerkleTrees(org.apache.cassandra.repair.ValidationPartitionIterator,java.util.Collection,org.apache.cassandra.db.ColumnFamilyStore)",(S)org.apache.cassandra.config.DatabaseDescriptor:getRepairSessionSpaceInMegabytes(),org.apache.cassandra.config.DatabaseDescriptor:getRepairSessionSpaceInMegabytes(),repair_session_space_in_mb,createMerkleTrees,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/repair/ValidationManager.java,ValidationManager,../data/xml/cassandra/ValidationManager.xml,"private static MerkleTrees createMerkleTrees(ValidationPartitionIterator validationIterator, Collection<Range<Token>> ranges, ColumnFamilyStore cfs)
+    {
+        MerkleTrees tree = new MerkleTrees(cfs.getPartitioner());
+        long allPartitions = validationIterator.estimatedPartitions();
+        Map<Range<Token>, Long> rangePartitionCounts = validationIterator.getRangePartitionCounts();
+
+        // The repair coordinator must hold RF trees in memory at once, so a given validation compaction can only
+        // use 1 / RF of the allowed space.
+        long availableBytes = (DatabaseDescriptor.getRepairSessionSpaceInMegabytes() * 1048576) /
+                              cfs.keyspace.getReplicationStrategy().getReplicationFactor().allReplicas;
+
+        for (Range<Token> range : ranges)
+        {
+            long numPartitions = rangePartitionCounts.get(range);
+            double rangeOwningRatio = allPartitions > 0 ? (double)numPartitions / allPartitions : 0;
+            // determine max tree depth proportional to range size to avoid blowing up memory with multiple tress,
+            // capping at a depth that does not exceed our memory budget (CASSANDRA-11390, CASSANDRA-14096)
+            int rangeAvailableBytes = Math.max(1, (int) (rangeOwningRatio * availableBytes));
+            // Try to estimate max tree depth that fits the space budget assuming hashes of 256 bits = 32 bytes
+            // note that estimatedMaxDepthForBytes cannot return a number lower than 1
+            int estimatedMaxDepth = MerkleTree.estimatedMaxDepthForBytes(cfs.getPartitioner(), rangeAvailableBytes, 32);
+            int maxDepth = rangeOwningRatio > 0
+                           ? Math.min(estimatedMaxDepth, DatabaseDescriptor.getRepairSessionMaxTreeDepth())
+                           : 0;
+            // determine tree depth from number of partitions, capping at max tree depth (CASSANDRA-5263)
+            int depth = numPartitions > 0 ? (int) Math.min(Math.ceil(Math.log(numPartitions) / Math.log(2)), maxDepth) : 0;
+            tree.addMerkleTree((int) Math.pow(2, depth), range);
+        }
+        if (logger.isDebugEnabled())
+        {
+            // MT serialize may take time
+            logger.debug(""Created {} merkle trees with merkle trees size {}, {} partitions, {} bytes"", tree.ranges().size(), tree.size(), allPartitions, MerkleTrees.serializer.serializedSize(tree, 0));
+        }
+
+        return tree;
+    }
+
+    "
+M:org.apache.cassandra.service.ActiveRepairService:getRepairSessionSpaceInMegabytes(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRepairSessionSpaceInMegabytes(),org.apache.cassandra.config.DatabaseDescriptor:getRepairSessionSpaceInMegabytes(),repair_session_space_in_mb,getRepairSessionSpaceInMegabytes,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ActiveRepairService.java,ActiveRepairService,../data/xml/cassandra/ActiveRepairService.xml,"@Override
+    public int getRepairSessionSpaceInMegabytes()
+    {
+        return DatabaseDescriptor.getRepairSessionSpaceInMegabytes();
+    }
+
+    "

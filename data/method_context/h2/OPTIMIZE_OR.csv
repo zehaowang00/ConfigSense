@@ -1,0 +1,166 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.expression.condition.ConditionAndOr:optimize(org.h2.engine.SessionLocal),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public Expression optimize(SessionLocal session) {
+        // NULL handling: see wikipedia,
+        // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
+        left = left.optimize(session);
+        right = right.optimize(session);
+        int lc = left.getCost(), rc = right.getCost();
+        if (rc < lc) {
+            Expression t = left;
+            left = right;
+            right = t;
+        }
+        switch (andOrType) {
+        case AND:
+            if (!session.getDatabase().getSettings().optimizeTwoEquals) {
+                break;
+            }
+            // this optimization does not work in the following case,
+            // but NOT is optimized before:
+            // CREATE TABLE TEST(A INT, B INT);
+            // INSERT INTO TEST VALUES(1, NULL);
+            // SELECT * FROM TEST WHERE NOT (B=A AND B=0); // no rows
+            // SELECT * FROM TEST WHERE NOT (B=A AND B=0 AND A=0); // 1, NULL
+            // try to add conditions (A=B AND B=1: add A=1)
+            if (left instanceof Comparison && right instanceof Comparison) {
+                // try to add conditions (A=B AND B=1: add A=1)
+                Expression added = ((Comparison) left).getAdditionalAnd(session, (Comparison) right);
+                if (added != null) {
+                    this.added = added.optimize(session);
+                }
+            }
+            break;
+        case OR:
+            if (!session.getDatabase().getSettings().optimizeOr) {
+                break;
+            }
+            Expression reduced;
+            if (left instanceof Comparison && right instanceof Comparison) {
+                reduced = ((Comparison) left).optimizeOr(session, (Comparison) right);
+            } else if (left instanceof ConditionIn && right instanceof Comparison) {
+                reduced = ((ConditionIn) left).getAdditional((Comparison) right);
+            } else if (right instanceof ConditionIn && left instanceof Comparison) {
+                reduced = ((ConditionIn) right).getAdditional((Comparison) left);
+            } else if (left instanceof ConditionInConstantSet && right instanceof Comparison) {
+                reduced = ((ConditionInConstantSet) left).getAdditional(session, (Comparison) right);
+            } else if (right instanceof ConditionInConstantSet && left instanceof Comparison) {
+                reduced = ((ConditionInConstantSet) right).getAdditional(session, (Comparison) left);
+            } else if (left instanceof ConditionAndOr && right instanceof ConditionAndOr) {
+                reduced = optimizeConditionAndOr((ConditionAndOr)left, (ConditionAndOr)right);
+            } else {
+                // TODO optimization: convert .. OR .. to UNION if the cost is lower
+                break;
+            }
+            if (reduced != null) {
+                return reduced.optimize(session);
+            }
+        }
+        Expression e = optimizeIfConstant(session, andOrType, left, right);
+        if (e == null) {
+            return optimizeN(this);
+        }
+        if (e instanceof ConditionAndOr) {
+            return optimizeN((ConditionAndOr) e);
+        }
+        return e;
+    }
+
+    ",OPTIMIZE_OR,optimize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/expression/condition/ConditionAndOr.java,ConditionAndOr,../data/xml/h2/ConditionAndOr.xml
+M:org.h2.expression.condition.ConditionAndOrN:optimize(org.h2.engine.SessionLocal),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public Expression optimize(SessionLocal session) {
+        // NULL handling: see wikipedia,
+        // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
+
+        // first pass, optimize individual sub-expressions
+        for (int i = 0; i < expressions.size(); i++ ) {
+            expressions.set(i, expressions.get(i).optimize(session));
+        }
+
+        Collections.sort(expressions, COMPARE_BY_COST);
+
+        // TODO we're only matching pairs so that are next to each other, so in complex expressions
+        //   we will miss opportunities
+
+        // second pass, optimize combinations
+        optimizeMerge(0);
+        for (int i = 1; i < expressions.size(); ) {
+            Expression left = expressions.get(i-1);
+            Expression right = expressions.get(i);
+            switch (andOrType) {
+            case ConditionAndOr.AND:
+                if (!session.getDatabase().getSettings().optimizeTwoEquals) {
+                    break;
+                }
+                // this optimization does not work in the following case,
+                // but NOT is optimized before:
+                // CREATE TABLE TEST(A INT, B INT);
+                // INSERT INTO TEST VALUES(1, NULL);
+                // SELECT * FROM TEST WHERE NOT (B=A AND B=0); // no rows
+                // SELECT * FROM TEST WHERE NOT (B=A AND B=0 AND A=0); // 1,
+                // NULL
+                // try to add conditions (A=B AND B=1: add A=1)
+                if (left instanceof Comparison && right instanceof Comparison) {
+                    // try to add conditions (A=B AND B=1: add A=1)
+                    Expression added = ((Comparison) left).getAdditionalAnd(session, (Comparison) right);
+                    if (added != null) {
+                        if (this.added == null) {
+                            this.added = new ArrayList<>();
+                        }
+                        this.added.add(added.optimize(session));
+                    }
+                }
+                break;
+            case ConditionAndOr.OR:
+                if (!session.getDatabase().getSettings().optimizeOr) {
+                    break;
+                }
+                Expression reduced;
+                if (left instanceof Comparison && right instanceof Comparison) {
+                    reduced = ((Comparison) left).optimizeOr(session, (Comparison) right);
+                } else if (left instanceof ConditionIn && right instanceof Comparison) {
+                    reduced = ((ConditionIn) left).getAdditional((Comparison) right);
+                } else if (right instanceof ConditionIn && left instanceof Comparison) {
+                    reduced = ((ConditionIn) right).getAdditional((Comparison) left);
+                } else if (left instanceof ConditionInConstantSet && right instanceof Comparison) {
+                    reduced = ((ConditionInConstantSet) left).getAdditional(session, (Comparison) right);
+                } else if (right instanceof ConditionInConstantSet && left instanceof Comparison) {
+                    reduced = ((ConditionInConstantSet) right).getAdditional(session, (Comparison) left);
+                } else if (left instanceof ConditionAndOr && right instanceof ConditionAndOr) {
+                    reduced = ConditionAndOr.optimizeConditionAndOr((ConditionAndOr) left, (ConditionAndOr) right);
+                } else {
+                    // TODO optimization: convert .. OR .. to UNION if the cost
+                    // is lower
+                    break;
+                }
+                if (reduced != null) {
+                    expressions.remove(i);
+                    expressions.set(i - 1, reduced.optimize(session));
+                    continue; // because we don't want to increment, we want to compare the new pair exposed
+                }
+            }
+
+            Expression e = ConditionAndOr.optimizeIfConstant(session, andOrType, left, right);
+            if (e != null) {
+                expressions.remove(i);
+                expressions.set(i-1, e);
+                continue; // because we don't want to increment, we want to compare the new pair exposed
+            }
+
+            if (optimizeMerge(i)) {
+                continue;
+            }
+
+            i++;
+        }
+
+        Collections.sort(expressions, COMPARE_BY_COST);
+
+        if (expressions.size() == 1) {
+            return Condition.castToBoolean(session, expressions.get(0));
+        }
+        return this;
+    }
+
+
+    ",OPTIMIZE_OR,optimize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/expression/condition/ConditionAndOrN.java,ConditionAndOrN,../data/xml/h2/ConditionAndOrN.xml

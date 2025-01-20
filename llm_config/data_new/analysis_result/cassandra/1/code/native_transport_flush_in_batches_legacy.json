@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "native_transport_flush_in_batches_legacy",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private Server (Builder builder)\n    {\n        this.socket = builder.getSocket();\n        this.tlsEncryptionPolicy = builder.tlsEncryptionPolicy;\n        if (builder.workerGroup != null)\n        {\n            workerGroup = builder.workerGroup;\n        }\n        else\n        {\n            if (useEpoll)\n                workerGroup = new EpollEventLoopGroup();\n            else\n                workerGroup = new NioEventLoopGroup();\n        }\n\n        pipelineConfigurator = builder.pipelineConfigurator != null\n                               ? builder.pipelineConfigurator\n                               : new PipelineConfigurator(useEpoll,\n                                                          DatabaseDescriptor.getRpcKeepAlive(),\n                                                          DatabaseDescriptor.useNativeTransportLegacyFlusher(),\n                                                          builder.tlsEncryptionPolicy);\n\n        EventNotifier notifier = builder.eventNotifier != null ? builder.eventNotifier : new EventNotifier();\n        notifier.registerConnectionTracker(connectionTracker);\n        StorageService.instance.register(notifier);\n        Schema.instance.registerListener(notifier);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The use of `DatabaseDescriptor.useNativeTransportLegacyFlusher()` indicates a potential impact on performance due to its association with flushing operations in a transport layer. If this configuration leads to time-intensive flushing processes, it can significantly affect the overall system performance, especially under high load scenarios where efficient data handling is crucial. Therefore, this configuration can directly cause substantial performance variations."
+        }
+    ]
+}

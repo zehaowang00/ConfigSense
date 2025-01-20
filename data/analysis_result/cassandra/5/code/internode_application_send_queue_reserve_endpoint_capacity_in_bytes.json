@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "internode_application_send_queue_reserve_endpoint_capacity_in_bytes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public OutboundConnectionSettings withDefaultReserveLimits()\n    {\n        Integer applicationReserveSendQueueEndpointCapacityInBytes = this.applicationSendQueueReserveEndpointCapacityInBytes;\n        ResourceLimits.Limit applicationReserveSendQueueGlobalCapacityInBytes = this.applicationSendQueueReserveGlobalCapacityInBytes;\n\n        if (applicationReserveSendQueueEndpointCapacityInBytes == null)\n            applicationReserveSendQueueEndpointCapacityInBytes = DatabaseDescriptor.getInternodeApplicationSendQueueReserveEndpointCapacityInBytes();\n        if (applicationReserveSendQueueGlobalCapacityInBytes == null)\n            applicationReserveSendQueueGlobalCapacityInBytes = MessagingService.instance().outboundGlobalReserveLimit;\n\n        return withApplicationReserveSendQueueCapacityInBytes(applicationReserveSendQueueEndpointCapacityInBytes, applicationReserveSendQueueGlobalCapacityInBytes);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The configuration `internode_application_send_queue_reserve_endpoint_capacity_in_bytes` directly influences the capacity of the send queue, which can significantly affect the throughput and latency of message processing in a distributed system. If this value is improperly set or defaults to a suboptimal configuration, it can lead to bottlenecks in message delivery, causing time-intensive operations that degrade overall system performance. The retrieval of this configuration from `DatabaseDescriptor` indicates that it may have substantial implications for resource allocation and performance, making it critical to manage effectively."
+        }
+    ]
+}

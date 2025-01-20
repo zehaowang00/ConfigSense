@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "ANALYZE_AUTO",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public MVTable(CreateTableData data, Store store) {\n        super(data);\n        this.isHidden = data.isHidden;\n        boolean b = false;\n        for (Column col : getColumns()) {\n            if (DataType.isLargeObject(col.getType().getValueType())) {\n                b = true;\n                break;\n            }\n        }\n        containsLargeObject = b;\n        nextAnalyze = database.getSettings().analyzeAuto;\n        changesUntilAnalyze = nextAnalyze <= 0 ? null : new AtomicInteger(nextAnalyze);\n        this.store = store;\n        this.transactionStore = store.getTransactionStore();\n        traceLock = database.getTrace(Trace.LOCK);\n\n        primaryIndex = new MVPrimaryIndex(database, this, getId(),\n                IndexColumn.wrap(getColumns()), IndexType.createScan(true));\n        indexes.add(primaryIndex);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `analyzeAuto` setting directly influences when the database will perform analysis operations, which can be time-intensive, especially if the table contains large objects. If `nextAnalyze` is set to a low value, it could trigger frequent analysis, leading to significant performance overhead during database operations. This configuration can lead to substantial variations in performance due to the potential for increased resource consumption and execution time associated with these analysis tasks."
+        }
+    ]
+}

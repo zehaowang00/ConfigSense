@@ -1,0 +1,56 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.batik.transcoder.SVGAbstractTranscoder:setImageSize(float,float)",(M)org.apache.batik.transcoder.TranscodingHints:getKey_MAX_WIDTH(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:getKey_MAX_WIDTH(java.lang.Object),MAX_WIDTH,setImageSize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/SVGAbstractTranscoder.java,SVGAbstractTranscoder,../data/xml/batik/SVGAbstractTranscoder.xml,"/**
+     * Sets document size according to the hints.
+     * Global variables width and height are modified.
+     *
+     * @param docWidth Width of the document.
+     * @param docHeight Height of the document.
+     */
+protected void setImageSize(float docWidth, float docHeight) {
+
+        // Compute the image's width and height according the hints
+        float imgWidth = -1;
+        if (hints.containsKey(KEY_WIDTH)) {
+            imgWidth = (Float) hints.get(KEY_WIDTH);
+        }
+        float imgHeight = -1;
+        if (hints.containsKey(KEY_HEIGHT)) {
+            imgHeight = (Float) hints.get(KEY_HEIGHT);
+        }
+
+        if (imgWidth > 0 && imgHeight > 0) {
+            width = imgWidth;
+            height = imgHeight;
+        } else if (imgHeight > 0) {
+            width = (docWidth * imgHeight) / docHeight;
+            height = imgHeight;
+        } else if (imgWidth > 0) {
+            width = imgWidth;
+            height = (docHeight * imgWidth) / docWidth;
+        } else {
+            width = docWidth;
+            height = docHeight;
+        }
+
+        // Limit image size according to the maximuxm size hints.
+        float imgMaxWidth = -1;
+        if (hints.containsKey(KEY_MAX_WIDTH)) {
+            imgMaxWidth = (Float) hints.get(KEY_MAX_WIDTH);
+        }
+        float imgMaxHeight = -1;
+        if (hints.containsKey(KEY_MAX_HEIGHT)) {
+            imgMaxHeight = (Float) hints.get(KEY_MAX_HEIGHT);
+        }
+
+        if ((imgMaxHeight > 0) && (height > imgMaxHeight)) {
+            width = (docWidth * imgMaxHeight) / docHeight;
+            height = imgMaxHeight;
+        }
+        if ((imgMaxWidth > 0) && (width > imgMaxWidth)) {
+            width = imgMaxWidth;
+            height = (docHeight * imgMaxWidth) / docWidth;
+        }
+    }
+
+
+    "

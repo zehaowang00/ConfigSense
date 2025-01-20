@@ -1,0 +1,44 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.locator.AbstractReplicationStrategy:validateReplicationStrategy(java.lang.String,java.lang.Class,org.apache.cassandra.locator.TokenMetadata,org.apache.cassandra.locator.IEndpointSnitch,java.util.Map)",(S)org.apache.cassandra.config.DatabaseDescriptor:isTransientReplicationEnabled(),org.apache.cassandra.config.DatabaseDescriptor:isTransientReplicationEnabled(),enable_transient_replication,validateReplicationStrategy,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/AbstractReplicationStrategy.java,AbstractReplicationStrategy,../data/xml/cassandra/AbstractReplicationStrategy.xml,"public static void validateReplicationStrategy(String keyspaceName,
+                                                   Class<? extends AbstractReplicationStrategy> strategyClass,
+                                                   TokenMetadata tokenMetadata,
+                                                   IEndpointSnitch snitch,
+                                                   Map<String, String> strategyOptions) throws ConfigurationException
+    {
+        AbstractReplicationStrategy strategy = createInternal(keyspaceName, strategyClass, tokenMetadata, snitch, strategyOptions);
+        strategy.validateExpectedOptions();
+        strategy.validateOptions();
+        strategy.maybeWarnOnOptions();
+        if (strategy.hasTransientReplicas() && !DatabaseDescriptor.isTransientReplicationEnabled())
+        {
+            throw new ConfigurationException(""Transient replication is disabled. Enable in cassandra.yaml to use."");
+        }
+    }
+
+    "
+"M:org.apache.cassandra.locator.ReplicationFactor:validate(int,int)",(S)org.apache.cassandra.config.DatabaseDescriptor:isTransientReplicationEnabled(),org.apache.cassandra.config.DatabaseDescriptor:isTransientReplicationEnabled(),enable_transient_replication,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/ReplicationFactor.java,ReplicationFactor,../data/xml/cassandra/ReplicationFactor.xml,"static void validate(int totalRF, int transientRF)
+    {
+        Preconditions.checkArgument(transientRF == 0 || DatabaseDescriptor.isTransientReplicationEnabled(),
+                                    ""Transient replication is not enabled on this node"");
+        Preconditions.checkArgument(totalRF >= 0,
+                                    ""Replication factor must be non-negative, found %s"", totalRF);
+        Preconditions.checkArgument(transientRF == 0 || transientRF < totalRF,
+                                    ""Transient replicas must be zero, or less than total replication factor. For %s/%s"", totalRF, transientRF);
+        if (transientRF > 0)
+        {
+            Preconditions.checkArgument(DatabaseDescriptor.getNumTokens() == 1,
+                                        ""Transient nodes are not allowed with multiple tokens"");
+            Stream<InetAddressAndPort> endpoints = Stream.concat(Gossiper.instance.getLiveMembers().stream(), Gossiper.instance.getUnreachableMembers().stream());
+            List<InetAddressAndPort> badVersionEndpoints = endpoints.filter(Predicates.not(FBUtilities.getBroadcastAddressAndPort()::equals))
+                                                                    .filter(endpoint -> Gossiper.instance.getReleaseVersion(endpoint) != null && Gossiper.instance.getReleaseVersion(endpoint).major < 4)
+                                                                    .collect(Collectors.toList());
+            if (!badVersionEndpoints.isEmpty())
+                throw new IllegalArgumentException(""Transient replication is not supported in mixed version clusters with nodes < 4.0. Bad nodes: "" + badVersionEndpoints);
+        }
+        else if (transientRF < 0)
+        {
+            throw new IllegalArgumentException(String.format(""Amount of transient nodes should be strictly positive, but was: '%d'"", transientRF));
+        }
+    }
+
+    "

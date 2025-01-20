@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'includeAndroidLdpiTvdpi' configuration in the dconverter project is performance-sensitive because it directly influences the resources allocated for handling different screen densities in Android applications. Changing this configuration can lead to variations in the size and number of drawable resources included in the application, which can significantly affect memory consumption and loading times. If the configuration is set to include lower-density resources (ldpi) or higher-density resources (tvdpi), it can lead to increased memory usage and longer execution times during resource loading, especially on devices with limited resources. Therefore, any change to this configuration can have a notable impact on overall system performance."
+}

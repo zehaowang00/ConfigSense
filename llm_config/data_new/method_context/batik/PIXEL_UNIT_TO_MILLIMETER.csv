@@ -1,0 +1,16 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.batik.transcoder.SVGAbstractTranscoder$SVGAbstractTranscoderUserAgent:getPixelUnitToMillimeter(),(M)org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),PIXEL_UNIT_TO_MILLIMETER,getPixelUnitToMillimeter,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/SVGAbstractTranscoder.java,SVGAbstractTranscoder$SVGAbstractTranscoderUserAgent,../data/xml/batik/SVGAbstractTranscoder.xml,"/**
+         * Returns the pixel to millimeter conversion factor specified in the
+         * <code>TranscodingHints</code> or 0.26458333 if not specified.
+         */
+public float getPixelUnitToMillimeter() {
+            Object obj = SVGAbstractTranscoder.this.hints.get
+                (KEY_PIXEL_UNIT_TO_MILLIMETER);
+            if (obj != null) {
+                return (Float) obj;
+            }
+
+            return super.getPixelUnitToMillimeter();
+        }
+
+        "

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'index_summary_capacity_in_mb' configuration in Cassandra directly influences the amount of memory allocated for index summaries. A change in this value can lead to significant variations in memory consumption and can impact the performance of read operations. If the capacity is set too low, it may lead to increased disk I/O as the system has to fetch index summaries from disk more frequently, resulting in longer execution times. Conversely, setting it too high may lead to inefficient memory usage, potentially affecting other operations and overall system throughput. Therefore, this configuration is considered performance-sensitive."
+}

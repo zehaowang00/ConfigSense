@@ -1,0 +1,48 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.config.DatabaseDescriptor:getMinRpcTimeout(java.util.concurrent.TimeUnit),(S)org.apache.cassandra.config.DatabaseDescriptor:getTruncateRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getTruncateRpcTimeout(java.util.concurrent.TimeUnit),truncate_request_timeout_in_ms,getMinRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/config/DatabaseDescriptor.java,DatabaseDescriptor,../data/xml/cassandra/DatabaseDescriptor.xml,"/**
+     * @return the minimum configured {read, write, range, truncate, misc} timeout
+     */
+public static long getMinRpcTimeout(TimeUnit unit)
+    {
+        return Longs.min(getRpcTimeout(unit),
+                         getReadRpcTimeout(unit),
+                         getRangeRpcTimeout(unit),
+                         getWriteRpcTimeout(unit),
+                         getCounterWriteRpcTimeout(unit),
+                         getTruncateRpcTimeout(unit));
+    }
+
+    "
+M:org.apache.cassandra.service.StorageProxy:getTruncateRpcTimeout(),(S)org.apache.cassandra.config.DatabaseDescriptor:getTruncateRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getTruncateRpcTimeout(java.util.concurrent.TimeUnit),truncate_request_timeout_in_ms,getTruncateRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public Long getTruncateRpcTimeout() { return DatabaseDescriptor.getTruncateRpcTimeout(MILLISECONDS); }
+    "
+M:org.apache.cassandra.service.StorageService:getTruncateRpcTimeout(),(S)org.apache.cassandra.config.DatabaseDescriptor:getTruncateRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getTruncateRpcTimeout(java.util.concurrent.TimeUnit),truncate_request_timeout_in_ms,getTruncateRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public long getTruncateRpcTimeout()
+    {
+        return DatabaseDescriptor.getTruncateRpcTimeout(MILLISECONDS);
+    }
+
+    "
+M:org.apache.cassandra.service.TruncateResponseHandler:get(),(S)org.apache.cassandra.config.DatabaseDescriptor:getTruncateRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getTruncateRpcTimeout(java.util.concurrent.TimeUnit),truncate_request_timeout_in_ms,get,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/TruncateResponseHandler.java,TruncateResponseHandler,../data/xml/cassandra/TruncateResponseHandler.xml,"public void get() throws TimeoutException
+    {
+        long timeoutNanos = DatabaseDescriptor.getTruncateRpcTimeout(NANOSECONDS) - (System.nanoTime() - start);
+        boolean completedInTime;
+        try
+        {
+            completedInTime = condition.await(timeoutNanos, NANOSECONDS); // TODO truncate needs a much longer timeout
+        }
+        catch (InterruptedException ex)
+        {
+            throw new AssertionError(ex);
+        }
+
+        if (!completedInTime)
+        {
+            throw new TimeoutException(""Truncate timed out - received only "" + responses.get() + "" responses"");
+        }
+
+        if (truncateFailingReplica != null)
+        {
+            throw new TruncateException(""Truncate failed on replica "" + truncateFailingReplica);
+        }
+    }
+
+    "

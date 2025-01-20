@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'hinted_handoff_throttle_in_kb' configuration in Cassandra directly influences the rate at which hinted handoffs are processed. A change in this value can significantly affect the system's ability to handle write operations during node outages. If the throttle is set too low, it can lead to increased latency and reduced throughput as the system struggles to process hints in a timely manner. Conversely, setting it too high can overwhelm the network and lead to resource contention, impacting overall performance. Therefore, variations in this configuration can cause notable changes in execution time and resource consumption, classifying it as performance-sensitive."
+}

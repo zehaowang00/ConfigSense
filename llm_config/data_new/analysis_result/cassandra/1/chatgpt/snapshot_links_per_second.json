@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'snapshot_links_per_second' in Cassandra directly influences the frequency of snapshot operations, which are critical for data durability and recovery. A higher value can lead to increased I/O operations, affecting disk usage and potentially causing contention, while a lower value may delay snapshot creation, impacting recovery time and system stability. Therefore, changes in this configuration can significantly affect execution time and resource consumption, classifying it as performance-sensitive."
+}

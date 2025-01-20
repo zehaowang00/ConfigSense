@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'CONSTRAIN_SCRIPT_ORIGIN' in the Batik software project is performance-sensitive because it directly influences how scripts are executed and validated within the rendering process. Changes to this configuration can lead to variations in execution time due to differences in script loading and processing. If the origin constraints are too strict or too lenient, it can result in increased memory consumption or execution delays, impacting overall system performance significantly."
+}

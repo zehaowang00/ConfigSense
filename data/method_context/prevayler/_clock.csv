@@ -1,0 +1,8 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.prevayler.PrevaylerFactory:publisher(org.prevayler.implementation.snapshot.GenericSnapshotManager),(O)org.prevayler.PrevaylerFactory:clock(),prevayler-factory-2.7-SNAPSHOT,org.prevayler.PrevaylerFactory:clock(),_clock,publisher,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/prevayler/factory/src/main/java/org/prevayler/PrevaylerFactory.java,PrevaylerFactory,../data/xml/prevayler/PrevaylerFactory.xml,"private TransactionPublisher<P> publisher(GenericSnapshotManager<P> snapshotManager) throws IOException {
+    if (_remoteServerIpAddress != null)
+      return new ClientPublisher<P>(new OldNetworkImpl(), _remoteServerIpAddress, _remoteServerPort);
+    return new CentralPublisher<P>(clock(), journal());
+  }
+
+  "

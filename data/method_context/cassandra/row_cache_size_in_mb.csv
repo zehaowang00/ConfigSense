@@ -1,0 +1,52 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.cache.OHCProvider:create(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSizeInMB(),org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSizeInMB(),row_cache_size_in_mb,create,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cache/OHCProvider.java,OHCProvider,../data/xml/cassandra/OHCProvider.xml,"public ICache<RowCacheKey, IRowCacheEntry> create()
+    {
+        OHCacheBuilder<RowCacheKey, IRowCacheEntry> builder = OHCacheBuilder.newBuilder();
+        builder.capacity(DatabaseDescriptor.getRowCacheSizeInMB() * 1024 * 1024)
+               .keySerializer(KeySerializer.instance)
+               .valueSerializer(ValueSerializer.instance)
+               .throwOOME(true);
+
+        return new OHCacheAdapter(builder.build());
+    }
+
+    "
+M:org.apache.cassandra.cache.SerializingCacheProvider:create(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSizeInMB(),org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSizeInMB(),row_cache_size_in_mb,create,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cache/SerializingCacheProvider.java,SerializingCacheProvider,../data/xml/cassandra/SerializingCacheProvider.xml,"public ICache<RowCacheKey, IRowCacheEntry> create()
+    {
+        return SerializingCache.create(DatabaseDescriptor.getRowCacheSizeInMB() * 1024 * 1024, new RowCacheSerializer());
+    }
+
+    "
+M:org.apache.cassandra.service.CacheService:initRowCache(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSizeInMB(),org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSizeInMB(),row_cache_size_in_mb,initRowCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"/**
+     * @return initialized row cache
+     */
+private AutoSavingCache<RowCacheKey, IRowCacheEntry> initRowCache()
+    {
+        logger.info(""Initializing row cache with capacity of {} MBs"", DatabaseDescriptor.getRowCacheSizeInMB());
+
+        CacheProvider<RowCacheKey, IRowCacheEntry> cacheProvider;
+        String cacheProviderClassName = DatabaseDescriptor.getRowCacheSizeInMB() > 0
+                                        ? DatabaseDescriptor.getRowCacheClassName() : ""org.apache.cassandra.cache.NopCacheProvider"";
+        try
+        {
+            Class<CacheProvider<RowCacheKey, IRowCacheEntry>> cacheProviderClass =
+                (Class<CacheProvider<RowCacheKey, IRowCacheEntry>>) Class.forName(cacheProviderClassName);
+            cacheProvider = cacheProviderClass.newInstance();
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(""Cannot find configured row cache provider class "" + DatabaseDescriptor.getRowCacheClassName());
+        }
+
+        // cache object
+        ICache<RowCacheKey, IRowCacheEntry> rc = cacheProvider.create();
+        AutoSavingCache<RowCacheKey, IRowCacheEntry> rowCache = new AutoSavingCache<>(rc, CacheType.ROW_CACHE, new RowCacheSerializer());
+
+        int rowCacheKeysToSave = DatabaseDescriptor.getRowCacheKeysToSave();
+
+        rowCache.scheduleSaving(DatabaseDescriptor.getRowCacheSavePeriod(), rowCacheKeysToSave);
+
+        return rowCache;
+    }
+
+    "

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'OPTIMIZE_INSERT_FROM_SELECT' in the H2 database can significantly impact performance, particularly in scenarios where large datasets are being inserted based on select queries. Enabling this optimization can reduce execution time and memory consumption by streamlining the insert operations, whereas disabling it may lead to increased resource usage and slower performance due to less efficient query execution paths. Therefore, changes to this configuration can lead to notable variations in overall system performance."
+}

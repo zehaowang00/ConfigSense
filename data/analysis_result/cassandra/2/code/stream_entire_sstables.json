@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "stream_entire_sstables",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@VisibleForTesting\n    public boolean computeShouldStreamEntireSSTables()\n    {\n        // don't stream if full sstable transfers are disabled or legacy counter shards are present\n        if (!DatabaseDescriptor.streamEntireSSTables() || ref.get().getSSTableMetadata().hasLegacyCounterShards)\n            return false;\n\n        return contained(sections, ref.get());\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The check for `streamEntireSSTables` is a conditional that determines whether to stream SSTables based on specific flags. While it influences the decision-making process, it does not directly involve time-intensive or memory-intensive operations. The actual streaming process is not executed in this method, and the performance impact of this configuration is likely minimal compared to operations that involve significant data transfer or processing."
+        }
+    ]
+}

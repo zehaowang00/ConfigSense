@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'roundingHandler' configuration in the 'dconverter' software project is performance-sensitive because it directly influences how numerical values are processed and represented. Changes in the rounding method can lead to variations in execution time due to different computational paths taken for rounding operations. Additionally, depending on the rounding strategy, memory consumption may vary if certain data structures are utilized to store intermediate results. For example, using a more complex rounding algorithm may require additional memory or processing time, thereby significantly impacting overall system performance."
+}

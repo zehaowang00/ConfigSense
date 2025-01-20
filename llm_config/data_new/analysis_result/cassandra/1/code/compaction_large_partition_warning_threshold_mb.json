@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "compaction_large_partition_warning_threshold_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private void maybeLogLargePartitionWarning(DecoratedKey key, long rowSize)\n    {\n        if (rowSize > DatabaseDescriptor.getCompactionLargePartitionWarningThreshold())\n        {\n            String keyString = metadata().partitionKeyType.getString(key.getKey());\n            logger.warn(\"Writing large partition {}/{}:{} ({}) to sstable {}\", metadata.keyspace, metadata.name, keyString, FBUtilities.prettyPrintMemory(rowSize), getFilename());\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `compaction_large_partition_warning_threshold_mb` configuration primarily serves as a threshold for logging warnings about large partitions. While it may influence logging behavior, it does not directly impact system performance in terms of time-intensive or memory-intensive operations. The logging operation itself is not a significant performance bottleneck, and the threshold check does not lead to substantial resource consumption or delays. Therefore, it does not qualify as performance-sensitive."
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'truncate_request_timeout_in_ms' in Cassandra directly impacts the timeout duration for truncate requests. If this timeout is set too low, it may lead to premature termination of truncate operations, causing potential data inconsistencies and requiring retries, which can significantly increase execution time and resource consumption. Conversely, if set too high, it may lead to prolonged wait times for operations that are stuck, adversely affecting overall system responsiveness and throughput. Therefore, changes to this configuration can have a notable effect on system performance."
+}

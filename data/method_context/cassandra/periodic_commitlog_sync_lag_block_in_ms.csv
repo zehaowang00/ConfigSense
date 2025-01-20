@@ -1,0 +1,22 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.commitlog.PeriodicCommitLogService:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPeriodicCommitLogSyncBlock(),org.apache.cassandra.config.DatabaseDescriptor:getPeriodicCommitLogSyncBlock(),periodic_commitlog_sync_lag_block_in_ms,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogService.java,PeriodicCommitLogService,../data/xml/cassandra/PeriodicCommitLogService.xml,"class PeriodicCommitLogService extends AbstractCommitLogService
+{
+    private static final long blockWhenSyncLagsNanos = TimeUnit.MILLISECONDS.toNanos(DatabaseDescriptor.getPeriodicCommitLogSyncBlock());
+
+    public PeriodicCommitLogService(final CommitLog commitLog)
+    {
+        super(commitLog, ""PERIODIC-COMMIT-LOG-SYNCER"", DatabaseDescriptor.getCommitLogSyncPeriod(),
+              !(commitLog.configuration.useCompression() || commitLog.configuration.useEncryption()));
+    }
+
+    protected void maybeWaitForSync(CommitLogSegment.Allocation alloc)
+    {
+        long expectedSyncTime = System.nanoTime() - blockWhenSyncLagsNanos;
+        if (lastSyncedAt < expectedSyncTime)
+        {
+            pending.incrementAndGet();
+            awaitSyncAt(expectedSyncTime, commitLog.metrics.waitingOnCommit.time());
+            pending.decrementAndGet();
+        }
+    }
+}"

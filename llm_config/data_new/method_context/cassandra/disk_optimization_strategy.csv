@@ -1,0 +1,218 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.io.sstable.format.SSTableReader:<init>(org.apache.cassandra.io.sstable.Descriptor,java.util.Set,org.apache.cassandra.schema.TableMetadataRef,long,org.apache.cassandra.io.sstable.metadata.StatsMetadata,org.apache.cassandra.io.sstable.format.SSTableReader$OpenReason,org.apache.cassandra.db.SerializationHeader,org.apache.cassandra.io.sstable.IndexSummary,org.apache.cassandra.io.util.FileHandle,org.apache.cassandra.io.util.FileHandle,org.apache.cassandra.utils.IFilter)",(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),disk_optimization_strategy,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/format/SSTableReader.java,SSTableReader,../data/xml/cassandra/SSTableReader.xml,"protected SSTableReader(final Descriptor desc,
+                            Set<Component> components,
+                            TableMetadataRef metadata,
+                            long maxDataAge,
+                            StatsMetadata sstableMetadata,
+                            OpenReason openReason,
+                            SerializationHeader header,
+                            IndexSummary summary,
+                            FileHandle dfile,
+                            FileHandle ifile,
+                            IFilter bf)
+    {
+        super(desc, components, metadata, DatabaseDescriptor.getDiskOptimizationStrategy());
+        this.sstableMetadata = sstableMetadata;
+        this.header = header;
+        this.indexSummary = summary;
+        this.dfile = dfile;
+        this.ifile = ifile;
+        this.bf = bf;
+        this.maxDataAge = maxDataAge;
+        this.openReason = openReason;
+        this.rowIndexEntrySerializer = descriptor.version.getSSTableFormat().getIndexSerializer(metadata.get(), desc.version, header);
+        tidy = new InstanceTidier(descriptor, metadata.id);
+        selfRef = new Ref<>(this, tidy);
+    }
+
+    "
+M:org.apache.cassandra.io.sstable.format.SSTableReaderBuilder$ForBatch:build(),(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),disk_optimization_strategy,build,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/format/SSTableReaderBuilder.java,SSTableReaderBuilder$ForBatch,../data/xml/cassandra/SSTableReaderBuilder.xml,"@Override
+        public SSTableReader build()
+        {
+            SSTableReader reader = readerFactory.open(this);
+
+            reader.setup(true);
+            return reader;
+        }
+    }
+@Override
+        public SSTableReader build()
+        {
+            String dataFilePath = descriptor.filenameFor(Component.DATA);
+            long fileLength = new File(dataFilePath).length();
+            logger.info(""Opening {} ({})"", descriptor, FBUtilities.prettyPrintMemory(fileLength));
+
+            initSummary(dataFilePath, components, statsMetadata);
+
+            boolean compression = components.contains(Component.COMPRESSION_INFO);
+            try (FileHandle.Builder ibuilder = new FileHandle.Builder(descriptor.filenameFor(Component.PRIMARY_INDEX))
+                    .mmapped(DatabaseDescriptor.getIndexAccessMode() == Config.DiskAccessMode.mmap)
+                    .withChunkCache(ChunkCache.instance);
+                    FileHandle.Builder dbuilder = new FileHandle.Builder(descriptor.filenameFor(Component.DATA)).compressed(compression)
+                                                                                                                .mmapped(DatabaseDescriptor.getDiskAccessMode() == Config.DiskAccessMode.mmap)
+                                                                                                                .withChunkCache(ChunkCache.instance))
+            {
+                long indexFileLength = new File(descriptor.filenameFor(Component.PRIMARY_INDEX)).length();
+                DiskOptimizationStrategy optimizationStrategy = DatabaseDescriptor.getDiskOptimizationStrategy();
+                int dataBufferSize = optimizationStrategy.bufferSize(statsMetadata.estimatedPartitionSize.percentile(DatabaseDescriptor.getDiskOptimizationEstimatePercentile()));
+                int indexBufferSize = optimizationStrategy.bufferSize(indexFileLength / summary.size());
+                ifile = ibuilder.bufferSize(indexBufferSize).complete();
+                dfile = dbuilder.bufferSize(dataBufferSize).complete();
+                bf = FilterFactory.AlwaysPresent;
+
+                SSTableReader sstable = readerFactory.open(this);
+
+                sstable.first = first;
+                sstable.last = last;
+
+                sstable.setup(false);
+                return sstable;
+            }
+        }
+
+        
+@Override
+        public SSTableReader build()
+        {
+            String dataFilePath = descriptor.filenameFor(Component.DATA);
+            long fileLength = new File(dataFilePath).length();
+            logger.info(""Opening {} ({})"", descriptor, FBUtilities.prettyPrintMemory(fileLength));
+
+            try
+            {
+                // load index and filter
+                long start = System.nanoTime();
+                load(validationMetadata, isOffline, components, DatabaseDescriptor.getDiskOptimizationStrategy(), statsMetadata);
+                logger.trace(""INDEX LOAD TIME for {}: {} ms."", descriptor, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+            }
+            catch (IOException t)
+            {
+                throw new CorruptSSTableException(t, dataFilePath);
+            }
+
+            SSTableReader sstable = readerFactory.open(this);
+
+            sstable.first = first;
+            sstable.last = last;
+
+            sstable.setup(!isOffline); // Don't track hotness if we're offline.
+            return sstable;
+        }
+
+        "
+M:org.apache.cassandra.io.sstable.format.SSTableReaderBuilder$ForRead:build(),(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),disk_optimization_strategy,build,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/format/SSTableReaderBuilder.java,SSTableReaderBuilder$ForRead,../data/xml/cassandra/SSTableReaderBuilder.xml,"@Override
+        public SSTableReader build()
+        {
+            SSTableReader reader = readerFactory.open(this);
+
+            reader.setup(true);
+            return reader;
+        }
+    }
+@Override
+        public SSTableReader build()
+        {
+            String dataFilePath = descriptor.filenameFor(Component.DATA);
+            long fileLength = new File(dataFilePath).length();
+            logger.info(""Opening {} ({})"", descriptor, FBUtilities.prettyPrintMemory(fileLength));
+
+            initSummary(dataFilePath, components, statsMetadata);
+
+            boolean compression = components.contains(Component.COMPRESSION_INFO);
+            try (FileHandle.Builder ibuilder = new FileHandle.Builder(descriptor.filenameFor(Component.PRIMARY_INDEX))
+                    .mmapped(DatabaseDescriptor.getIndexAccessMode() == Config.DiskAccessMode.mmap)
+                    .withChunkCache(ChunkCache.instance);
+                    FileHandle.Builder dbuilder = new FileHandle.Builder(descriptor.filenameFor(Component.DATA)).compressed(compression)
+                                                                                                                .mmapped(DatabaseDescriptor.getDiskAccessMode() == Config.DiskAccessMode.mmap)
+                                                                                                                .withChunkCache(ChunkCache.instance))
+            {
+                long indexFileLength = new File(descriptor.filenameFor(Component.PRIMARY_INDEX)).length();
+                DiskOptimizationStrategy optimizationStrategy = DatabaseDescriptor.getDiskOptimizationStrategy();
+                int dataBufferSize = optimizationStrategy.bufferSize(statsMetadata.estimatedPartitionSize.percentile(DatabaseDescriptor.getDiskOptimizationEstimatePercentile()));
+                int indexBufferSize = optimizationStrategy.bufferSize(indexFileLength / summary.size());
+                ifile = ibuilder.bufferSize(indexBufferSize).complete();
+                dfile = dbuilder.bufferSize(dataBufferSize).complete();
+                bf = FilterFactory.AlwaysPresent;
+
+                SSTableReader sstable = readerFactory.open(this);
+
+                sstable.first = first;
+                sstable.last = last;
+
+                sstable.setup(false);
+                return sstable;
+            }
+        }
+
+        
+@Override
+        public SSTableReader build()
+        {
+            String dataFilePath = descriptor.filenameFor(Component.DATA);
+            long fileLength = new File(dataFilePath).length();
+            logger.info(""Opening {} ({})"", descriptor, FBUtilities.prettyPrintMemory(fileLength));
+
+            try
+            {
+                // load index and filter
+                long start = System.nanoTime();
+                load(validationMetadata, isOffline, components, DatabaseDescriptor.getDiskOptimizationStrategy(), statsMetadata);
+                logger.trace(""INDEX LOAD TIME for {}: {} ms."", descriptor, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+            }
+            catch (IOException t)
+            {
+                throw new CorruptSSTableException(t, dataFilePath);
+            }
+
+            SSTableReader sstable = readerFactory.open(this);
+
+            sstable.first = first;
+            sstable.last = last;
+
+            sstable.setup(!isOffline); // Don't track hotness if we're offline.
+            return sstable;
+        }
+
+        "
+"M:org.apache.cassandra.io.sstable.format.SSTableWriter:<init>(org.apache.cassandra.io.sstable.Descriptor,long,long,java.util.UUID,boolean,org.apache.cassandra.schema.TableMetadataRef,org.apache.cassandra.io.sstable.metadata.MetadataCollector,org.apache.cassandra.db.SerializationHeader,java.util.Collection)",(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),disk_optimization_strategy,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/format/SSTableWriter.java,SSTableWriter,../data/xml/cassandra/SSTableWriter.xml,"protected SSTableWriter(Descriptor descriptor,
+                            long keyCount,
+                            long repairedAt,
+                            UUID pendingRepair,
+                            boolean isTransient,
+                            TableMetadataRef metadata,
+                            MetadataCollector metadataCollector,
+                            SerializationHeader header,
+                            Collection<SSTableFlushObserver> observers)
+    {
+        super(descriptor, components(metadata.getLocal()), metadata, DatabaseDescriptor.getDiskOptimizationStrategy());
+        this.keyCount = keyCount;
+        this.repairedAt = repairedAt;
+        this.pendingRepair = pendingRepair;
+        this.isTransient = isTransient;
+        this.metadataCollector = metadataCollector;
+        this.header = header;
+        this.rowIndexEntrySerializer = descriptor.version.getSSTableFormat().getIndexSerializer(metadata.get(), descriptor.version, header);
+        this.observers = observers == null ? Collections.emptySet() : observers;
+    }
+
+    "
+"M:org.apache.cassandra.io.sstable.format.big.BigTableZeroCopyWriter:<init>(org.apache.cassandra.io.sstable.Descriptor,org.apache.cassandra.schema.TableMetadataRef,org.apache.cassandra.db.lifecycle.LifecycleNewTracker,java.util.Collection)",(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskOptimizationStrategy(),disk_optimization_strategy,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/format/big/BigTableZeroCopyWriter.java,BigTableZeroCopyWriter,../data/xml/cassandra/BigTableZeroCopyWriter.xml,"public BigTableZeroCopyWriter(Descriptor descriptor,
+                                  TableMetadataRef metadata,
+                                  LifecycleNewTracker lifecycleNewTracker,
+                                  final Collection<Component> components)
+    {
+        super(descriptor, ImmutableSet.copyOf(components), metadata, DatabaseDescriptor.getDiskOptimizationStrategy());
+
+        lifecycleNewTracker.trackNew(this);
+        this.metadata = metadata;
+        this.componentWriters = new EnumMap<>(Component.Type.class);
+
+        if (!SUPPORTED_COMPONENTS.containsAll(components))
+            throw new AssertionError(format(""Unsupported streaming component detected %s"",
+                                            Sets.difference(ImmutableSet.copyOf(components), SUPPORTED_COMPONENTS)));
+
+        for (Component c : components)
+            componentWriters.put(c.type, makeWriter(descriptor, c));
+    }
+
+    "

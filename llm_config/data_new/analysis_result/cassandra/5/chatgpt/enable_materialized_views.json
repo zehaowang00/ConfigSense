@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enable_materialized_views' configuration in Cassandra significantly impacts system performance as it directly affects how data is stored and accessed. When materialized views are enabled, the system must maintain additional data structures to support these views, which can lead to increased memory consumption and longer execution times for write operations. This is because every write to the base table also requires updates to the materialized views, potentially causing notable variations in performance, especially under heavy load or with large datasets."
+}

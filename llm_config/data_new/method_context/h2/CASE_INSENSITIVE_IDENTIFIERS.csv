@@ -1,0 +1,113 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.engine.SessionLocal:getStaticSettings(),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public StaticSettings getStaticSettings() {
+        StaticSettings settings = staticSettings;
+        if (settings == null) {
+            DbSettings dbSettings = database.getSettings();
+            staticSettings = settings = new StaticSettings(dbSettings.databaseToUpper, dbSettings.databaseToLower,
+                    dbSettings.caseInsensitiveIdentifiers);
+        }
+        return settings;
+    }
+
+    ",CASE_INSENSITIVE_IDENTIFIERS,getStaticSettings,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/engine/SessionLocal.java,SessionLocal,../data/xml/h2/SessionLocal.xml
+M:org.h2.table.MetaTable:column(java.lang.String),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"/**
+     * Creates a column with the specified name and character string data type.
+     *
+     * @param name
+     *            the uppercase column name
+     * @return the column
+     */
+final Column column(String name) {
+        return new Column(database.sysIdentifier(name),
+                database.getSettings().caseInsensitiveIdentifiers ? TypeInfo.TYPE_VARCHAR_IGNORECASE
+                        : TypeInfo.TYPE_VARCHAR);
+    }
+
+    
+/**
+     * Creates a column with the specified name and data type.
+     *
+     * @param name
+     *            the uppercase column name
+     * @param type
+     *            the data type
+     * @return the column
+     */
+protected final Column column(String name, TypeInfo type) {
+        return new Column(database.sysIdentifier(name), type);
+    }
+
+    ",CASE_INSENSITIVE_IDENTIFIERS,column,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/table/MetaTable.java,MetaTable,../data/xml/h2/MetaTable.xml
+"M:org.h2.table.MetaTable:checkIndex(org.h2.engine.SessionLocal,java.lang.String,org.h2.value.Value,org.h2.value.Value)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"/**
+     * Checks index conditions.
+     *
+     * @param session the session
+     * @param value the value
+     * @param indexFrom the lower bound of value, or {@code null}
+     * @param indexTo the higher bound of value, or {@code null}
+     * @return whether row should be included into result
+     */
+protected final boolean checkIndex(SessionLocal session, String value, Value indexFrom, Value indexTo) {
+        if (value == null || (indexFrom == null && indexTo == null)) {
+            return true;
+        }
+        Value v;
+        if (database.getSettings().caseInsensitiveIdentifiers) {
+            v = ValueVarcharIgnoreCase.get(value);
+        } else {
+            v = ValueVarchar.get(value);
+        }
+        if (indexFrom != null && session.compare(v, indexFrom) < 0) {
+            return false;
+        }
+        if (indexTo != null && session.compare(v, indexTo) > 0) {
+            return false;
+        }
+        return true;
+    }
+
+    ",CASE_INSENSITIVE_IDENTIFIERS,checkIndex,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/table/MetaTable.java,MetaTable,../data/xml/h2/MetaTable.xml
+"M:org.h2.command.Parser:getTableOrViewNotFoundDbException(java.util.Set,java.lang.String)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"private DbException getTableOrViewNotFoundDbException(String tableName) {
+        if (schemaName != null) {
+            return getTableOrViewNotFoundDbException(schemaName, tableName);
+        }
+
+        String currentSchemaName = session.getCurrentSchemaName();
+        String[] schemaSearchPath = session.getSchemaSearchPath();
+        if (schemaSearchPath == null) {
+            return getTableOrViewNotFoundDbException(Collections.singleton(currentSchemaName), tableName);
+        }
+
+        LinkedHashSet<String> schemaNames = new LinkedHashSet<>();
+        schemaNames.add(currentSchemaName);
+        schemaNames.addAll(Arrays.asList(schemaSearchPath));
+        return getTableOrViewNotFoundDbException(schemaNames, tableName);
+    }
+
+    
+private DbException getTableOrViewNotFoundDbException(
+            java.util.Set<String> schemaNames, String tableName) {
+        if (database == null || database.getFirstUserTable() == null) {
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1, tableName);
+        }
+
+        if (database.getSettings().caseInsensitiveIdentifiers) {
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
+
+        java.util.Set<String> candidates = new TreeSet<>();
+        for (String schemaName : schemaNames) {
+            findTableNameCandidates(schemaName, tableName, candidates);
+        }
+
+        if (candidates.isEmpty()) {
+            return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
+
+        return DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_WITH_CANDIDATES_2,
+                tableName,
+                String.join("", "", candidates));
+    }
+
+    ",CASE_INSENSITIVE_IDENTIFIERS,getTableOrViewNotFoundDbException,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/Parser.java,Parser,../data/xml/h2/Parser.xml

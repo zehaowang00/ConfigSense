@@ -1,0 +1,64 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:at.favre.tools.dconvert.converters.AndroidConverter:getAndroidDensityDescriptors(at.favre.tools.dconvert.arg.Arguments),(M)at.favre.tools.dconvert.arg.Arguments:isCreateMipMapInsteadOfDrawableDir(),at.favre.tools.dconvert.arg.Arguments:isCreateMipMapInsteadOfDrawableDir(),createMipMapInsteadOfDrawableDir,getAndroidDensityDescriptors,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/AndroidConverter.java,AndroidConverter,../data/xml/dconverter/AndroidConverter.xml,"public static List<AndroidDensityDescriptor> getAndroidDensityDescriptors(Arguments arguments) {
+        List<AndroidDensityDescriptor> list = new ArrayList<>();
+        String dirPrefix = arguments.createMipMapInsteadOfDrawableDir ? ""mipmap"" : ""drawable"";
+        if (arguments.includeAndroidLdpiTvdpi) {
+            list.add(new AndroidDensityDescriptor(0.75f, ""ldpi"", dirPrefix + ""-ldpi""));
+            list.add(new AndroidDensityDescriptor(1.33f, ""tvdpi"", dirPrefix + ""-tvdpi""));
+        }
+        list.add(new AndroidDensityDescriptor(1, ""mdpi"", dirPrefix + ""-mdpi""));
+        list.add(new AndroidDensityDescriptor(1.5f, ""hdpi"", dirPrefix + ""-hdpi""));
+        list.add(new AndroidDensityDescriptor(2, ""xhdpi"", dirPrefix + ""-xhdpi""));
+        list.add(new AndroidDensityDescriptor(3, ""xxhdpi"", dirPrefix + ""-xxhdpi""));
+        list.add(new AndroidDensityDescriptor(4, ""xxxhdpi"", dirPrefix + ""-xxxhdpi""));
+        return list;
+    }
+
+    "
+M:at.favre.tools.dconvert.ui.GUIController:loadPrefs(),(M)at.favre.tools.dconvert.arg.Arguments:isCreateMipMapInsteadOfDrawableDir(),at.favre.tools.dconvert.arg.Arguments:isCreateMipMapInsteadOfDrawableDir(),createMipMapInsteadOfDrawableDir,loadPrefs,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/ui/GUIController.java,GUIController,../data/xml/dconverter/GUIController.xml,"private void loadPrefs() {
+        Arguments args = preferenceStore.get();
+        if (args != null) {
+            textFieldSrcPath.setText(args.src != null ? args.src.getAbsolutePath() : """");
+            textFieldDstPath.setText(args.dst != null ? args.dst.getAbsolutePath() : """");
+
+            scaleSlider.setValue(Arguments.DEFAULT_SCALE);
+            textFieldDp.setText(String.valueOf((int) args.scale));
+
+            if (args.scaleMode == EScaleMode.FACTOR) {
+                rbFactor.setSelected(true);
+                scaleSlider.setValue(args.scale);
+                textFieldDp.setText("""");
+            } else if (args.scaleMode == EScaleMode.DP_WIDTH) {
+                rbDpWidth.setSelected(true);
+            } else if (args.scaleMode == EScaleMode.DP_HEIGHT) {
+                rbDpHeight.setSelected(true);
+            }
+
+            setPlatformToogles(args.platform);
+            choiceCompression.getSelectionModel().select(args.outputCompressionMode);
+            choiceCompressionQuality.getSelectionModel().select(toJpgQ(args.compressionQuality));
+            choiceRounding.getSelectionModel().select(args.roundingHandler);
+            choiceThreads.getSelectionModel().select(Integer.valueOf(args.threadCount));
+            choiceDownScale.getSelectionModel().select(args.downScalingAlgorithm);
+            choiceUpScale.getSelectionModel().select(args.upScalingAlgorithm);
+
+            cbSkipExisting.setSelected(args.skipExistingFiles);
+            cbSkipUpscaling.setSelected(args.skipUpscaling);
+            cbAndroidIncludeLdpiTvdpi.setSelected(args.includeAndroidLdpiTvdpi);
+            cbAntiAliasing.setSelected(args.enableAntiAliasing);
+            cbMipmapInsteadDrawable.setSelected(args.createMipMapInsteadOfDrawableDir);
+            cbHaltOnError.setSelected(args.haltOnError);
+            cbDryRun.setSelected(args.dryRun);
+            cbEnablePngCrush.setSelected(args.enablePngCrush);
+            cbPostConvertWebp.setSelected(args.postConvertWebp);
+            cbEnableMozJpeg.setSelected(args.enableMozJpeg);
+            cbKeepUnoptimized.setSelected(args.keepUnoptimizedFilesPostProcessor);
+            cbIosCreateImageset.setSelected(args.iosCreateImagesetFolders);
+            cbCleanBeforeConvert.setSelected(args.clearDirBeforeConvert);
+            rbOptAdvanced.setSelected(args.guiAdvancedOptions);
+            rbOptSimple.setSelected(!args.guiAdvancedOptions);
+
+        }
+    }
+
+    "

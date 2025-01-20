@@ -1,0 +1,20 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.prevayler.PrevaylerFactory:create(),(O)org.prevayler.PrevaylerFactory:transactionDeepCopyMode(),prevayler-factory-2.7-SNAPSHOT,org.prevayler.PrevaylerFactory:transactionDeepCopyMode(),_transactionDeepCopyMode,create,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/prevayler/factory/src/main/java/org/prevayler/PrevaylerFactory.java,PrevaylerFactory,../data/xml/prevayler/PrevaylerFactory.xml,"/**
+   * Returns a Prevayler created according to what was defined by calls to the
+   * configuration methods above.
+   *
+   * @throws IOException            If there is trouble creating the Prevalence
+   *                                Base directory or reading a .journal or
+   *                                .snapshot file.
+   * @throws ClassNotFoundException If a class of a serialized Object is not found
+   *                                when reading a .journal or .snapshot file.
+   */
+public Prevayler<P> create() throws Exception {
+    GenericSnapshotManager<P> snapshotManager = snapshotManager();
+    TransactionPublisher<P> publisher = publisher(snapshotManager);
+    if (_serverPort != -1)
+      new ServerListener<P>(publisher, new OldNetworkImpl(), _serverPort);
+    return new PrevaylerImpl<P>(snapshotManager, publisher, journalSerializer(), _transactionDeepCopyMode);
+  }
+
+  "

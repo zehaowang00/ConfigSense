@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'stream_throughput_outbound_megabits_per_sec' directly impacts the rate at which data can be streamed out of the Cassandra nodes. A higher value allows for increased data transfer rates, which can significantly reduce the time taken for read and write operations, especially in high-load scenarios. Conversely, setting this value too low can lead to bottlenecks, causing increased latency and reduced overall throughput. Therefore, changes to this configuration can lead to notable variations in execution time and resource utilization, classifying it as performance-sensitive."
+}

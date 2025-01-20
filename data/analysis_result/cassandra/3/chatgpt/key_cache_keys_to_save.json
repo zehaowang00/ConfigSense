@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'key_cache_keys_to_save' configuration in Cassandra determines the number of keys that can be stored in the key cache. A higher value allows more keys to be cached, which can significantly reduce the number of disk reads and improve read performance, especially for frequently accessed data. Conversely, a lower value may lead to increased disk I/O and longer execution times due to cache misses. Therefore, changes to this configuration can have a notable impact on execution time and overall system performance, classifying it as performance-sensitive."
+}

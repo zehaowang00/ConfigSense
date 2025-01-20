@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "counter_cache_save_period",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private AutoSavingCache<CounterCacheKey, ClockAndCount> initCounterCache()\n    {\n        logger.info(\"Initializing counter cache with capacity of {} MBs\", DatabaseDescriptor.getCounterCacheSizeInMB());\n\n        long capacity = DatabaseDescriptor.getCounterCacheSizeInMB() * 1024 * 1024;\n\n        AutoSavingCache<CounterCacheKey, ClockAndCount> cache =\n            new AutoSavingCache<>(CaffeineCache.create(capacity),\n                                  CacheType.COUNTER_CACHE,\n                                  new CounterCacheSerializer());\n\n        int keysToSave = DatabaseDescriptor.getCounterCacheKeysToSave();\n\n        logger.info(\"Scheduling counter cache save to every {} seconds (going to save {} keys).\",\n                    DatabaseDescriptor.getCounterCacheSavePeriod(),\n                    keysToSave == Integer.MAX_VALUE ? \"all\" : keysToSave);\n\n        cache.scheduleSaving(DatabaseDescriptor.getCounterCacheSavePeriod(), keysToSave);\n\n        return cache;\n    }\n\n\n    \npublic int getCounterCacheSavePeriodInSeconds()\n    {\n        return DatabaseDescriptor.getCounterCacheSavePeriod();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `counter_cache_save_period` directly influences how frequently the cache saves its state, which can lead to significant performance variations. If the save period is set too short, it may result in frequent, time-intensive save operations that could degrade system performance, especially if the cache holds a large number of keys or if the save operation itself is resource-intensive. Conversely, if set too long, it may lead to increased memory usage and potential data loss in case of a failure. Thus, this configuration has a substantial impact on system-level performance."
+        }
+    ]
+}

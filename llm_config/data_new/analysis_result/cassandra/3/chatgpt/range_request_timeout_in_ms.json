@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'range_request_timeout_in_ms' configuration in Cassandra directly influences the timeouts for range requests. A lower timeout value can lead to premature request failures, increasing the number of retries and potentially causing higher latency and resource consumption. Conversely, a higher timeout may allow requests to complete but can lead to increased memory usage and longer wait times for users. Therefore, changes in this configuration can significantly impact execution time and overall system performance, making it performance-sensitive."
+}

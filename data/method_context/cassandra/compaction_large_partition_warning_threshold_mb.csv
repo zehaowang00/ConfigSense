@@ -1,0 +1,11 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.io.sstable.format.big.BigTableWriter:maybeLogLargePartitionWarning(org.apache.cassandra.db.DecoratedKey,long)",(S)org.apache.cassandra.config.DatabaseDescriptor:getCompactionLargePartitionWarningThreshold(),org.apache.cassandra.config.DatabaseDescriptor:getCompactionLargePartitionWarningThreshold(),compaction_large_partition_warning_threshold_mb,maybeLogLargePartitionWarning,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/format/big/BigTableWriter.java,BigTableWriter,../data/xml/cassandra/BigTableWriter.xml,"private void maybeLogLargePartitionWarning(DecoratedKey key, long rowSize)
+    {
+        if (rowSize > DatabaseDescriptor.getCompactionLargePartitionWarningThreshold())
+        {
+            String keyString = metadata().partitionKeyType.getString(key.getKey());
+            logger.warn(""Writing large partition {}/{}:{} ({}) to sstable {}"", metadata.keyspace, metadata.name, keyString, FBUtilities.prettyPrintMemory(rowSize), getFilename());
+        }
+    }
+
+    "

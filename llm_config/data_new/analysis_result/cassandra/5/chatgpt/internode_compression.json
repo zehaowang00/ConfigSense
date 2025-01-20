@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'internode_compression' configuration in Cassandra is performance-sensitive because it directly impacts the amount of data transmitted between nodes in the cluster. Enabling compression can significantly reduce the data size, leading to lower network bandwidth usage and faster data transfer times. Conversely, disabling it can increase the amount of data sent, resulting in higher latency and increased resource consumption. This variation in data handling can notably affect overall system performance, including execution time and memory usage, especially in large-scale deployments where inter-node communication is frequent."
+}

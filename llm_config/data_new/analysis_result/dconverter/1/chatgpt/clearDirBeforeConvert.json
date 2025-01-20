@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'clearDirBeforeConvert' directly influences the efficiency of the conversion process in the 'dconverter' software project. If this option is enabled, the system must perform additional operations to clear the directory before starting the conversion, which can lead to increased execution time and resource consumption, especially if the directory contains a large number of files. Conversely, disabling this option may result in faster execution times since the system can skip the clearing step, thus significantly impacting overall performance. Therefore, changes to this configuration can lead to notable variations in execution time and memory usage, classifying it as performance-sensitive."
+}

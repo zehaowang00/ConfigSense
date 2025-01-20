@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enableMozJpeg' configuration option directly influences the image compression algorithm used by the dconverter software. Enabling MozJPEG can lead to significant improvements in image quality and compression efficiency, which in turn affects the execution time of image processing tasks. If this option is toggled, it may result in variations in processing time and memory usage, particularly when handling large volumes of images or high-resolution files. Therefore, changes to this configuration can have a notable impact on overall system performance."
+}

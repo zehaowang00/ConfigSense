@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "sstable_preemptive_open_interval_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private static long calculateOpenInterval(boolean shouldOpenEarly)\n    {\n        long interval = DatabaseDescriptor.getSSTablePreemptiveOpenIntervalInMB() * (1L << 20);\n        if (disableEarlyOpeningForTests || !shouldOpenEarly || interval < 0)\n            interval = Long.MAX_VALUE;\n        return interval;\n    }\n\n    \npublic int getSSTablePreemptiveOpenIntervalInMB()\n    {\n        return DatabaseDescriptor.getSSTablePreemptiveOpenIntervalInMB();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `sstable_preemptive_open_interval_in_mb` directly influences the memory allocation for SSTable preemptive opening, which can lead to significant performance variations in terms of memory usage and potentially impact the system's ability to handle large datasets efficiently. Given that the interval is multiplied by a factor of 2^20 (to convert MB to bytes), any misconfiguration can lead to excessive memory consumption or insufficient memory allocation, both of which can severely affect system performance during data operations."
+        }
+    ]
+}

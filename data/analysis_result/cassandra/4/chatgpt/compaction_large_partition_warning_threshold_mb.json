@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'compaction_large_partition_warning_threshold_mb' in Cassandra is performance-sensitive because it directly influences how the system manages large partitions during compaction. A lower threshold may trigger more frequent warnings and potentially more aggressive compaction strategies, which can lead to increased CPU and I/O usage, affecting overall system performance. Conversely, a higher threshold may allow large partitions to persist longer, which can impact read performance and lead to increased memory consumption as the system struggles to manage larger datasets. Therefore, changes in this configuration can significantly affect execution time and resource utilization."
+}

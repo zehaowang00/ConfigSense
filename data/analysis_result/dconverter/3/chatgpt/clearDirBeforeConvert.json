@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'clearDirBeforeConvert' directly influences the system's file handling process. If this option is enabled, the system will spend additional time clearing the directory before the conversion process begins, which can lead to increased execution time, especially if the directory contains a large number of files. Conversely, if this option is disabled, the conversion may proceed more quickly, but could lead to issues such as file conflicts or outdated files being processed. Therefore, changes to this configuration can significantly affect both execution time and resource utilization, classifying it as performance-sensitive."
+}

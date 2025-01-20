@@ -1,0 +1,22 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.net.OutboundConnectionSettings:tcpUserTimeoutInMS(org.apache.cassandra.net.ConnectionCategory),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeTcpUserTimeoutInMS(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeTcpUserTimeoutInMS(),internode_tcp_user_timeout_in_ms,tcpUserTimeoutInMS,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/OutboundConnectionSettings.java,OutboundConnectionSettings,../data/xml/cassandra/OutboundConnectionSettings.xml,"public int tcpUserTimeoutInMS(ConnectionCategory category)
+    {
+        // Reusing tcpUserTimeoutInMS for both messaging and streaming, since the connection is created for either one of them.
+        if (tcpUserTimeoutInMS != null)
+            return tcpUserTimeoutInMS;
+
+        switch (category)
+        {
+            case MESSAGING: return DatabaseDescriptor.getInternodeTcpUserTimeoutInMS();
+            case STREAMING: return DatabaseDescriptor.getInternodeStreamingTcpUserTimeoutInMS();
+            default: throw new IllegalArgumentException(""Unknown connection category: "" + category);
+        }
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getInternodeTcpUserTimeoutInMS(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeTcpUserTimeoutInMS(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeTcpUserTimeoutInMS(),internode_tcp_user_timeout_in_ms,getInternodeTcpUserTimeoutInMS,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getInternodeTcpUserTimeoutInMS()
+    {
+        return DatabaseDescriptor.getInternodeTcpUserTimeoutInMS();
+    }
+
+    "

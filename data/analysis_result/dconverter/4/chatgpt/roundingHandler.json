@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'roundingHandler' configuration option directly influences how numerical values are processed and represented within the dconverter software. Changes in this configuration can lead to variations in rounding behavior, which may affect the precision of calculations and, consequently, the overall execution time and memory usage. For instance, different rounding methods can lead to different paths in the code being executed, potentially increasing or decreasing the computational load. Additionally, if the rounding method leads to increased numerical errors, it may necessitate additional error handling or adjustments in subsequent calculations, further impacting performance. Therefore, the 'roundingHandler' configuration is classified as performance-sensitive."
+}

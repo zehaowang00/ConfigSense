@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enable_sasi_indexes' configuration in Cassandra significantly impacts query performance and resource utilization. When enabled, it allows for more efficient indexing of data, which can lead to faster query execution times, especially for complex queries. Conversely, disabling this option can result in slower performance due to the lack of optimized indexing, leading to increased execution time and higher memory consumption as the system struggles to process queries without the benefits of SASI indexing. Therefore, changes to this configuration can cause notable variations in system performance."
+}

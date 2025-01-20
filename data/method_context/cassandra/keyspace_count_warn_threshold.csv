@@ -1,0 +1,23 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.cql3.statements.schema.CreateKeyspaceStatement:clientWarnings(org.apache.cassandra.schema.Keyspaces$KeyspacesDiff),(S)org.apache.cassandra.config.DatabaseDescriptor:keyspaceCountWarnThreshold(),org.apache.cassandra.config.DatabaseDescriptor:keyspaceCountWarnThreshold(),keyspace_count_warn_threshold,clientWarnings,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/schema/CreateKeyspaceStatement.java,CreateKeyspaceStatement,../data/xml/cassandra/CreateKeyspaceStatement.xml,"@Override
+    Set<String> clientWarnings(KeyspacesDiff diff)
+    {
+        int keyspaceCount = Schema.instance.getKeyspaces().size();
+        if (keyspaceCount > DatabaseDescriptor.keyspaceCountWarnThreshold())
+        {
+            String msg = String.format(""Cluster already contains %d keyspaces. Having a large number of keyspaces will significantly slow down schema dependent cluster operations."",
+                                       keyspaceCount);
+            logger.warn(msg);
+            clientWarnings.add(msg);
+        }
+
+        return clientWarnings;
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getKeyspaceCountWarnThreshold(),(S)org.apache.cassandra.config.DatabaseDescriptor:keyspaceCountWarnThreshold(),org.apache.cassandra.config.DatabaseDescriptor:keyspaceCountWarnThreshold(),keyspace_count_warn_threshold,getKeyspaceCountWarnThreshold,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getKeyspaceCountWarnThreshold()
+    {
+        return DatabaseDescriptor.keyspaceCountWarnThreshold();
+    }
+
+    "

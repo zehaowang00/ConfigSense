@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "unlogged_batch_across_partitions_warn_threshold",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private void verifyBatchType(Collection<? extends IMutation> mutations)\n    {\n        if (!isLogged() && mutations.size() > 1)\n        {\n            Set<DecoratedKey> keySet = new HashSet<>();\n            Set<String> tableNames = new HashSet<>();\n\n            for (IMutation mutation : mutations)\n            {\n                for (PartitionUpdate update : mutation.getPartitionUpdates())\n                {\n                    keySet.add(update.partitionKey());\n\n                    tableNames.add(update.metadata().toString());\n                }\n            }\n\n            // CASSANDRA-11529: log only if we have more than a threshold of keys, this was also suggested in the\n            // original ticket that introduced this warning, CASSANDRA-9282\n            if (keySet.size() > DatabaseDescriptor.getUnloggedBatchAcrossPartitionsWarnThreshold())\n            {\n                NoSpamLogger.log(logger, NoSpamLogger.Level.WARN, 1, TimeUnit.MINUTES, UNLOGGED_BATCH_WARNING,\n                                 keySet.size(), tableNames.size() == 1 ? \"\" : \"s\", tableNames);\n\n                ClientWarn.instance.warn(MessageFormatter.arrayFormat(UNLOGGED_BATCH_WARNING, new Object[]{keySet.size(),\n                                                    tableNames.size() == 1 ? \"\" : \"s\", tableNames}).getMessage());\n            }\n        }\n    }\n\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `unlogged_batch_across_partitions_warn_threshold` directly influences the logging behavior based on the number of keys processed in a batch operation. If this threshold is set too low, it can lead to excessive logging when handling large batches, which may result in increased CPU usage and I/O operations, thereby significantly impacting system performance during high-load scenarios. The operations involved in collecting keys and logging can become time-intensive, especially with large collections of mutations, making this configuration critical for maintaining optimal performance."
+        }
+    ]
+}

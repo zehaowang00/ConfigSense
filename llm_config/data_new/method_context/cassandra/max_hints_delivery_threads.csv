@@ -1,0 +1,26 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.hints.HintsService:<init>(org.apache.cassandra.gms.IFailureDetector),(S)org.apache.cassandra.config.DatabaseDescriptor:getMaxHintsDeliveryThreads(),org.apache.cassandra.config.DatabaseDescriptor:getMaxHintsDeliveryThreads(),max_hints_delivery_threads,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/hints/HintsService.java,HintsService,../data/xml/cassandra/HintsService.xml,"@VisibleForTesting
+    HintsService(IFailureDetector failureDetector)
+    {
+        File hintsDirectory = DatabaseDescriptor.getHintsDirectory();
+        int maxDeliveryThreads = DatabaseDescriptor.getMaxHintsDeliveryThreads();
+
+        catalog = HintsCatalog.load(hintsDirectory, createDescriptorParams());
+        writeExecutor = new HintsWriteExecutor(catalog);
+
+        int bufferSize = Math.max(DatabaseDescriptor.getMaxMutationSize() * 2, MIN_BUFFER_SIZE);
+        bufferPool = new HintsBufferPool(bufferSize, writeExecutor::flushBuffer);
+
+        isDispatchPaused = new AtomicBoolean(true);
+        dispatchExecutor = new HintsDispatchExecutor(hintsDirectory, maxDeliveryThreads, isDispatchPaused, failureDetector::isAlive);
+
+        // periodically empty the current content of the buffers
+        int flushPeriod = DatabaseDescriptor.getHintsFlushPeriodInMS();
+        triggerFlushingFuture = ScheduledExecutors.optionalTasks.scheduleWithFixedDelay(() -> writeExecutor.flushBufferPool(bufferPool),
+                                                                                        flushPeriod,
+                                                                                        flushPeriod,
+                                                                                        TimeUnit.MILLISECONDS);
+        metrics = new HintedHandoffMetrics();
+    }
+
+    "

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "keyspace_count_warn_threshold",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n    Set<String> clientWarnings(KeyspacesDiff diff)\n    {\n        int keyspaceCount = Schema.instance.getKeyspaces().size();\n        if (keyspaceCount > DatabaseDescriptor.keyspaceCountWarnThreshold())\n        {\n            String msg = String.format(\"Cluster already contains %d keyspaces. Having a large number of keyspaces will significantly slow down schema dependent cluster operations.\",\n                                       keyspaceCount);\n            logger.warn(msg);\n            clientWarnings.add(msg);\n        }\n\n        return clientWarnings;\n    }\n\n    \npublic int getKeyspaceCountWarnThreshold()\n    {\n        return DatabaseDescriptor.keyspaceCountWarnThreshold();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `keyspace_count_warn_threshold` configuration does not directly cause significant performance variations through extremely time-consuming or memory-heavy operations. The warning mechanism is primarily informational and does not impact the execution time or memory usage of schema-dependent operations in a substantial way. The check for the keyspace count and the associated warning message generation are lightweight operations that do not introduce significant overhead."
+        }
+    ]
+}

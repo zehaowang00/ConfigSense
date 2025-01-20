@@ -1,0 +1,40 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+"M:org.h2.expression.condition.ConditionInQuery:getValue(org.h2.engine.SessionLocal,org.h2.value.Value)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public Value getValue(SessionLocal session) {
+        return getValue(session, left.getValue(session));
+    }
+
+    
+private Value getValue(SessionLocal session, Value left) {
+        query.setSession(session);
+        LocalResult rows = (LocalResult) query.query(0);
+        if (!rows.hasNext()) {
+            return ValueBoolean.get(not ^ all);
+        }
+        if ((compareType & ~1) == Comparison.EQUAL_NULL_SAFE) {
+            return getNullSafeValueSlow(session, rows, left);
+        }
+        if (left.containsNull()) {
+            return ValueNull.INSTANCE;
+        }
+        if (all || compareType != Comparison.EQUAL || !session.getDatabase().getSettings().optimizeInSelect) {
+            return getValueSlow(session, rows, left);
+        }
+        int columnCount = query.getColumnCount();
+        if (columnCount != 1) {
+            Value[] leftValue = left.convertToAnyRow().getList();
+            if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {
+                return ValueBoolean.get(!not);
+            }
+        } else {
+            TypeInfo colType = rows.getColumnType(0);
+            if (colType.getValueType() == Value.NULL) {
+                return ValueNull.INSTANCE;
+            }
+            if (left.getValueType() == Value.ROW) {
+                left = ((ValueRow) left).getList()[0];
+            }
+            if (rows.containsDistinct(new Value[] { left })) {
+                return ValueBoolean.get(!not);
+            }
+        }",OPTIMIZE_IN_SELECT,getValue,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/expression/condition/ConditionInQuery.java,ConditionInQuery,../data/xml/h2/ConditionInQuery.xml

@@ -1,0 +1,7 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.StorageService:getBatchSizeFailureThreshold(),(S)org.apache.cassandra.config.DatabaseDescriptor:getBatchSizeFailThresholdInKB(),org.apache.cassandra.config.DatabaseDescriptor:getBatchSizeFailThresholdInKB(),batch_size_fail_threshold_in_kb,getBatchSizeFailureThreshold,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getBatchSizeFailureThreshold()
+    {
+        return DatabaseDescriptor.getBatchSizeFailThresholdInKB();
+    }
+
+    "

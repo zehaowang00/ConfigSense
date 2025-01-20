@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "USER_STYLESHEET_URI",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n         * Returns the user stylesheet specified in the\n         * <code>TranscodingHints</code> or null if any.\n         */\npublic String getUserStyleSheetURI() {\n            String s = (String)SVGAbstractTranscoder.this.hints.get\n                (KEY_USER_STYLESHEET_URI);\n            if (s != null)\n                return s;\n\n            return super.getUserStyleSheetURI();\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method `getUserStyleSheetURI` retrieves a user stylesheet URI from a hints map and falls back to a superclass method if not found. This operation primarily involves accessing a map and performing a null check, which are not time-intensive or memory-intensive operations. The overall impact on system performance is minimal, as it does not involve heavy computations or resource allocations that would significantly affect performance."
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'hints_flush_period_in_ms' configuration in Cassandra determines how frequently hints are flushed to disk. A shorter flush period can lead to more frequent disk I/O operations, which can significantly affect performance, especially in write-heavy workloads or during node failures. Conversely, a longer flush period may reduce I/O overhead but can increase memory consumption and delay the recovery of failed nodes. Therefore, changes to this configuration can lead to notable variations in execution time and resource utilization, making it performance-sensitive."
+}

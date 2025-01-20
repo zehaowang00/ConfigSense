@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'concurrent_materialized_view_builders' configuration in Cassandra determines the number of concurrent threads that can build materialized views. A higher value can lead to increased resource utilization, potentially improving throughput and reducing the time taken to build views, especially under heavy load. Conversely, setting this value too low can lead to underutilization of available resources, resulting in longer execution times for view building. Therefore, changes to this configuration can significantly impact system performance, making it performance-sensitive."
+}

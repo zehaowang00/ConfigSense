@@ -1,0 +1,12 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:main.java.Catena:f(int,byte[][],int)",(M)main.java.Catena:get_f(),main.java.Catena:get_f(),_f,f,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * phi function from catena specification
+	 * 
+	 * @param x		hash input
+	 * @return		hash output
+	 */
+private byte[][] f(int g, byte[][] x, int lambda) {
+        return this.get_f().graph(g, x, lambda);
+    }
+
+    "

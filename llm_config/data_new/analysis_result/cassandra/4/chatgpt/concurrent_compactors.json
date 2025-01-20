@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'concurrent_compactors' configuration in Cassandra determines the number of compaction threads that can run concurrently. Increasing this value can lead to better utilization of system resources, particularly CPU and I/O, which can significantly reduce the time taken for compaction operations. Conversely, setting this value too low can lead to underutilization of resources, causing longer execution times for data compaction and potentially impacting overall system performance. Therefore, changes to this configuration can notably affect execution time and resource consumption, making it performance-sensitive."
+}

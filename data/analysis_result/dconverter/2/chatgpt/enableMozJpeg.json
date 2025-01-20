@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enableMozJpeg' configuration option is performance-sensitive because enabling or disabling it can significantly impact the image processing performance of the 'dconverter' software project. When MozJPEG is enabled, it utilizes advanced compression techniques that can reduce the size of JPEG images while maintaining quality, which may lead to increased CPU usage and longer execution times during encoding. Conversely, disabling it may result in faster processing times but larger file sizes, affecting overall system performance and resource consumption. Therefore, changes to this configuration can lead to notable variations in both execution time and memory usage, classifying it as performance-sensitive."
+}

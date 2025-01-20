@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enable_transient_replication' configuration in Cassandra directly impacts how data is replicated across nodes. When enabled, transient replication allows for faster writes by not requiring immediate consistency across replicas, which can lead to significant variations in execution time during write-heavy workloads. Additionally, it affects memory consumption and network traffic, as transient replicas may lead to increased data storage requirements and more frequent data transfers between nodes. Therefore, changes to this configuration can notably influence overall system performance."
+}

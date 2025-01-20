@@ -1,0 +1,55 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.CacheService:initCounterCache(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheKeysToSave(),counter_cache_keys_to_save,initCounterCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"private AutoSavingCache<CounterCacheKey, ClockAndCount> initCounterCache()
+    {
+        logger.info(""Initializing counter cache with capacity of {} MBs"", DatabaseDescriptor.getCounterCacheSizeInMB());
+
+        long capacity = DatabaseDescriptor.getCounterCacheSizeInMB() * 1024 * 1024;
+
+        AutoSavingCache<CounterCacheKey, ClockAndCount> cache =
+            new AutoSavingCache<>(CaffeineCache.create(capacity),
+                                  CacheType.COUNTER_CACHE,
+                                  new CounterCacheSerializer());
+
+        int keysToSave = DatabaseDescriptor.getCounterCacheKeysToSave();
+
+        logger.info(""Scheduling counter cache save to every {} seconds (going to save {} keys)."",
+                    DatabaseDescriptor.getCounterCacheSavePeriod(),
+                    keysToSave == Integer.MAX_VALUE ? ""all"" : keysToSave);
+
+        cache.scheduleSaving(DatabaseDescriptor.getCounterCacheSavePeriod(), keysToSave);
+
+        return cache;
+    }
+
+
+    "
+M:org.apache.cassandra.service.CacheService:setCounterCacheSavePeriodInSeconds(int),(S)org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheKeysToSave(),counter_cache_keys_to_save,setCounterCacheSavePeriodInSeconds,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"public void setCounterCacheSavePeriodInSeconds(int seconds)
+    {
+        if (seconds < 0)
+            throw new RuntimeException(""CounterCacheSavePeriodInSeconds must be non-negative."");
+
+        DatabaseDescriptor.setCounterCacheSavePeriod(seconds);
+        counterCache.scheduleSaving(seconds, DatabaseDescriptor.getCounterCacheKeysToSave());
+    }
+
+    "
+M:org.apache.cassandra.service.CacheService:getCounterCacheKeysToSave(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheKeysToSave(),counter_cache_keys_to_save,getCounterCacheKeysToSave,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"public int getCounterCacheKeysToSave()
+    {
+        return DatabaseDescriptor.getCounterCacheKeysToSave();
+    }
+
+    "
+M:org.apache.cassandra.service.CacheService:saveCaches(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheKeysToSave(),org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheKeysToSave(),counter_cache_keys_to_save,saveCaches,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"public void saveCaches() throws ExecutionException, InterruptedException
+    {
+        List<Future<?>> futures = new ArrayList<>(3);
+        logger.debug(""submitting cache saves"");
+
+        futures.add(keyCache.submitWrite(DatabaseDescriptor.getKeyCacheKeysToSave()));
+        futures.add(rowCache.submitWrite(DatabaseDescriptor.getRowCacheKeysToSave()));
+        futures.add(counterCache.submitWrite(DatabaseDescriptor.getCounterCacheKeysToSave()));
+
+        FBUtilities.waitOnFutures(futures);
+        logger.debug(""cache saves completed"");
+    }
+
+    "

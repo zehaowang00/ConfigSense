@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'incremental_backups' configuration in Cassandra is performance-sensitive because it directly impacts the system's I/O operations and resource utilization. When enabled, incremental backups can lead to increased disk usage and affect the overall performance of read and write operations due to the additional overhead of managing backup data. Changes in this configuration can significantly alter the execution time of data operations, especially during peak loads, as the system may need to allocate more resources to handle backup processes, potentially leading to increased latency and reduced throughput."
+}

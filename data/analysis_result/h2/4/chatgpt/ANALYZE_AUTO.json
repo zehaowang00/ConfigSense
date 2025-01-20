@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'ANALYZE_AUTO' in the H2 database can significantly impact system performance by influencing the automatic analysis of database structures. Changes in this setting can lead to variations in execution time during query processing, as it determines when and how often the database performs optimizations. If set to a value that triggers frequent analysis, it may increase CPU and memory usage, resulting in slower response times for database operations. Conversely, a less frequent analysis may lead to suboptimal query performance, affecting overall system efficiency. Therefore, its value change can lead to notable variations in execution time and resource consumption, classifying it as performance-sensitive."
+}

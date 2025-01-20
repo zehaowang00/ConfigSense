@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'tracetype_repair_ttl' configuration in Cassandra determines the time-to-live (TTL) for repair tracing data. Changes to this value can significantly impact the performance of repair operations. A shorter TTL may lead to more frequent garbage collection of tracing data, which can increase CPU usage and memory pressure, while a longer TTL can result in increased memory consumption due to the accumulation of tracing data. Consequently, variations in this configuration can lead to notable differences in execution time and resource utilization during repair processes, making it performance-sensitive."
+}

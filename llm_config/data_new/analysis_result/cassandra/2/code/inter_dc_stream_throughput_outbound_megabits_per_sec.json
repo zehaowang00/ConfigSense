@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "inter_dc_stream_throughput_outbound_megabits_per_sec",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public void setInterDCStreamThroughputMbPerSec(int value)\n    {\n        int oldValue = DatabaseDescriptor.getInterDCStreamThroughputOutboundMegabitsPerSec();\n        DatabaseDescriptor.setInterDCStreamThroughputOutboundMegabitsPerSec(value);\n        StreamManager.StreamRateLimiter.updateInterDCThroughput();\n        logger.info(\"setinterdcstreamthroughput: throttle set to {} Mb/s (was {} Mb/s)\", value, oldValue);\n    }\n\n    \npublic int getInterDCStreamThroughputMbPerSec()\n    {\n        return DatabaseDescriptor.getInterDCStreamThroughputOutboundMegabitsPerSec();\n    }\n\n\n    \nprivate static double calculateInterDCRateInBytes()\n        {\n            return DatabaseDescriptor.getInterDCStreamThroughputOutboundMegabitsPerSec() > 0\n                   ? DatabaseDescriptor.getInterDCStreamThroughputOutboundMegabitsPerSec() * BYTES_PER_MEGABIT\n                   : Double.MAX_VALUE; // if throughput is set to 0 or negative value, throttling is disabled\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: While the inter-data center stream throughput can affect the overall data transfer rate, the operations involved in getting and setting this configuration (i.e., fetching the current value, setting a new value, and updating the stream rate limiter) are not inherently time-intensive or memory-intensive. The operations performed are primarily simple getter and setter methods, which typically execute in constant time. Additionally, the calculation of the rate in bytes is a straightforward arithmetic operation. Therefore, changes to this configuration are unlikely to cause significant performance variations in the system."
+        }
+    ]
+}

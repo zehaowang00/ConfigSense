@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The DEFAULT_ESCAPE configuration in the H2 database affects how special characters are handled in SQL queries. Changing this configuration can lead to significant variations in execution time, especially in queries that involve string manipulation or pattern matching. If the escape character is not properly set, it can result in increased parsing time and potential errors, which can degrade overall system performance. Additionally, improper handling of escape sequences can lead to increased memory consumption due to the need for additional processing to manage these sequences, making this configuration performance-sensitive."
+}

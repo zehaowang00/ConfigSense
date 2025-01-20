@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The '_lambda' configuration in the 'catena' software project is performance-sensitive because it directly influences the execution model of the application. Changes to this configuration can lead to significant variations in execution time, particularly in scenarios where lambda functions are heavily utilized. For instance, increasing the number of concurrent lambda executions can lead to higher memory consumption and potential bottlenecks in resource allocation, affecting overall system throughput and response times. Therefore, adjustments to this configuration can have a profound impact on system performance."
+}

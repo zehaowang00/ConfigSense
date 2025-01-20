@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "counter_cache_size_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private AutoSavingCache<CounterCacheKey, ClockAndCount> initCounterCache()\n    {\n        logger.info(\"Initializing counter cache with capacity of {} MBs\", DatabaseDescriptor.getCounterCacheSizeInMB());\n\n        long capacity = DatabaseDescriptor.getCounterCacheSizeInMB() * 1024 * 1024;\n\n        AutoSavingCache<CounterCacheKey, ClockAndCount> cache =\n            new AutoSavingCache<>(CaffeineCache.create(capacity),\n                                  CacheType.COUNTER_CACHE,\n                                  new CounterCacheSerializer());\n\n        int keysToSave = DatabaseDescriptor.getCounterCacheKeysToSave();\n\n        logger.info(\"Scheduling counter cache save to every {} seconds (going to save {} keys).\",\n                    DatabaseDescriptor.getCounterCacheSavePeriod(),\n                    keysToSave == Integer.MAX_VALUE ? \"all\" : keysToSave);\n\n        cache.scheduleSaving(DatabaseDescriptor.getCounterCacheSavePeriod(), keysToSave);\n\n        return cache;\n    }\n\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `counter_cache_size_in_mb` directly affects the memory allocation for the `AutoSavingCache`. A larger cache size can lead to significant memory consumption, which may impact overall system performance, especially if the capacity is set to a high value. Additionally, the initialization of the cache and the scheduling of save operations could lead to time-intensive operations if the cache size is substantial, as it may require more time to manage larger datasets."
+        }
+    ]
+}

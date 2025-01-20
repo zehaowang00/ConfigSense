@@ -1,0 +1,9 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.net.MessagingService:<init>(boolean),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeApplicationReceiveQueueReserveGlobalCapacityInBytes(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeApplicationReceiveQueueReserveGlobalCapacityInBytes(),internode_application_receive_queue_reserve_global_capacity_in_bytes,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/MessagingService.java,MessagingService,../data/xml/cassandra/MessagingService.xml,"@VisibleForTesting
+    MessagingService(boolean testOnly)
+    {
+        super(testOnly);
+        OutboundConnections.scheduleUnusedConnectionMonitoring(this, ScheduledExecutors.scheduledTasks, 1L, TimeUnit.HOURS);
+    }
+
+    "

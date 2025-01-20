@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "internode_application_send_queue_reserve_endpoint_capacity_in_bytes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public OutboundConnectionSettings withDefaultReserveLimits()\n    {\n        Integer applicationReserveSendQueueEndpointCapacityInBytes = this.applicationSendQueueReserveEndpointCapacityInBytes;\n        ResourceLimits.Limit applicationReserveSendQueueGlobalCapacityInBytes = this.applicationSendQueueReserveGlobalCapacityInBytes;\n\n        if (applicationReserveSendQueueEndpointCapacityInBytes == null)\n            applicationReserveSendQueueEndpointCapacityInBytes = DatabaseDescriptor.getInternodeApplicationSendQueueReserveEndpointCapacityInBytes();\n        if (applicationReserveSendQueueGlobalCapacityInBytes == null)\n            applicationReserveSendQueueGlobalCapacityInBytes = MessagingService.instance().outboundGlobalReserveLimit;\n\n        return withApplicationReserveSendQueueCapacityInBytes(applicationReserveSendQueueEndpointCapacityInBytes, applicationReserveSendQueueGlobalCapacityInBytes);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `internode_application_send_queue_reserve_endpoint_capacity_in_bytes` directly influences the capacity of the send queue, which can lead to significant variations in system performance, especially under high load conditions. If this configuration is set improperly, it could result in either excessive memory usage or bottlenecks in message processing, both of which can severely impact the overall performance of the system. The retrieval of this value from `DatabaseDescriptor` indicates that it can be critical for optimizing resource allocation and ensuring efficient message handling."
+        }
+    ]
+}

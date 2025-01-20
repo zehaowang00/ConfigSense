@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'diagnostic_events_enabled' configuration in Cassandra is performance-sensitive because enabling diagnostic events can lead to increased logging and monitoring overhead. This additional overhead can significantly affect system performance by increasing execution time and memory consumption, especially under high load conditions. When diagnostic events are enabled, the system may generate a large volume of logs, which can impact I/O performance and resource utilization, thus affecting the overall throughput and latency of the database operations."
+}

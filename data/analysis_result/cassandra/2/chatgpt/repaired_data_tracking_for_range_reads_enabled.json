@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'repaired_data_tracking_for_range_reads_enabled' in Cassandra is performance-sensitive because enabling or disabling this feature can significantly impact the efficiency of read operations. When this option is enabled, the system must track additional metadata related to repaired data, which can lead to increased memory usage and potentially longer execution times for range read queries. Conversely, if the option is disabled, the system may perform faster reads at the cost of potentially reading stale data. Therefore, changes to this configuration can lead to notable variations in both execution time and memory consumption, classifying it as performance-sensitive."
+}

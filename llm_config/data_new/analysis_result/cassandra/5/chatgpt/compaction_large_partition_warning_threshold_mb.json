@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'compaction_large_partition_warning_threshold_mb' in Cassandra determines the threshold size for large partitions that trigger warnings during compaction. Adjusting this threshold can significantly impact how the system handles large partitions, which in turn affects compaction performance, execution time, and memory consumption. If set too low, it may lead to excessive warnings and unnecessary compaction operations, causing increased CPU and I/O load. Conversely, if set too high, it may allow large partitions to grow unchecked, leading to performance degradation during read and write operations. Therefore, changes to this configuration can lead to notable variations in system performance."
+}

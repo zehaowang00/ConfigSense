@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'allocate_tokens_for_keyspace' in Cassandra directly influences how tokens are allocated to keyspaces, which can significantly impact data distribution and load balancing across nodes in a cluster. Changes to this configuration can lead to uneven data distribution, causing some nodes to be overburdened while others are underutilized. This imbalance can result in increased execution times for read and write operations, higher memory consumption due to inefficient data handling, and overall degradation of system performance. Therefore, variations in this configuration can have a notable effect on the performance of the Cassandra system."
+}

@@ -1,0 +1,27 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:at.favre.tools.dconvert.Main$1:onFinished(int,java.util.List,long,boolean,java.lang.String)",(M)at.favre.tools.dconvert.arg.Arguments:isVerboseLog(),at.favre.tools.dconvert.arg.Arguments:isVerboseLog(),verboseLog,onFinished,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/Main.java,Main$1,../data/xml/dconverter/Main.xml,"@Override
+            public void onFinished(int finishedJobs, List<Exception> exceptions, long time, boolean haltedDuringProcess, String log) {
+                System.out.print(MiscUtil.getCmdProgressBar(1f));
+
+                System.out.println("""");
+
+                if (args.verboseLog) {
+                    System.out.println(""Log:"");
+                    System.out.println(log);
+                }
+
+                if (haltedDuringProcess) {
+                    System.err.println(""abort due to error"");
+                }
+                if (exceptions.size() > 0) {
+                    System.err.println(""found "" + exceptions.size() + "" errors during execution"");
+                    if (args.verboseLog) {
+                        for (Exception exception : exceptions) {
+                            System.err.println(""\terror: "" + exception.getMessage());
+                            exception.printStackTrace();
+                        }
+                    }
+                }
+                System.out.println(""execution finished ("" + time + ""ms) with "" + finishedJobs + "" finsihed jobs and "" + exceptions.size() + "" errors"");
+            }
+        }"

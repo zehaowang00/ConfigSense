@@ -1,0 +1,1304 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.auth.AuthSchemaChangeListener:onDropKeyspace(java.lang.String),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,onDropKeyspace,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/AuthSchemaChangeListener.java,AuthSchemaChangeListener,../data/xml/cassandra/AuthSchemaChangeListener.xml,"public void onDropKeyspace(String ksName)
+    {
+        DatabaseDescriptor.getAuthorizer().revokeAllOn(DataResource.keyspace(ksName));
+        DatabaseDescriptor.getAuthorizer().revokeAllOn(FunctionResource.keyspace(ksName));
+    }
+
+    "
+"M:org.apache.cassandra.auth.AuthSchemaChangeListener:onDropTable(java.lang.String,java.lang.String)",(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,onDropTable,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/AuthSchemaChangeListener.java,AuthSchemaChangeListener,../data/xml/cassandra/AuthSchemaChangeListener.xml,"public void onDropTable(String ksName, String cfName)
+    {
+        DatabaseDescriptor.getAuthorizer().revokeAllOn(DataResource.table(ksName, cfName));
+    }
+
+    "
+"M:org.apache.cassandra.auth.AuthSchemaChangeListener:onDropFunction(java.lang.String,java.lang.String,java.util.List)",(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,onDropFunction,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/AuthSchemaChangeListener.java,AuthSchemaChangeListener,../data/xml/cassandra/AuthSchemaChangeListener.xml,"public void onDropFunction(String ksName, String functionName, List<AbstractType<?>> argTypes)
+    {
+        DatabaseDescriptor.getAuthorizer()
+                          .revokeAllOn(FunctionResource.function(ksName, functionName, argTypes));
+    }
+
+    "
+"M:org.apache.cassandra.auth.AuthSchemaChangeListener:onDropAggregate(java.lang.String,java.lang.String,java.util.List)",(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,onDropAggregate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/AuthSchemaChangeListener.java,AuthSchemaChangeListener,../data/xml/cassandra/AuthSchemaChangeListener.xml,"public void onDropAggregate(String ksName, String aggregateName, List<AbstractType<?>> argTypes)
+    {
+        DatabaseDescriptor.getAuthorizer()
+                          .revokeAllOn(FunctionResource.function(ksName, aggregateName, argTypes));
+    }
+}"
+M:org.apache.cassandra.auth.AuthenticatedUser:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/AuthenticatedUser.java,AuthenticatedUser,../data/xml/cassandra/AuthenticatedUser.xml,"/**
+ * Returned from IAuthenticator#authenticate(), represents an authenticated user everywhere internally.
+ *
+ * Holds the name of the user and the roles that have been granted to the user. The roles will be cached
+ * for roles_validity_in_ms.
+ */
+public class AuthenticatedUser
+{
+    public static final String SYSTEM_USERNAME = ""system"";
+    public static final AuthenticatedUser SYSTEM_USER = new AuthenticatedUser(SYSTEM_USERNAME);
+
+    public static final String ANONYMOUS_USERNAME = ""anonymous"";
+    public static final AuthenticatedUser ANONYMOUS_USER = new AuthenticatedUser(ANONYMOUS_USERNAME);
+
+    // User-level permissions cache.
+    private static final PermissionsCache permissionsCache = new PermissionsCache(DatabaseDescriptor.getAuthorizer());
+    private static final NetworkAuthCache networkAuthCache = new NetworkAuthCache(DatabaseDescriptor.getNetworkAuthorizer());
+
+    private final String name;
+    // primary Role of the logged in user
+    private final RoleResource role;
+
+    public AuthenticatedUser(String name)
+    {
+        this.name = name;
+        this.role = RoleResource.role(name);
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public RoleResource getPrimaryRole()
+    {
+        return role;
+    }
+
+    /**
+     * Checks the user's superuser status.
+     * Only a superuser is allowed to perform CREATE USER and DROP USER queries.
+     * Im most cased, though not necessarily, a superuser will have Permission.ALL on every resource
+     * (depends on IAuthorizer implementation).
+     */
+    public boolean isSuper()
+    {
+        return !isAnonymous() && Roles.hasSuperuserStatus(role);
+    }
+
+    /**
+     * If IAuthenticator doesn't require authentication, this method may return true.
+     */
+    public boolean isAnonymous()
+    {
+        return this == ANONYMOUS_USER;
+    }
+
+    /**
+     * Some internal operations are performed on behalf of Cassandra itself, in those cases
+     * the system user should be used where an identity is required
+     * see CreateRoleStatement#execute() and overrides of AlterSchemaStatement#createdResources()
+     */
+    public boolean isSystem()
+    {
+        return this == SYSTEM_USER;
+    }
+
+    /**
+     * Get the roles that have been granted to the user via the IRoleManager
+     *
+     * @return a set of identifiers for the roles that have been granted to the user
+     */
+    public Set<RoleResource> getRoles()
+    {
+        return Roles.getRoles(role);
+    }
+
+    /**
+     * Get the detailed info on roles granted to the user via IRoleManager
+     *
+     * @return a set of Role objects detailing the roles granted to the user
+     */
+    public Set<Role> getRoleDetails()
+    {
+       return Roles.getRoleDetails(role);
+    }
+
+    public Set<Permission> getPermissions(IResource resource)
+    {
+        return permissionsCache.getPermissions(this, resource);
+    }
+
+    /**
+     * Check whether this user has login privileges.
+     * LOGIN is not inherited from granted roles, so must be directly granted to the primary role for this user
+     *
+     * @return true if the user is permitted to login, false otherwise.
+     */
+    public boolean canLogin()
+    {
+        return Roles.canLogin(getPrimaryRole());
+    }
+
+    /**
+     * Verify that there is not DC level restriction on this user accessing this node.
+     * Further extends the login privilege check by verifying that the primary role for this user is permitted
+     * to perform operations in the local (to this node) datacenter. Like LOGIN, this is not inherited from
+     * granted roles.
+     * @return true if the user is permitted to access nodes in this node's datacenter, false otherwise
+     */
+    public boolean hasLocalAccess()
+    {
+        return networkAuthCache.get(this.getPrimaryRole()).canAccess(Datacenters.thisDatacenter());
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format(""#<User %s>"", name);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+            return true;
+
+        if (!(o instanceof AuthenticatedUser))
+            return false;
+
+        AuthenticatedUser u = (AuthenticatedUser) o;
+
+        return Objects.equal(name, u.name);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(name);
+    }
+
+}
+"
+M:org.apache.cassandra.auth.PermissionsCache:lambda$new$1(),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,lambda$new$1,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/PermissionsCache.java,PermissionsCache,../data/xml/cassandra/PermissionsCache.xml,"public class PermissionsCache extends AuthCache<Pair<AuthenticatedUser, IResource>, Set<Permission>>
+{
+    public PermissionsCache(IAuthorizer authorizer)
+    {
+        super(""PermissionsCache"",
+              DatabaseDescriptor::setPermissionsValidity,
+              DatabaseDescriptor::getPermissionsValidity,
+              DatabaseDescriptor::setPermissionsUpdateInterval,
+              DatabaseDescriptor::getPermissionsUpdateInterval,
+              DatabaseDescriptor::setPermissionsCacheMaxEntries,
+              DatabaseDescriptor::getPermissionsCacheMaxEntries,
+              (p) -> authorizer.authorize(p.left, p.right),
+              () -> DatabaseDescriptor.getAuthorizer().requireAuthorization());
+    }
+
+    public Set<Permission> getPermissions(AuthenticatedUser user, IResource resource)
+    {
+        return get(Pair.create(user, resource));
+    }
+}
+"
+M:org.apache.cassandra.auth.jmx.AuthorizationProxy:loadPermissions(org.apache.cassandra.auth.RoleResource),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,loadPermissions,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/jmx/AuthorizationProxy.java,AuthorizationProxy,../data/xml/cassandra/AuthorizationProxy.xml,"/**
+     * Query the configured IAuthorizer for the set of all permissions granted on JMXResources to a specific subject
+     * @param subject
+     * @return All permissions granted to the specfied subject (including those transitively inherited from
+     *         any roles the subject has been granted), filtered to include only permissions granted on
+     *         JMXResources
+     */
+private static Set<PermissionDetails> loadPermissions(RoleResource subject)
+    {
+        // get all permissions for the specified subject. We'll cache them as it's likely
+        // we'll receive multiple lookups for the same subject (but for different resources
+        // and permissions) in quick succession
+        return DatabaseDescriptor.getAuthorizer().list(AuthenticatedUser.SYSTEM_USER, Permission.ALL, null, subject)
+                                                 .stream()
+                                                 .filter(details -> details.resource instanceof JMXResource)
+                                                 .collect(Collectors.toSet());
+    }
+
+    "
+M:org.apache.cassandra.auth.jmx.AuthorizationProxy:lambda$new$0(),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,lambda$new$0,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/jmx/AuthorizationProxy.java,AuthorizationProxy,../data/xml/cassandra/AuthorizationProxy.xml,"/**
+ * Provides a proxy interface to the platform's MBeanServer instance to perform
+ * role-based authorization on method invocation.
+ *
+ * When used in conjunction with a suitable JMXAuthenticator, which attaches a CassandraPrincipal
+ * to authenticated Subjects, this class uses the configured IAuthorizer to verify that the
+ * subject has the required permissions to execute methods on the MBeanServer and the MBeans it
+ * manages.
+ *
+ * Because an ObjectName may contain wildcards, meaning it represents a set of individual MBeans,
+ * JMX resources don't fit well with the hierarchical approach modelled by other IResource
+ * implementations and utilised by ClientState::ensurePermission etc. To enable grants to use
+ * pattern-type ObjectNames, this class performs its own custom matching and filtering of resources
+ * rather than pushing that down to the configured IAuthorizer. To that end, during authorization
+ * it pulls back all permissions for the active subject, filtering them to retain only grants on
+ * JMXResources. It then uses ObjectName::apply to assert whether the target MBeans are wholly
+ * represented by the resources with permissions. This means that it cannot use the PermissionsCache
+ * as IAuthorizer can, so it manages its own cache locally.
+ *
+ * Methods are split into 2 categories; those which are to be invoked on the MBeanServer itself
+ * and those which apply to MBean instances. Actually, this is somewhat of a construct as in fact
+ * *all* invocations are performed on the MBeanServer instance, the distinction is made here on
+ * those methods which take an ObjectName as their first argument and those which do not.
+ * Invoking a method of the former type, e.g. MBeanServer::getAttribute(ObjectName name, String attribute),
+ * implies that the caller is concerned with a specific MBean. Conversely, invoking a method such as
+ * MBeanServer::getDomains is primarily a function of the MBeanServer itself. This class makes
+ * such a distinction in order to identify which JMXResource the subject requires permissions on.
+ *
+ * Certain operations are never allowed for users and these are recorded in a deny list so that we
+ * can short circuit authorization process if one is attempted by a remote subject.
+ *
+ */
+public class AuthorizationProxy implements InvocationHandler
+{
+    private static final Logger logger = LoggerFactory.getLogger(AuthorizationProxy.class);
+
+    /*
+     A list of permitted methods on the MBeanServer interface which *do not* take an ObjectName
+     as their first argument. These methods can be thought of as relating to the MBeanServer itself,
+     rather than to the MBeans it manages. All of the allowed methods are essentially descriptive,
+     hence they require the Subject to have the DESCRIBE permission on the root JMX resource.
+     */
+    private static final Set<String> MBEAN_SERVER_ALLOWED_METHODS = ImmutableSet.of(""getDefaultDomain"",
+                                                                                    ""getDomains"",
+                                                                                    ""getMBeanCount"",
+                                                                                    ""hashCode"",
+                                                                                    ""queryMBeans"",
+                                                                                    ""queryNames"",
+                                                                                    ""toString"");
+
+    /*
+     A list of method names which are never permitted to be executed by a remote user,
+     regardless of privileges they may be granted.
+     */
+    private static final Set<String> DENIED_METHODS = ImmutableSet.of(""createMBean"",
+                                                                      ""deserialize"",
+                                                                      ""getClassLoader"",
+                                                                      ""getClassLoaderFor"",
+                                                                      ""instantiate"",
+                                                                      ""registerMBean"",
+                                                                      ""unregisterMBean"");
+
+    private static final JMXPermissionsCache permissionsCache = new JMXPermissionsCache();
+    private MBeanServer mbs;
+
+    /*
+     Used to check whether the Role associated with the authenticated Subject has superuser
+     status. By default, just delegates to Roles::hasSuperuserStatus, but can be overridden for testing.
+     */
+    protected Predicate<RoleResource> isSuperuser = Roles::hasSuperuserStatus;
+
+    /*
+     Used to retrieve the set of all permissions granted to a given role. By default, this fetches
+     the permissions from the local cache, which in turn loads them from the configured IAuthorizer
+     but can be overridden for testing.
+     */
+    protected Function<RoleResource, Set<PermissionDetails>> getPermissions = permissionsCache::get;
+
+    /*
+     Used to decide whether authorization is enabled or not, usually this depends on the configured
+     IAuthorizer, but can be overridden for testing.
+     */
+    protected BooleanSupplier isAuthzRequired = () -> DatabaseDescriptor.getAuthorizer().requireAuthorization();
+
+    /*
+     Used to find matching MBeans when the invocation target is a pattern type ObjectName.
+     Defaults to querying the MBeanServer but can be overridden for testing. See checkPattern for usage.
+     */
+    protected Function<ObjectName, Set<ObjectName>> queryNames = (name) -> mbs.queryNames(name, null);
+
+    /*
+     Used to determine whether auth setup has completed so we know whether the expect the IAuthorizer
+     to be ready. Can be overridden for testing.
+     */
+    protected BooleanSupplier isAuthSetupComplete = () -> StorageService.instance.isAuthSetupComplete();
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args)
+            throws Throwable
+    {
+        String methodName = method.getName();
+
+        if (""getMBeanServer"".equals(methodName))
+            throw new SecurityException(""Access denied"");
+
+        // Retrieve Subject from current AccessControlContext
+        AccessControlContext acc = AccessController.getContext();
+        Subject subject = Subject.getSubject(acc);
+
+        // Allow setMBeanServer iff performed on behalf of the connector server itself
+        if ((""setMBeanServer"").equals(methodName))
+        {
+            if (subject != null)
+                throw new SecurityException(""Access denied"");
+
+            if (args[0] == null)
+                throw new IllegalArgumentException(""Null MBeanServer"");
+
+            if (mbs != null)
+                throw new IllegalArgumentException(""MBeanServer already initialized"");
+
+            mbs = (MBeanServer) args[0];
+            return null;
+        }
+
+        if (authorize(subject, methodName, args))
+            return invoke(method, args);
+
+        throw new SecurityException(""Access Denied"");
+    }
+
+    /**
+     * Performs the actual authorization of an identified subject to execute a remote method invocation.
+     * @param subject The principal making the execution request. A null value represents a local invocation
+     *                from the JMX connector itself
+     * @param methodName Name of the method being invoked
+     * @param args Array containing invocation argument. If the first element is an ObjectName instance, for
+     *             authz purposes we consider this an invocation of an MBean method, otherwise it is treated
+     *             as an invocation of a method on the MBeanServer.
+     */
+    @VisibleForTesting
+    boolean authorize(Subject subject, String methodName, Object[] args)
+    {
+        logger.trace(""Authorizing JMX method invocation {} for {}"",
+                     methodName,
+                     subject == null ? """" :subject.toString().replaceAll(""\\n"", "" ""));
+
+        if (!isAuthSetupComplete.getAsBoolean())
+        {
+            logger.trace(""Auth setup is not complete, refusing access"");
+            return false;
+        }
+
+        // Permissive authorization is enabled
+        if (!isAuthzRequired.getAsBoolean())
+            return true;
+
+        // Allow operations performed locally on behalf of the connector server itself
+        if (subject == null)
+            return true;
+
+        // Restrict access to certain methods by any remote user
+        if (DENIED_METHODS.contains(methodName))
+        {
+            logger.trace(""Access denied to restricted method {}"", methodName);
+            return false;
+        }
+
+        // Reject if the user has not authenticated
+        Set<Principal> principals = subject.getPrincipals();
+        if (principals == null || principals.isEmpty())
+            return false;
+
+        // Currently, we assume that the first Principal returned from the Subject
+        // is the one to use for authorization. It would be good to make this more
+        // robust, but we have no control over which Principals a given LoginModule
+        // might choose to associate with the Subject following successful authentication
+        RoleResource userResource = RoleResource.role(principals.iterator().next().getName());
+        // A role with superuser status can do anything
+        if (isSuperuser.test(userResource))
+            return true;
+
+        // The method being invoked may be a method on an MBean, or it could belong
+        // to the MBeanServer itself
+        if (args != null && args[0] instanceof ObjectName)
+            return authorizeMBeanMethod(userResource, methodName, args);
+        else
+            return authorizeMBeanServerMethod(userResource, methodName);
+    }
+
+    /**
+     * Authorize execution of a method on the MBeanServer which does not take an MBean ObjectName
+     * as its first argument. The allowed methods that match this criteria are generally
+     * descriptive methods concerned with the MBeanServer itself, rather than with any particular
+     * set of MBeans managed by the server and so we check the DESCRIBE permission on the root
+     * JMXResource (representing the MBeanServer)
+     *
+     * @param subject
+     * @param methodName
+     * @return the result of the method invocation, if authorized
+     * @throws Throwable
+     * @throws SecurityException if authorization fails
+     */
+    private boolean authorizeMBeanServerMethod(RoleResource subject, String methodName)
+    {
+        logger.trace(""JMX invocation of {} on MBeanServer requires permission {}"", methodName, Permission.DESCRIBE);
+        return (MBEAN_SERVER_ALLOWED_METHODS.contains(methodName) &&
+                hasPermission(subject, Permission.DESCRIBE, JMXResource.root()));
+    }
+
+    /**
+     * Authorize execution of a method on an MBean (or set of MBeans) which may be
+     * managed by the MBeanServer. Note that this also includes the queryMBeans and queryNames
+     * methods of MBeanServer as those both take an ObjectName (possibly a pattern containing
+     * wildcards) as their first argument. They both of those methods also accept null arguments,
+     * in which case they will be handled by authorizedMBeanServerMethod
+     *
+     * @param role
+     * @param methodName
+     * @param args
+     * @return the result of the method invocation, if authorized
+     * @throws Throwable
+     * @throws SecurityException if authorization fails
+     */
+    private boolean authorizeMBeanMethod(RoleResource role, String methodName, Object[] args)
+    {
+        ObjectName targetBean = (ObjectName)args[0];
+
+        // work out which permission we need to execute the method being called on the mbean
+        Permission requiredPermission = getRequiredPermission(methodName);
+        if (null == requiredPermission)
+            return false;
+
+        logger.trace(""JMX invocation of {} on {} requires permission {}"", methodName, targetBean, requiredPermission);
+
+        // find any JMXResources upon which the authenticated subject has been granted the
+        // reqired permission. We'll do ObjectName-specific filtering & matching of resources later
+        Set<JMXResource> permittedResources = getPermittedResources(role, requiredPermission);
+
+        if (permittedResources.isEmpty())
+            return false;
+
+        // finally, check the JMXResource from the grants to see if we have either
+        // an exact match or a wildcard match for the target resource, whichever is
+        // applicable
+        return targetBean.isPattern()
+                ? checkPattern(targetBean, permittedResources)
+                : checkExact(targetBean, permittedResources);
+    }
+
+    /**
+     * Get any grants of the required permission for the authenticated subject, regardless
+     * of the resource the permission applies to as we'll do the filtering & matching in
+     * the calling method
+     * @param subject
+     * @param required
+     * @return the set of JMXResources upon which the subject has been granted the required permission
+     */
+    private Set<JMXResource> getPermittedResources(RoleResource subject, Permission required)
+    {
+        return getPermissions.apply(subject)
+               .stream()
+               .filter(details -> details.permission == required)
+               .map(details -> (JMXResource)details.resource)
+               .collect(Collectors.toSet());
+    }
+
+    /**
+     * Check whether a required permission has been granted to the authenticated subject on a specific resource
+     * @param subject
+     * @param permission
+     * @param resource
+     * @return true if the Subject has been granted the required permission on the specified resource; false otherwise
+     */
+    private boolean hasPermission(RoleResource subject, Permission permission, JMXResource resource)
+    {
+        return getPermissions.apply(subject)
+               .stream()
+               .anyMatch(details -> details.permission == permission && details.resource.equals(resource));
+    }
+
+    /**
+     * Given a set of JMXResources upon which the Subject has been granted a particular permission,
+     * check whether any match the pattern-type ObjectName representing the target of the method
+     * invocation. At this point, we are sure that whatever the required permission, the Subject
+     * has definitely been granted it against this set of JMXResources. The job of this method is
+     * only to verify that the target of the invocation is covered by the members of the set.
+     *
+     * @param target
+     * @param permittedResources
+     * @return true if all registered beans which match the target can also be matched by the
+     *         JMXResources the subject has been granted permissions on; false otherwise
+     */
+    private boolean checkPattern(ObjectName target, Set<JMXResource> permittedResources)
+    {
+        // if the required permission was granted on the root JMX resource, then we're done
+        if (permittedResources.contains(JMXResource.root()))
+            return true;
+
+        // Get the full set of beans which match the target pattern
+        Set<ObjectName> targetNames = queryNames.apply(target);
+
+        // Iterate over the resources the permission has been granted on. Some of these may
+        // be patterns, so query the server to retrieve the full list of matching names and
+        // remove those from the target set. Once the target set is empty (i.e. all required
+        // matches have been satisfied), the requirement is met.
+        // If there are still unsatisfied targets after all the JMXResources have been processed,
+        // there are insufficient grants to permit the operation.
+        for (JMXResource resource : permittedResources)
+        {
+            try
+            {
+                Set<ObjectName> matchingNames = queryNames.apply(ObjectName.getInstance(resource.getObjectName()));
+                targetNames.removeAll(matchingNames);
+                if (targetNames.isEmpty())
+                    return true;
+            }
+            catch (MalformedObjectNameException e)
+            {
+                logger.warn(""Permissions for JMX resource contains invalid ObjectName {}"", resource.getObjectName());
+            }
+        }
+
+        logger.trace(""Subject does not have sufficient permissions on all MBeans matching the target pattern {}"", target);
+        return false;
+    }
+
+    /**
+     * Given a set of JMXResources upon which the Subject has been granted a particular permission,
+     * check whether any match the ObjectName representing the target of the method invocation.
+     * At this point, we are sure that whatever the required permission, the Subject has definitely
+     * been granted it against this set of JMXResources. The job of this method is only to verify
+     * that the target of the invocation is matched by a member of the set.
+     *
+     * @param target
+     * @param permittedResources
+     * @return true if at least one of the permitted resources matches the target; false otherwise
+     */
+    private boolean checkExact(ObjectName target, Set<JMXResource> permittedResources)
+    {
+        // if the required permission was granted on the root JMX resource, then we're done
+        if (permittedResources.contains(JMXResource.root()))
+            return true;
+
+        for (JMXResource resource : permittedResources)
+        {
+            try
+            {
+                if (ObjectName.getInstance(resource.getObjectName()).apply(target))
+                    return true;
+            }
+            catch (MalformedObjectNameException e)
+            {
+                logger.warn(""Permissions for JMX resource contains invalid ObjectName {}"", resource.getObjectName());
+            }
+        }
+
+        logger.trace(""Subject does not have sufficient permissions on target MBean {}"", target);
+        return false;
+    }
+
+    /**
+     * Mapping between method names and the permission required to invoke them. Note, these
+     * names refer to methods on MBean instances invoked via the MBeanServer.
+     * @param methodName
+     * @return
+     */
+    private static Permission getRequiredPermission(String methodName)
+    {
+        switch (methodName)
+        {
+            case ""getAttribute"":
+            case ""getAttributes"":
+                return Permission.SELECT;
+            case ""setAttribute"":
+            case ""setAttributes"":
+                return Permission.MODIFY;
+            case ""invoke"":
+                return Permission.EXECUTE;
+            case ""getInstanceOf"":
+            case ""getMBeanInfo"":
+            case ""hashCode"":
+            case ""isInstanceOf"":
+            case ""isRegistered"":
+            case ""queryMBeans"":
+            case ""queryNames"":
+                return Permission.DESCRIBE;
+            default:
+                logger.debug(""Access denied, method name {} does not map to any defined permission"", methodName);
+                return null;
+        }
+    }
+
+    /**
+     * Invoke a method on the MBeanServer instance. This is called when authorization is not required (because
+     * AllowAllAuthorizer is configured, or because the invocation is being performed by the JMXConnector
+     * itself rather than by a connected client), and also when a call from an authenticated subject
+     * has been successfully authorized
+     *
+     * @param method
+     * @param args
+     * @return
+     * @throws Throwable
+     */
+    private Object invoke(Method method, Object[] args) throws Throwable
+    {
+        try
+        {
+            return method.invoke(mbs, args);
+        }
+        catch (InvocationTargetException e) //Catch any exception that might have been thrown by the mbeans
+        {
+            Throwable t = e.getCause(); //Throw the exception that nodetool etc expects
+            throw t;
+        }
+    }
+
+    /**
+     * Query the configured IAuthorizer for the set of all permissions granted on JMXResources to a specific subject
+     * @param subject
+     * @return All permissions granted to the specfied subject (including those transitively inherited from
+     *         any roles the subject has been granted), filtered to include only permissions granted on
+     *         JMXResources
+     */
+    private static Set<PermissionDetails> loadPermissions(RoleResource subject)
+    {
+        // get all permissions for the specified subject. We'll cache them as it's likely
+        // we'll receive multiple lookups for the same subject (but for different resources
+        // and permissions) in quick succession
+        return DatabaseDescriptor.getAuthorizer().list(AuthenticatedUser.SYSTEM_USER, Permission.ALL, null, subject)
+                                                 .stream()
+                                                 .filter(details -> details.resource instanceof JMXResource)
+                                                 .collect(Collectors.toSet());
+    }
+
+    private static final class JMXPermissionsCache extends AuthCache<RoleResource, Set<PermissionDetails>>
+    {
+        protected JMXPermissionsCache()
+        {
+            super(""JMXPermissionsCache"",
+                  DatabaseDescriptor::setPermissionsValidity,
+                  DatabaseDescriptor::getPermissionsValidity,
+                  DatabaseDescriptor::setPermissionsUpdateInterval,
+                  DatabaseDescriptor::getPermissionsUpdateInterval,
+                  DatabaseDescriptor::setPermissionsCacheMaxEntries,
+                  DatabaseDescriptor::getPermissionsCacheMaxEntries,
+                  AuthorizationProxy::loadPermissions,
+                  () -> true);
+        }
+    }
+}
+"
+M:org.apache.cassandra.cql3.statements.CreateRoleStatement:grantPermissionsToCreator(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,grantPermissionsToCreator,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/CreateRoleStatement.java,CreateRoleStatement,../data/xml/cassandra/CreateRoleStatement.xml,"/**
+     * Grant all applicable permissions on the newly created role to the user performing the request
+     * see also: AlterTableStatement#createdResources() and the overridden implementations
+     * of it in subclasses CreateKeyspaceStatement & CreateTableStatement.
+     * @param state
+     */
+private void grantPermissionsToCreator(ClientState state)
+    {
+        // The creator of a Role automatically gets ALTER/DROP/AUTHORIZE/DESCRIBE permissions on it if:
+        // * the user is not anonymous
+        // * the configured IAuthorizer supports granting of permissions (not all do, AllowAllAuthorizer doesn't and
+        //   custom external implementations may not)
+        if (!state.getUser().isAnonymous())
+        {
+            try
+            {
+                DatabaseDescriptor.getAuthorizer().grant(AuthenticatedUser.SYSTEM_USER,
+                                                         role.applicablePermissions(),
+                                                         role,
+                                                         RoleResource.role(state.getUser().getName()));
+            }
+            catch (UnsupportedOperationException e)
+            {
+                // not a problem, grant is an optional method on IAuthorizer
+            }
+        }
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.DropRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/DropRoleStatement.java,DropRoleStatement,../data/xml/cassandra/DropRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        // not rejected in validate()
+        if (ifExists && !DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            return null;
+
+        // clean up grants and permissions of/on the dropped role.
+        DatabaseDescriptor.getRoleManager().dropRole(state.getUser(), role);
+        DatabaseDescriptor.getAuthorizer().revokeAllFrom(role);
+        DatabaseDescriptor.getAuthorizer().revokeAllOn(role);
+        DatabaseDescriptor.getNetworkAuthorizer().drop(role);
+        return null;
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.GrantPermissionsStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/GrantPermissionsStatement.java,GrantPermissionsStatement,../data/xml/cassandra/GrantPermissionsStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        DatabaseDescriptor.getAuthorizer().grant(state.getUser(), permissions, resource, grantee);
+        return null;
+    }
+
+    "
+"M:org.apache.cassandra.cql3.statements.ListPermissionsStatement:list(org.apache.cassandra.service.ClientState,org.apache.cassandra.auth.IResource)",(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,list,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListPermissionsStatement.java,ListPermissionsStatement,../data/xml/cassandra/ListPermissionsStatement.xml,"private Set<PermissionDetails> list(ClientState state, IResource resource)
+    throws RequestValidationException, RequestExecutionException
+    {
+        try
+        {
+            return DatabaseDescriptor.getAuthorizer().list(state.getUser(), permissions, resource, grantee);
+        }
+        catch (UnsupportedOperationException e)
+        {
+            throw new InvalidRequestException(e.getMessage());
+        }
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.ListRolesStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListRolesStatement.java,ListRolesStatement,../data/xml/cassandra/ListRolesStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        // If the executing user has DESCRIBE permission on the root roles resource, let them list any and all roles
+        boolean hasRootLevelSelect = DatabaseDescriptor.getAuthorizer()
+                                                       .authorize(state.getUser(), RoleResource.root())
+                                                       .contains(Permission.DESCRIBE);
+        if (hasRootLevelSelect)
+        {
+            if (grantee == null)
+                return resultMessage(DatabaseDescriptor.getRoleManager().getAllRoles());
+            else
+                return resultMessage(DatabaseDescriptor.getRoleManager().getRoles(grantee, recursive));
+        }
+        else
+        {
+            RoleResource currentUser = RoleResource.role(state.getUser().getName());
+            if (grantee == null)
+                return resultMessage(DatabaseDescriptor.getRoleManager().getRoles(currentUser, recursive));
+            if (DatabaseDescriptor.getRoleManager().getRoles(currentUser, true).contains(grantee))
+                return resultMessage(DatabaseDescriptor.getRoleManager().getRoles(grantee, recursive));
+            else
+                throw new UnauthorizedException(String.format(""You are not authorized to view roles granted to %s "", grantee.getRoleName()));
+        }
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.RevokePermissionsStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/RevokePermissionsStatement.java,RevokePermissionsStatement,../data/xml/cassandra/RevokePermissionsStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        DatabaseDescriptor.getAuthorizer().revoke(state.getUser(), permissions, resource, grantee);
+        return null;
+    }
+    
+    "
+"M:org.apache.cassandra.cql3.statements.schema.AlterSchemaStatement:grantPermissionsOnResource(org.apache.cassandra.auth.IResource,org.apache.cassandra.auth.AuthenticatedUser)",(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,grantPermissionsOnResource,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/schema/AlterSchemaStatement.java,AlterSchemaStatement,../data/xml/cassandra/AlterSchemaStatement.xml,"private void grantPermissionsOnResource(IResource resource, AuthenticatedUser user)
+    {
+        try
+        {
+            DatabaseDescriptor.getAuthorizer()
+                              .grant(AuthenticatedUser.SYSTEM_USER,
+                                     resource.applicablePermissions(),
+                                     resource,
+                                     user.getPrimaryRole());
+        }
+        catch (UnsupportedOperationException e)
+        {
+            // not a problem - grant is an optional method on IAuthorizer
+        }
+    }
+
+    "
+"M:org.apache.cassandra.service.ClientState:ensurePermission(org.apache.cassandra.auth.Permission,org.apache.cassandra.auth.IResource)",(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,ensurePermission,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ClientState.java,ClientState,../data/xml/cassandra/ClientState.xml,"public void ensurePermission(Permission perm, IResource resource)
+    {
+        if (!DatabaseDescriptor.getAuthorizer().requireAuthorization())
+            return;
+
+        // Access to built in functions is unrestricted
+        if(resource instanceof FunctionResource && resource.hasParent())
+            if (((FunctionResource)resource).getKeyspace().equals(SchemaConstants.SYSTEM_KEYSPACE_NAME))
+                return;
+
+        ensurePermissionOnResourceChain(perm, resource);
+    }
+
+    "
+"M:org.apache.cassandra.service.ClientState:ensurePermission(org.apache.cassandra.auth.Permission,org.apache.cassandra.cql3.functions.Function)",(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,ensurePermission,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ClientState.java,ClientState,../data/xml/cassandra/ClientState.xml,"public void ensurePermission(Permission perm, IResource resource)
+    {
+        if (!DatabaseDescriptor.getAuthorizer().requireAuthorization())
+            return;
+
+        // Access to built in functions is unrestricted
+        if(resource instanceof FunctionResource && resource.hasParent())
+            if (((FunctionResource)resource).getKeyspace().equals(SchemaConstants.SYSTEM_KEYSPACE_NAME))
+                return;
+
+        ensurePermissionOnResourceChain(perm, resource);
+    }
+
+    
+// Convenience method called from authorize method of CQLStatement
+// Also avoids needlessly creating lots of FunctionResource objects
+public void ensurePermission(Permission permission, Function function)
+    {
+        // Save creating a FunctionResource is we don't need to
+        if (!DatabaseDescriptor.getAuthorizer().requireAuthorization())
+            return;
+
+        // built in functions are always available to all
+        if (function.isNative())
+            return;
+
+        ensurePermissionOnResourceChain(permission, FunctionResource.function(function.name().keyspace,
+                                                                              function.name().name,
+                                                                              function.argTypes()));
+    }
+
+    "
+M:org.apache.cassandra.service.ClientState:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ClientState.java,ClientState,../data/xml/cassandra/ClientState.xml,"/**
+ * State related to a client connection.
+ */
+public class ClientState
+{
+    private static final Logger logger = LoggerFactory.getLogger(ClientState.class);
+
+    private static final Set<IResource> READABLE_SYSTEM_RESOURCES = new HashSet<>();
+    private static final Set<IResource> PROTECTED_AUTH_RESOURCES = new HashSet<>();
+
+    static
+    {
+        // We want these system cfs to be always readable to authenticated users since many tools rely on them
+        // (nodetool, cqlsh, bulkloader, etc.)
+        for (String cf : Arrays.asList(SystemKeyspace.LOCAL, SystemKeyspace.LEGACY_PEERS, SystemKeyspace.PEERS_V2))
+            READABLE_SYSTEM_RESOURCES.add(DataResource.table(SchemaConstants.SYSTEM_KEYSPACE_NAME, cf));
+
+        // make all schema tables readable by default (required by the drivers)
+        SchemaKeyspaceTables.ALL.forEach(table -> READABLE_SYSTEM_RESOURCES.add(DataResource.table(SchemaConstants.SCHEMA_KEYSPACE_NAME, table)));
+
+        // make all virtual schema tables readable by default as well
+        VirtualSchemaKeyspace.instance.tables().forEach(t -> READABLE_SYSTEM_RESOURCES.add(t.metadata().resource));
+
+        // neither clients nor tools need authentication/authorization
+        if (DatabaseDescriptor.isDaemonInitialized())
+        {
+            PROTECTED_AUTH_RESOURCES.addAll(DatabaseDescriptor.getAuthenticator().protectedResources());
+            PROTECTED_AUTH_RESOURCES.addAll(DatabaseDescriptor.getAuthorizer().protectedResources());
+            PROTECTED_AUTH_RESOURCES.addAll(DatabaseDescriptor.getRoleManager().protectedResources());
+        }
+    }
+
+    // Current user for the session
+    private volatile AuthenticatedUser user;
+    private volatile String keyspace;
+    private volatile boolean issuedPreparedStatementsUseWarning;
+
+    private static final QueryHandler cqlQueryHandler;
+    static
+    {
+        QueryHandler handler = QueryProcessor.instance;
+        String customHandlerClass = System.getProperty(""cassandra.custom_query_handler_class"");
+        if (customHandlerClass != null)
+        {
+            try
+            {
+                handler = FBUtilities.construct(customHandlerClass, ""QueryHandler"");
+                logger.info(""Using {} as query handler for native protocol queries (as requested with -Dcassandra.custom_query_handler_class)"", customHandlerClass);
+            }
+            catch (Exception e)
+            {
+                logger.error(""Cannot use class {} as query handler"", customHandlerClass, e);
+                JVMStabilityInspector.killCurrentJVM(e, true);
+            }
+        }
+        cqlQueryHandler = handler;
+    }
+
+    // isInternal is used to mark ClientState as used by some internal component
+    // that should have an ability to modify system keyspace.
+    public final boolean isInternal;
+
+    // The remote address of the client - null for internal clients.
+    private final InetSocketAddress remoteAddress;
+
+    // Driver String for the client
+    private volatile String driverName;
+    private volatile String driverVersion;
+
+    // The biggest timestamp that was returned by getTimestamp/assigned to a query. This is global to ensure that the
+    // timestamp assigned are strictly monotonic on a node, which is likely what user expect intuitively (more likely,
+    // most new user will intuitively expect timestamp to be strictly monotonic cluster-wise, but while that last part
+    // is unrealistic expectation, doing it node-wise is easy).
+    private static final AtomicLong lastTimestampMicros = new AtomicLong(0);
+
+    /**
+     * Construct a new, empty ClientState for internal calls.
+     */
+    private ClientState()
+    {
+        this.isInternal = true;
+        this.remoteAddress = null;
+    }
+
+    protected ClientState(InetSocketAddress remoteAddress)
+    {
+        this.isInternal = false;
+        this.remoteAddress = remoteAddress;
+        if (!DatabaseDescriptor.getAuthenticator().requireAuthentication())
+            this.user = AuthenticatedUser.ANONYMOUS_USER;
+    }
+
+    protected ClientState(ClientState source)
+    {
+        this.isInternal = source.isInternal;
+        this.remoteAddress = source.remoteAddress;
+        this.user = source.user;
+        this.keyspace = source.keyspace;
+        this.driverName = source.driverName;
+        this.driverVersion = source.driverVersion;
+    }
+
+    /**
+     * @return a ClientState object for internal C* calls (not limited by any kind of auth).
+     */
+    public static ClientState forInternalCalls()
+    {
+        return new ClientState();
+    }
+
+    public static ClientState forInternalCalls(String keyspace)
+    {
+        ClientState state = new ClientState();
+        state.setKeyspace(keyspace);
+        return state;
+    }
+
+    /**
+     * @return a ClientState object for external clients (native protocol users).
+     */
+    public static ClientState forExternalCalls(SocketAddress remoteAddress)
+    {
+        return new ClientState((InetSocketAddress)remoteAddress);
+    }
+
+    /**
+     * Clone this ClientState object, but use the provided keyspace instead of the
+     * keyspace in this ClientState object.
+     *
+     * @return a new ClientState object if the keyspace argument is non-null. Otherwise do not clone
+     *   and return this ClientState object.
+     */
+    public ClientState cloneWithKeyspaceIfSet(String keyspace)
+    {
+        if (keyspace == null)
+            return this;
+        ClientState clientState = new ClientState(this);
+        clientState.setKeyspace(keyspace);
+        return clientState;
+    }
+
+    /**
+     * This clock guarantees that updates for the same ClientState will be ordered
+     * in the sequence seen, even if multiple updates happen in the same millisecond.
+     */
+    public static long getTimestamp()
+    {
+        while (true)
+        {
+            long current = System.currentTimeMillis() * 1000;
+            long last = lastTimestampMicros.get();
+            long tstamp = last >= current ? last + 1 : current;
+            if (lastTimestampMicros.compareAndSet(last, tstamp))
+                return tstamp;
+        }
+    }
+
+    /**
+     * Returns a timestamp suitable for paxos given the timestamp of the last known commit (or in progress update).
+     * <p>
+     * Paxos ensures that the timestamp it uses for commits respects the serial order of those commits. It does so
+     * by having each replica reject any proposal whose timestamp is not strictly greater than the last proposal it
+     * accepted. So in practice, which timestamp we use for a given proposal doesn't affect correctness but it does
+     * affect the chance of making progress (if we pick a timestamp lower than what has been proposed before, our
+     * new proposal will just get rejected).
+     * <p>
+     * As during the prepared phase replica send us the last propose they accepted, a first option would be to take
+     * the maximum of those last accepted proposal timestamp plus 1 (and use a default value, say 0, if it's the
+     * first known proposal for the partition). This would most work (giving commits the timestamp 0, 1, 2, ...
+     * in the order they are commited) up to 2 important caveats:
+     *   1) it would give a very poor experience when Paxos and non-Paxos updates are mixed in the same partition,
+     *      since paxos operations wouldn't be using microseconds timestamps. And while you shouldn't theoretically
+     *      mix the 2 kind of operations, this would still be pretty unintuitive. And what if you started writing
+     *      normal updates and realize later you should switch to Paxos to enforce a property you want?
+     *   2) this wouldn't actually be safe due to the expiration set on the Paxos state table.
+     * <p>
+     * So instead, we initially chose to use the current time in microseconds as for normal update. Which works in
+     * general but mean that clock skew creates unavailability periods for Paxos updates (either a node has his clock
+     * in the past and he may no be able to get commit accepted until its clock catch up, or a node has his clock in
+     * the future and then once one of its commit his accepted, other nodes ones won't be until they catch up). This
+     * is ok for small clock skew (few ms) but can be pretty bad for large one.
+     * <p>
+     * Hence our current solution: we mix both approaches. That is, we compare the timestamp of the last known
+     * accepted proposal and the local time. If the local time is greater, we use it, thus keeping paxos timestamps
+     * locked to the current time in general (making mixing Paxos and non-Paxos more friendly, and behaving correctly
+     * when the paxos state expire (as long as your maximum clock skew is lower than the Paxos state expiration
+     * time)). Otherwise (the local time is lower than the last proposal, meaning that this last proposal was done
+     * with a clock in the future compared to the local one), we use the last proposal timestamp plus 1, ensuring
+     * progress.
+     *
+     * @param minTimestampToUse the max timestamp of the last proposal accepted by replica having responded
+     * to the prepare phase of the paxos round this is for. In practice, that's the minimum timestamp this method
+     * may return.
+     * @return a timestamp suitable for a Paxos proposal (using the reasoning described above). Note that
+     * contrarily to the {@link #getTimestamp()} method, the return value is not guaranteed to be unique (nor
+     * monotonic) across calls since it can return it's argument (so if the same argument is passed multiple times,
+     * it may be returned multiple times). Note that we still ensure Paxos ""ballot"" are unique (for different
+     * proposal) by (securely) randomizing the non-timestamp part of the UUID.
+     */
+    public long getTimestampForPaxos(long minTimestampToUse)
+    {
+        while (true)
+        {
+            long current = Math.max(System.currentTimeMillis() * 1000, minTimestampToUse);
+            long last = lastTimestampMicros.get();
+            long tstamp = last >= current ? last + 1 : current;
+            // Note that if we ended up picking minTimestampMicrosToUse (it was ""in the future""), we don't
+            // want to change the local clock, otherwise a single node in the future could corrupt the clock
+            // of all nodes and for all inserts (since non-paxos inserts also use lastTimestampMicros).
+            // See CASSANDRA-11991
+            if (tstamp == minTimestampToUse || lastTimestampMicros.compareAndSet(last, tstamp))
+                return tstamp;
+        }
+    }
+
+    public Optional<String> getDriverName()
+    {
+        return Optional.ofNullable(driverName);
+    }
+
+    public Optional<String> getDriverVersion()
+    {
+        return Optional.ofNullable(driverVersion);
+    }
+
+    public void setDriverName(String driverName)
+    {
+        this.driverName = driverName;
+    }
+
+    public void setDriverVersion(String driverVersion)
+    {
+        this.driverVersion = driverVersion;
+    }
+
+    public static QueryHandler getCQLQueryHandler()
+    {
+        return cqlQueryHandler;
+    }
+
+    public InetSocketAddress getRemoteAddress()
+    {
+        return remoteAddress;
+    }
+
+    InetAddress getClientAddress()
+    {
+        return isInternal ? null : remoteAddress.getAddress();
+    }
+
+    public String getRawKeyspace()
+    {
+        return keyspace;
+    }
+
+    public String getKeyspace() throws InvalidRequestException
+    {
+        if (keyspace == null)
+            throw new InvalidRequestException(""No keyspace has been specified. USE a keyspace, or explicitly specify keyspace.tablename"");
+        return keyspace;
+    }
+
+    public void setKeyspace(String ks)
+    {
+        // Skip keyspace validation for non-authenticated users. Apparently, some client libraries
+        // call set_keyspace() before calling login(), and we have to handle that.
+        if (user != null && Schema.instance.getKeyspaceMetadata(ks) == null)
+            throw new InvalidRequestException(""Keyspace '"" + ks + ""' does not exist"");
+        keyspace = ks;
+    }
+
+    /**
+     * Attempts to login the given user.
+     */
+    public void login(AuthenticatedUser user)
+    {
+        if (user.isAnonymous() || canLogin(user))
+            this.user = user;
+        else
+            throw new AuthenticationException(String.format(""%s is not permitted to log in"", user.getName()));
+    }
+
+    private boolean canLogin(AuthenticatedUser user)
+    {
+        try
+        {
+            return user.canLogin();
+        }
+        catch (RequestExecutionException | RequestValidationException e)
+        {
+            throw new AuthenticationException(""Unable to perform authentication: "" + e.getMessage(), e);
+        }
+    }
+
+    public void ensureAllKeyspacesPermission(Permission perm)
+    {
+        if (isInternal)
+            return;
+        validateLogin();
+        ensurePermission(perm, DataResource.root());
+    }
+
+    public void ensureKeyspacePermission(String keyspace, Permission perm)
+    {
+        ensurePermission(keyspace, perm, DataResource.keyspace(keyspace));
+    }
+
+    public void ensureTablePermission(String keyspace, String table, Permission perm)
+    {
+        ensurePermission(keyspace, perm, DataResource.table(keyspace, table));
+    }
+
+    public void ensureTablePermission(TableMetadataRef tableRef, Permission perm)
+    {
+        ensureTablePermission(tableRef.get(), perm);
+    }
+
+    public void ensureTablePermission(TableMetadata table, Permission perm)
+    {
+        ensurePermission(table.keyspace, perm, table.resource);
+    }
+
+    private void ensurePermission(String keyspace, Permission perm, DataResource resource)
+    {
+        validateKeyspace(keyspace);
+
+        if (isInternal)
+            return;
+
+        validateLogin();
+
+        preventSystemKSSchemaModification(keyspace, resource, perm);
+
+        if ((perm == Permission.SELECT) && READABLE_SYSTEM_RESOURCES.contains(resource))
+            return;
+
+        if (PROTECTED_AUTH_RESOURCES.contains(resource))
+            if ((perm == Permission.CREATE) || (perm == Permission.ALTER) || (perm == Permission.DROP))
+                throw new UnauthorizedException(String.format(""%s schema is protected"", resource));
+        ensurePermission(perm, resource);
+    }
+
+    public void ensurePermission(Permission perm, IResource resource)
+    {
+        if (!DatabaseDescriptor.getAuthorizer().requireAuthorization())
+            return;
+
+        // Access to built in functions is unrestricted
+        if(resource instanceof FunctionResource && resource.hasParent())
+            if (((FunctionResource)resource).getKeyspace().equals(SchemaConstants.SYSTEM_KEYSPACE_NAME))
+                return;
+
+        ensurePermissionOnResourceChain(perm, resource);
+    }
+
+    // Convenience method called from authorize method of CQLStatement
+    // Also avoids needlessly creating lots of FunctionResource objects
+    public void ensurePermission(Permission permission, Function function)
+    {
+        // Save creating a FunctionResource is we don't need to
+        if (!DatabaseDescriptor.getAuthorizer().requireAuthorization())
+            return;
+
+        // built in functions are always available to all
+        if (function.isNative())
+            return;
+
+        ensurePermissionOnResourceChain(permission, FunctionResource.function(function.name().keyspace,
+                                                                              function.name().name,
+                                                                              function.argTypes()));
+    }
+
+    private void ensurePermissionOnResourceChain(Permission perm, IResource resource)
+    {
+        for (IResource r : Resources.chain(resource))
+            if (authorize(r).contains(perm))
+                return;
+
+        throw new UnauthorizedException(String.format(""User %s has no %s permission on %s or any of its parents"",
+                                                      user.getName(),
+                                                      perm,
+                                                      resource));
+    }
+
+    private void preventSystemKSSchemaModification(String keyspace, DataResource resource, Permission perm)
+    {
+        // we only care about DDL statements
+        if (perm != Permission.ALTER && perm != Permission.DROP && perm != Permission.CREATE)
+            return;
+
+        // prevent ALL local system keyspace modification
+        if (SchemaConstants.isLocalSystemKeyspace(keyspace))
+            throw new UnauthorizedException(keyspace + "" keyspace is not user-modifiable."");
+
+        if (SchemaConstants.isReplicatedSystemKeyspace(keyspace))
+        {
+            // allow users with sufficient privileges to alter replication params of replicated system keyspaces
+            if (perm == Permission.ALTER && resource.isKeyspaceLevel())
+                return;
+
+            // prevent all other modifications of replicated system keyspaces
+            throw new UnauthorizedException(String.format(""Cannot %s %s"", perm, resource));
+        }
+    }
+
+    public void validateLogin()
+    {
+        if (user == null)
+        {
+            throw new UnauthorizedException(""You have not logged in"");
+        }
+        else if (!user.hasLocalAccess())
+        {
+            throw new UnauthorizedException(String.format(""You do not have access to this datacenter (%s)"", Datacenters.thisDatacenter()));
+        }
+    }
+
+    public void ensureNotAnonymous()
+    {
+        validateLogin();
+        if (user.isAnonymous())
+            throw new UnauthorizedException(""You have to be logged in and not anonymous to perform this request"");
+    }
+
+    public void ensureIsSuperuser(String message)
+    {
+        if (DatabaseDescriptor.getAuthenticator().requireAuthentication() && (user == null || !user.isSuper()))
+            throw new UnauthorizedException(message);
+    }
+
+    public void warnAboutUseWithPreparedStatements(MD5Digest statementId, String preparedKeyspace)
+    {
+        if (!issuedPreparedStatementsUseWarning)
+        {
+            ClientWarn.instance.warn(String.format(""`USE <keyspace>` with prepared statements is considered to be an anti-pattern due to ambiguity in non-qualified table names. "" +
+                                                   ""Please consider removing instances of `Session#setKeyspace(<keyspace>)`, `Session#execute(\""USE <keyspace>\"")` and `cluster.newSession(<keyspace>)` from your code, and "" +
+                                                   ""always use fully qualified table names (e.g. <keyspace>.<table>). "" +
+                                                   ""Keyspace used: %s, statement keyspace: %s, statement id: %s"", getRawKeyspace(), preparedKeyspace, statementId));
+            issuedPreparedStatementsUseWarning = true;
+        }
+    }
+
+    private static void validateKeyspace(String keyspace)
+    {
+        if (keyspace == null)
+            throw new InvalidRequestException(""You have not set a keyspace for this session"");
+    }
+
+    public AuthenticatedUser getUser()
+    {
+        return user;
+    }
+
+    private Set<Permission> authorize(IResource resource)
+    {
+        return user.getPermissions(resource);
+    }
+
+}
+"
+M:org.apache.cassandra.service.StorageService:doAuthSetup(boolean),(S)org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),org.apache.cassandra.config.DatabaseDescriptor:getAuthorizer(),authorizer,doAuthSetup,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"@VisibleForTesting
+    public void doAuthSetup(boolean setUpSchema)
+    {
+        if (!authSetupCalled.getAndSet(true))
+        {
+            if (setUpSchema)
+            {
+                Optional<Mutation> mutation = evolveSystemKeyspace(AuthKeyspace.metadata(), AuthKeyspace.GENERATION);
+                mutation.ifPresent(value -> FBUtilities.waitOnFuture(MigrationManager.announceWithoutPush(Collections.singleton(value))));
+            }
+
+            DatabaseDescriptor.getRoleManager().setup();
+            DatabaseDescriptor.getAuthenticator().setup();
+            DatabaseDescriptor.getAuthorizer().setup();
+            DatabaseDescriptor.getNetworkAuthorizer().setup();
+            Schema.instance.registerListener(new AuthSchemaChangeListener());
+            authSetupComplete = true;
+        }
+    }
+
+    "

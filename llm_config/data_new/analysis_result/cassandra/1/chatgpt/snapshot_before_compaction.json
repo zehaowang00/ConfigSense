@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'snapshot_before_compaction' configuration in Cassandra determines whether a snapshot of the data is taken before compaction processes occur. Changing this setting can significantly impact system performance, particularly in terms of disk I/O and memory usage. If snapshots are enabled, additional disk space is consumed for storing these snapshots, which can lead to increased garbage collection overhead and longer compaction times. Conversely, disabling snapshots may reduce disk usage and improve compaction performance but can lead to data loss in case of failures during compaction. Thus, the value change of this configuration can lead to notable variations in execution time and resource consumption, making it performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'max_hints_delivery_threads' configuration in Cassandra directly influences the number of threads available for delivering hints to nodes that were down during writes. A higher value can lead to increased parallelism and faster hint delivery, which can significantly reduce the time taken to recover from node outages. Conversely, a lower value may lead to bottlenecks, causing delays in hint processing and potentially increasing the overall execution time for write operations. Therefore, changes to this configuration can have a notable impact on system performance, making it performance-sensitive."
+}

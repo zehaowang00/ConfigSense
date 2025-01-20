@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'RECOMPILE_ALWAYS' in the H2 database significantly affects performance because it forces the database to recompile queries every time they are executed, regardless of whether the execution plan could be reused. This leads to increased execution time and higher CPU usage, as the overhead of recompilation can be substantial, especially for frequently executed queries. Consequently, this configuration can cause notable variations in execution time and resource consumption, making it performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'gi.igi.samples' in the Sunflow project directly influences the quality of global illumination calculations. Increasing the sample count can lead to more accurate lighting and shading results, but it also significantly increases the computational load and memory usage. A higher sample count results in longer execution times and greater memory consumption, making this configuration sensitive to performance changes. Therefore, variations in its value can cause notable differences in system performance."
+}

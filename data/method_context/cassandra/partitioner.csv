@@ -1,0 +1,1295 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.SystemKeyspace:persistLocalMetadata(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,persistLocalMetadata,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/SystemKeyspace.java,SystemKeyspace,../data/xml/cassandra/SystemKeyspace.xml,"public static void persistLocalMetadata()
+    {
+        String req = ""INSERT INTO system.%s ("" +
+                     ""key,"" +
+                     ""cluster_name,"" +
+                     ""release_version,"" +
+                     ""cql_version,"" +
+                     ""native_protocol_version,"" +
+                     ""data_center,"" +
+                     ""rack,"" +
+                     ""partitioner,"" +
+                     ""rpc_address,"" +
+                     ""rpc_port,"" +
+                     ""broadcast_address,"" +
+                     ""broadcast_port,"" +
+                     ""listen_address,"" +
+                     ""listen_port"" +
+                     "") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"";
+        IEndpointSnitch snitch = DatabaseDescriptor.getEndpointSnitch();
+        executeOnceInternal(format(req, LOCAL),
+                            LOCAL,
+                            DatabaseDescriptor.getClusterName(),
+                            FBUtilities.getReleaseVersionString(),
+                            QueryProcessor.CQL_VERSION.toString(),
+                            String.valueOf(ProtocolVersion.CURRENT.asInt()),
+                            snitch.getLocalDatacenter(),
+                            snitch.getLocalRack(),
+                            DatabaseDescriptor.getPartitioner().getClass().getName(),
+                            DatabaseDescriptor.getRpcAddress(),
+                            DatabaseDescriptor.getNativeTransportPort(),
+                            FBUtilities.getJustBroadcastAddress(),
+                            DatabaseDescriptor.getStoragePort(),
+                            FBUtilities.getJustLocalAddress(),
+                            DatabaseDescriptor.getStoragePort());
+    }
+
+    "
+M:org.apache.cassandra.db.marshal.PartitionerDefinedOrder:getInstance(org.apache.cassandra.db.marshal.TypeParser),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,getInstance,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/marshal/PartitionerDefinedOrder.java,PartitionerDefinedOrder,../data/xml/cassandra/PartitionerDefinedOrder.xml,"public static AbstractType<?> getInstance(TypeParser parser)
+    {
+        IPartitioner partitioner = DatabaseDescriptor.getPartitioner();
+        Iterator<String> argIterator = parser.getKeyValueParameters().keySet().iterator();
+        if (argIterator.hasNext())
+        {
+            partitioner = FBUtilities.newPartitioner(argIterator.next());
+            assert !argIterator.hasNext();
+        }
+        return partitioner.partitionOrdering();
+    }
+
+    "
+M:org.apache.cassandra.db.partitions.AtomicBTreePartition:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/partitions/AtomicBTreePartition.java,AtomicBTreePartition,../data/xml/cassandra/AtomicBTreePartition.xml,"/**
+ * A thread-safe and atomic Partition implementation.
+ *
+ * Operations (in particular addAll) on this implementation are atomic and
+ * isolated (in the sense of ACID). Typically a addAll is guaranteed that no
+ * other thread can see the state where only parts but not all rows have
+ * been added.
+ */
+public final class AtomicBTreePartition extends AbstractBTreePartition
+{
+    public static final long EMPTY_SIZE = ObjectSizes.measure(new AtomicBTreePartition(null,
+                                                                                       DatabaseDescriptor.getPartitioner().decorateKey(ByteBuffer.allocate(1)),
+                                                                                       null));
+
+    // Reserved values for wasteTracker field. These values must not be consecutive (see avoidReservedValues)
+    private static final int TRACKER_NEVER_WASTED = 0;
+    private static final int TRACKER_PESSIMISTIC_LOCKING = Integer.MAX_VALUE;
+
+    // The granularity with which we track wasted allocation/work; we round up
+    private static final int ALLOCATION_GRANULARITY_BYTES = 1024;
+    // The number of bytes we have to waste in excess of our acceptable realtime rate of waste (defined below)
+    private static final long EXCESS_WASTE_BYTES = 10 * 1024 * 1024L;
+    private static final int EXCESS_WASTE_OFFSET = (int) (EXCESS_WASTE_BYTES / ALLOCATION_GRANULARITY_BYTES);
+    // Note this is a shift, because dividing a long time and then picking the low 32 bits doesn't give correct rollover behavior
+    private static final int CLOCK_SHIFT = 17;
+    // CLOCK_GRANULARITY = 1^9ns >> CLOCK_SHIFT == 132us == (1/7.63)ms
+
+    private static final AtomicIntegerFieldUpdater<AtomicBTreePartition> wasteTrackerUpdater = AtomicIntegerFieldUpdater.newUpdater(AtomicBTreePartition.class, ""wasteTracker"");
+    private static final AtomicReferenceFieldUpdater<AtomicBTreePartition, Holder> refUpdater = AtomicReferenceFieldUpdater.newUpdater(AtomicBTreePartition.class, Holder.class, ""ref"");
+
+    /**
+     * (clock + allocation) granularity are combined to give us an acceptable (waste) allocation rate that is defined by
+     * the passage of real time of ALLOCATION_GRANULARITY_BYTES/CLOCK_GRANULARITY, or in this case 7.63Kb/ms, or 7.45Mb/s
+     *
+     * in wasteTracker we maintain within EXCESS_WASTE_OFFSET before the current time; whenever we waste bytes
+     * we increment the current value if it is within this window, and set it to the min of the window plus our waste
+     * otherwise.
+     */
+    private volatile int wasteTracker = TRACKER_NEVER_WASTED;
+
+    private final MemtableAllocator allocator;
+    private volatile Holder ref;
+
+    private final TableMetadataRef metadata;
+
+    public AtomicBTreePartition(TableMetadataRef metadata, DecoratedKey partitionKey, MemtableAllocator allocator)
+    {
+        // involved in potential bug? partition columns may be a subset if we alter columns while it's in memtable
+        super(partitionKey);
+        this.metadata = metadata;
+        this.allocator = allocator;
+        this.ref = EMPTY;
+    }
+
+    protected Holder holder()
+    {
+        return ref;
+    }
+
+    public TableMetadata metadata()
+    {
+        return metadata.get();
+    }
+
+    protected boolean canHaveShadowedData()
+    {
+        return true;
+    }
+
+    private long[] addAllWithSizeDeltaInternal(RowUpdater updater, PartitionUpdate update, UpdateTransaction indexer)
+    {
+        Holder current = ref;
+        updater.reset();
+
+        if (!update.deletionInfo().getPartitionDeletion().isLive())
+            indexer.onPartitionDeletion(update.deletionInfo().getPartitionDeletion());
+
+        if (update.deletionInfo().hasRanges())
+            update.deletionInfo().rangeIterator(false).forEachRemaining(indexer::onRangeTombstone);
+
+        DeletionInfo deletionInfo;
+        if (update.deletionInfo().mayModify(current.deletionInfo))
+        {
+            if (updater.inputDeletionInfoCopy == null)
+                updater.inputDeletionInfoCopy = update.deletionInfo().clone(HeapCloner.instance);
+
+            deletionInfo = current.deletionInfo.mutableCopy().add(updater.inputDeletionInfoCopy);
+            updater.onAllocatedOnHeap(deletionInfo.unsharedHeapSize() - current.deletionInfo.unsharedHeapSize());
+        }
+        else
+        {
+            deletionInfo = current.deletionInfo;
+        }
+
+        RegularAndStaticColumns columns = update.columns().mergeTo(current.columns);
+        updater.onAllocatedOnHeap(columns.unsharedHeapSize() - current.columns.unsharedHeapSize());
+        Row newStatic = update.staticRow();
+        Row staticRow = newStatic.isEmpty()
+                        ? current.staticRow
+                        : (current.staticRow.isEmpty() ? updater.insert(newStatic) : updater.merge(current.staticRow, newStatic));
+        Object[] tree = BTree.update(current.tree, update.holder().tree, update.metadata().comparator, updater);
+        EncodingStats newStats = current.stats.mergeWith(update.stats());
+        updater.onAllocatedOnHeap(newStats.unsharedHeapSize() - current.stats.unsharedHeapSize());
+
+        if (tree != null && refUpdater.compareAndSet(this, current, new Holder(columns, tree, deletionInfo, staticRow, newStats)))
+        {
+            updater.finish();
+            return new long[]{ updater.dataSize, updater.colUpdateTimeDelta };
+        }
+        else
+        {
+            return null;
+        }
+    }
+    /**
+     * Adds a given update to this in-memtable partition.
+     *
+     * @return an array containing first the difference in size seen after merging the updates, and second the minimum
+     * time detla between updates.
+     */
+    public long[] addAllWithSizeDelta(final PartitionUpdate update,
+                                      Cloner cloner,
+                                      OpOrder.Group writeOp,
+                                      UpdateTransaction indexer)
+    {
+        RowUpdater updater = new RowUpdater(allocator, cloner, writeOp, indexer);
+        try
+        {
+            boolean shouldLock = shouldLock(writeOp);
+            indexer.start();
+
+            while (true)
+            {
+                if (shouldLock)
+                {
+                    synchronized (this)
+                    {
+                        long[] result = addAllWithSizeDeltaInternal(updater, update, indexer);
+                        if (result != null)
+                            return result;
+                    }
+                }
+                else
+                {
+                    long[] result = addAllWithSizeDeltaInternal(updater, update, indexer);
+                    if (result != null)
+                        return result;
+
+                    shouldLock = shouldLock(updater.heapSize, writeOp);
+                }
+            }
+        }
+        finally
+        {
+            indexer.commit();
+        }
+    }
+
+    @Override
+    public DeletionInfo deletionInfo()
+    {
+        return allocator.ensureOnHeap().applyToDeletionInfo(super.deletionInfo());
+    }
+
+    @Override
+    public Row staticRow()
+    {
+        return allocator.ensureOnHeap().applyToStatic(super.staticRow());
+    }
+
+    @Override
+    public DecoratedKey partitionKey()
+    {
+        return allocator.ensureOnHeap().applyToPartitionKey(super.partitionKey());
+    }
+
+    @Override
+    public Row getRow(Clustering<?> clustering)
+    {
+        return allocator.ensureOnHeap().applyToRow(super.getRow(clustering));
+    }
+
+    @Override
+    public Row lastRow()
+    {
+        return allocator.ensureOnHeap().applyToRow(super.lastRow());
+    }
+
+    @Override
+    public UnfilteredRowIterator unfilteredIterator(ColumnFilter selection, Slices slices, boolean reversed)
+    {
+        return allocator.ensureOnHeap().applyToPartition(super.unfilteredIterator(selection, slices, reversed));
+    }
+
+    @Override
+    public UnfilteredRowIterator unfilteredIterator(ColumnFilter selection, NavigableSet<Clustering<?>> clusteringsInQueryOrder, boolean reversed)
+    {
+        return allocator.ensureOnHeap().applyToPartition(super.unfilteredIterator(selection, clusteringsInQueryOrder, reversed));
+    }
+
+    @Override
+    public UnfilteredRowIterator unfilteredIterator()
+    {
+        return allocator.ensureOnHeap().applyToPartition(super.unfilteredIterator());
+    }
+
+    @Override
+    public UnfilteredRowIterator unfilteredIterator(Holder current, ColumnFilter selection, Slices slices, boolean reversed)
+    {
+        return allocator.ensureOnHeap().applyToPartition(super.unfilteredIterator(current, selection, slices, reversed));
+    }
+
+    @Override
+    public Iterator<Row> iterator()
+    {
+        return allocator.ensureOnHeap().applyToPartition(super.iterator());
+    }
+
+    private boolean shouldLock(OpOrder.Group writeOp)
+    {
+        if (!useLock())
+            return false;
+
+        return lockIfOldest(writeOp);
+    }
+
+    private boolean shouldLock(long addWaste, OpOrder.Group writeOp)
+    {
+        if (!updateWastedAllocationTracker(addWaste))
+            return false;
+
+        return lockIfOldest(writeOp);
+    }
+
+    private boolean lockIfOldest(OpOrder.Group writeOp)
+    {
+        if (!writeOp.isOldestLiveGroup())
+        {
+            Thread.yield();
+            return writeOp.isOldestLiveGroup();
+        }
+
+        return true;
+    }
+
+    public boolean useLock()
+    {
+        return wasteTracker == TRACKER_PESSIMISTIC_LOCKING;
+    }
+
+    /**
+     * Update the wasted allocation tracker state based on newly wasted allocation information
+     *
+     * @param wastedBytes the number of bytes wasted by this thread
+     * @return true if the caller should now proceed with pessimistic locking because the waste limit has been reached
+     */
+    private boolean updateWastedAllocationTracker(long wastedBytes)
+    {
+        // Early check for huge allocation that exceeds the limit
+        if (wastedBytes < EXCESS_WASTE_BYTES)
+        {
+            // We round up to ensure work < granularity are still accounted for
+            int wastedAllocation = ((int) (wastedBytes + ALLOCATION_GRANULARITY_BYTES - 1)) / ALLOCATION_GRANULARITY_BYTES;
+
+            int oldTrackerValue;
+            while (TRACKER_PESSIMISTIC_LOCKING != (oldTrackerValue = wasteTracker))
+            {
+                // Note this time value has an arbitrary offset, but is a constant rate 32 bit counter (that may wrap)
+                int time = (int) (System.nanoTime() >>> CLOCK_SHIFT);
+                int delta = oldTrackerValue - time;
+                if (oldTrackerValue == TRACKER_NEVER_WASTED || delta >= 0 || delta < -EXCESS_WASTE_OFFSET)
+                    delta = -EXCESS_WASTE_OFFSET;
+                delta += wastedAllocation;
+                if (delta >= 0)
+                    break;
+                if (wasteTrackerUpdater.compareAndSet(this, oldTrackerValue, avoidReservedValues(time + delta)))
+                    return false;
+            }
+        }
+        // We have definitely reached our waste limit so set the state if it isn't already
+        wasteTrackerUpdater.set(this, TRACKER_PESSIMISTIC_LOCKING);
+        // And tell the caller to proceed with pessimistic locking
+        return true;
+    }
+
+    private static int avoidReservedValues(int wasteTracker)
+    {
+        if (wasteTracker == TRACKER_NEVER_WASTED || wasteTracker == TRACKER_PESSIMISTIC_LOCKING)
+            return wasteTracker + 1;
+        return wasteTracker;
+    }
+
+    @VisibleForTesting
+    public void unsafeSetHolder(Holder holder)
+    {
+        ref = holder;
+    }
+
+    @VisibleForTesting
+    public Holder unsafeGetHolder()
+    {
+        return ref;
+    }
+
+    // the function we provide to the btree utilities to perform any column replacements
+    private static final class RowUpdater implements UpdateFunction<Row, Row>, ColumnData.PostReconciliationFunction
+    {
+        final MemtableAllocator allocator;
+        final OpOrder.Group writeOp;
+        final UpdateTransaction indexer;
+        final Cloner cloner;
+        long dataSize;
+        long heapSize;
+        long colUpdateTimeDelta = Long.MAX_VALUE;
+        List<Row> inserted; // TODO: replace with walk of aborted BTree
+
+        DeletionInfo inputDeletionInfoCopy = null;
+
+        private RowUpdater(MemtableAllocator allocator, Cloner cloner, OpOrder.Group writeOp, UpdateTransaction indexer)
+        {
+            this.allocator = allocator;
+            this.writeOp = writeOp;
+            this.indexer = indexer;
+            this.cloner = cloner;
+        }
+
+        @Override
+        public Row insert(Row insert)
+        {
+            Row data = insert.clone(cloner); 
+            indexer.onInserted(insert);
+
+            this.dataSize += data.dataSize();
+            onAllocatedOnHeap(data.unsharedHeapSizeExcludingData());
+            if (inserted == null)
+                inserted = new ArrayList<>();
+            inserted.add(data);
+            return data;
+        }
+
+        public Row merge(Row existing, Row update)
+        {
+            Row reconciled = Rows.merge(existing, update, this);
+            indexer.onUpdated(existing, reconciled);
+
+            if (inserted == null)
+                inserted = new ArrayList<>();
+            inserted.add(reconciled);
+
+            return reconciled;
+        }
+
+        public Row retain(Row existing)
+        {
+            return existing;
+        }
+
+        protected void reset()
+        {
+            this.dataSize = 0;
+            this.heapSize = 0;
+            if (inserted != null)
+                inserted.clear();
+        }
+
+        public Cell<?> merge(Cell<?> previous, Cell<?> insert)
+        {
+            if (insert != previous)
+            {
+                long timeDelta = Math.abs(insert.timestamp() - previous.timestamp());
+                if (timeDelta < colUpdateTimeDelta)
+                    colUpdateTimeDelta = timeDelta;
+            }
+            if (cloner != null)
+                insert = cloner.clone(insert);
+            dataSize += insert.dataSize() - previous.dataSize();
+            heapSize += insert.unsharedHeapSizeExcludingData() - previous.unsharedHeapSizeExcludingData();
+            return insert;
+        }
+
+        public ColumnData insert(ColumnData insert)
+        {
+            if (cloner != null)
+                insert = insert.clone(cloner);
+            dataSize += insert.dataSize();
+            heapSize += insert.unsharedHeapSizeExcludingData();
+            return insert;
+        }
+
+        @Override
+        public void delete(ColumnData existing)
+        {
+            dataSize -= existing.dataSize();
+            heapSize -= existing.unsharedHeapSizeExcludingData();
+        }
+
+        public void onAllocatedOnHeap(long heapSize)
+        {
+            this.heapSize += heapSize;
+        }
+
+        protected void finish()
+        {
+            allocator.onHeap().adjust(heapSize, writeOp);
+        }
+    }
+}
+"
+M:org.apache.cassandra.db.view.ViewBuilder:build(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,build,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/view/ViewBuilder.java,ViewBuilder,../data/xml/cassandra/ViewBuilder.xml,"private synchronized void build()
+    {
+        if (isStopped)
+        {
+            logger.debug(""Stopped build for view({}.{}) after covering {} keys"", ksName, view.name, keysBuilt);
+            return;
+        }
+
+        // Get the local ranges for which the view hasn't already been built nor it's building
+        RangesAtEndpoint replicatedRanges = StorageService.instance.getLocalReplicas(ksName);
+        Replicas.temporaryAssertFull(replicatedRanges);
+        Set<Range<Token>> newRanges = replicatedRanges.ranges()
+                                                      .stream()
+                                                      .map(r -> r.subtractAll(builtRanges))
+                                                      .flatMap(Set::stream)
+                                                      .map(r -> r.subtractAll(pendingRanges.keySet()))
+                                                      .flatMap(Set::stream)
+                                                      .collect(Collectors.toSet());
+        // If there are no new nor pending ranges we should finish the build
+        if (newRanges.isEmpty() && pendingRanges.isEmpty())
+        {
+            finish();
+            return;
+        }
+
+        // Split the new local ranges and add them to the pending set
+        DatabaseDescriptor.getPartitioner()
+                          .splitter()
+                          .map(s -> s.split(newRanges, NUM_TASKS))
+                          .orElse(newRanges)
+                          .forEach(r -> pendingRanges.put(r, Pair.<Token, Long>create(null, 0L)));
+
+        "
+M:org.apache.cassandra.dht.RangeFetchMapCalculator:isTrivial(org.apache.cassandra.dht.Range),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,isTrivial,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/dht/RangeFetchMapCalculator.java,RangeFetchMapCalculator,../data/xml/cassandra/RangeFetchMapCalculator.xml,"static boolean isTrivial(Range<Token> range)
+    {
+        IPartitioner partitioner = DatabaseDescriptor.getPartitioner();
+        if (partitioner.splitter().isPresent())
+        {
+            BigInteger l = partitioner.splitter().get().valueForToken(range.left);
+            BigInteger r = partitioner.splitter().get().valueForToken(range.right);
+            if (r.compareTo(l) <= 0)
+                return false;
+            if (r.subtract(l).compareTo(BigInteger.valueOf(TRIVIAL_RANGE_LIMIT)) < 0)
+                return true;
+        }
+        return false;
+    }
+
+    "
+M:org.apache.cassandra.io.sstable.CQLSSTableWriter:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/CQLSSTableWriter.java,CQLSSTableWriter,../data/xml/cassandra/CQLSSTableWriter.xml,"/**
+ * Utility to write SSTables.
+ * <p>
+ * Typical usage looks like:
+ * <pre>
+ *   String type = CREATE TYPE myKs.myType (a int, b int)"";
+ *   String schema = ""CREATE TABLE myKs.myTable (""
+ *                 + ""  k int PRIMARY KEY,""
+ *                 + ""  v1 text,""
+ *                 + ""  v2 int,""
+ *                 + ""  v3 myType,""
+ *                 + "")"";
+ *   String insert = ""INSERT INTO myKs.myTable (k, v1, v2, v3) VALUES (?, ?, ?, ?)"";
+ *
+ *   // Creates a new writer. You need to provide at least the directory where to write the created sstable,
+ *   // the schema for the sstable to write and a (prepared) insert statement to use. If you do not use the
+ *   // default partitioner (Murmur3Partitioner), you will also need to provide the partitioner in use, see
+ *   // CQLSSTableWriter.Builder for more details on the available options.
+ *   CQLSSTableWriter writer = CQLSSTableWriter.builder()
+ *                                             .inDirectory(""path/to/directory"")
+ *                                             .withType(type)
+ *                                             .forTable(schema)
+ *                                             .using(insert).build();
+ *
+ *   UserType myType = writer.getUDType(""myType"");
+ *   // Adds a nember of rows to the resulting sstable
+ *   writer.addRow(0, ""test1"", 24, myType.newValue().setInt(""a"", 10).setInt(""b"", 20));
+ *   writer.addRow(1, ""test2"", null, null);
+ *   writer.addRow(2, ""test3"", 42, myType.newValue().setInt(""a"", 30).setInt(""b"", 40));
+ *
+ *   // Close the writer, finalizing the sstable
+ *   writer.close();
+ * </pre>
+ *
+ * Please note that {@code CQLSSTableWriter} is <b>not</b> thread-safe (multiple threads cannot access the
+ * same instance). It is however safe to use multiple instances in parallel (even if those instance write
+ * sstables for the same table).
+ */
+public class CQLSSTableWriter implements Closeable
+{
+    public static final ByteBuffer UNSET_VALUE = ByteBufferUtil.UNSET_BYTE_BUFFER;
+
+    static
+    {
+        DatabaseDescriptor.clientInitialization(false);
+        // Partitioner is not set in client mode.
+        if (DatabaseDescriptor.getPartitioner() == null)
+            DatabaseDescriptor.setPartitionerUnsafe(Murmur3Partitioner.instance);
+    }
+
+    private final AbstractSSTableSimpleWriter writer;
+    private final UpdateStatement insert;
+    private final List<ColumnSpecification> boundNames;
+    private final List<TypeCodec> typeCodecs;
+
+    private CQLSSTableWriter(AbstractSSTableSimpleWriter writer, UpdateStatement insert, List<ColumnSpecification> boundNames)
+    {
+        this.writer = writer;
+        this.insert = insert;
+        this.boundNames = boundNames;
+        this.typeCodecs = boundNames.stream().map(bn ->  UDHelper.codecFor(UDHelper.driverType(bn.type)))
+                                             .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a new builder for a CQLSSTableWriter.
+     *
+     * @return the new builder.
+     */
+    public static Builder builder()
+    {
+        return new Builder();
+    }
+
+    /**
+     * Adds a new row to the writer.
+     * <p>
+     * This is a shortcut for {@code addRow(Arrays.asList(values))}.
+     *
+     * @param values the row values (corresponding to the bind variables of the
+     * insertion statement used when creating by this writer).
+     * @return this writer.
+     */
+    public CQLSSTableWriter addRow(Object... values)
+    throws InvalidRequestException, IOException
+    {
+        return addRow(Arrays.asList(values));
+    }
+
+    /**
+     * Adds a new row to the writer.
+     * <p>
+     * Each provided value type should correspond to the types of the CQL column
+     * the value is for. The correspondance between java type and CQL type is the
+     * same one than the one documented at
+     * www.datastax.com/drivers/java/2.0/apidocs/com/datastax/driver/core/DataType.Name.html#asJavaClass().
+     * <p>
+     * If you prefer providing the values directly as binary, use
+     * {@link #rawAddRow} instead.
+     *
+     * @param values the row values (corresponding to the bind variables of the
+     * insertion statement used when creating by this writer).
+     * @return this writer.
+     */
+    public CQLSSTableWriter addRow(List<Object> values)
+    throws InvalidRequestException, IOException
+    {
+        int size = Math.min(values.size(), boundNames.size());
+        List<ByteBuffer> rawValues = new ArrayList<>(size);
+
+        for (int i = 0; i < size; i++)
+        {
+            Object value = values.get(i);
+            rawValues.add(serialize(value, typeCodecs.get(i), boundNames.get(i)));
+        }
+
+        return rawAddRow(rawValues);
+    }
+
+    /**
+     * Adds a new row to the writer.
+     * <p>
+     * This is equivalent to the other addRow methods, but takes a map whose
+     * keys are the names of the columns to add instead of taking a list of the
+     * values in the order of the insert statement used during construction of
+     * this write.
+     * <p>
+     * Please note that the column names in the map keys must be in lowercase unless
+     * the declared column name is a
+     * <a href=""http://cassandra.apache.org/doc/cql3/CQL.html#identifiers"">case-sensitive quoted identifier</a>
+     * (in which case the map key must use the exact case of the column).
+     *
+     * @param values a map of colum name to column values representing the new
+     * row to add. Note that if a column is not part of the map, it's value will
+     * be {@code null}. If the map contains keys that does not correspond to one
+     * of the column of the insert statement used when creating this writer, the
+     * the corresponding value is ignored.
+     * @return this writer.
+     */
+    public CQLSSTableWriter addRow(Map<String, Object> values)
+    throws InvalidRequestException, IOException
+    {
+        int size = boundNames.size();
+        List<ByteBuffer> rawValues = new ArrayList<>(size);
+        for (int i = 0; i < size; i++)
+        {
+            ColumnSpecification spec = boundNames.get(i);
+            Object value = values.get(spec.name.toString());
+            rawValues.add(serialize(value, typeCodecs.get(i), boundNames.get(i)));
+        }
+        return rawAddRow(rawValues);
+    }
+
+    /**
+     * Adds a new row to the writer given already serialized values.
+     *
+     * @param values the row values (corresponding to the bind variables of the
+     * insertion statement used when creating by this writer) as binary.
+     * @return this writer.
+     */
+    public CQLSSTableWriter rawAddRow(ByteBuffer... values)
+    throws InvalidRequestException, IOException
+    {
+        return rawAddRow(Arrays.asList(values));
+    }
+
+    /**
+     * Adds a new row to the writer given already serialized values.
+     * <p>
+     * This is a shortcut for {@code rawAddRow(Arrays.asList(values))}.
+     *
+     * @param values the row values (corresponding to the bind variables of the
+     * insertion statement used when creating by this writer) as binary.
+     * @return this writer.
+     */
+    public CQLSSTableWriter rawAddRow(List<ByteBuffer> values)
+    throws InvalidRequestException, IOException
+    {
+        if (values.size() != boundNames.size())
+            throw new InvalidRequestException(String.format(""Invalid number of arguments, expecting %d values but got %d"", boundNames.size(), values.size()));
+
+        QueryOptions options = QueryOptions.forInternalCalls(null, values);
+        List<ByteBuffer> keys = insert.buildPartitionKeyNames(options);
+        SortedSet<Clustering<?>> clusterings = insert.createClustering(options);
+
+        long now = System.currentTimeMillis();
+        // Note that we asks indexes to not validate values (the last 'false' arg below) because that triggers a 'Keyspace.open'
+        // and that forces a lot of initialization that we don't want.
+        UpdateParameters params = new UpdateParameters(insert.metadata,
+                                                       insert.updatedColumns(),
+                                                       options,
+                                                       insert.getTimestamp(TimeUnit.MILLISECONDS.toMicros(now), options),
+                                                       (int) TimeUnit.MILLISECONDS.toSeconds(now),
+                                                       insert.getTimeToLive(options),
+                                                       Collections.emptyMap());
+
+        try
+        {
+            for (ByteBuffer key : keys)
+            {
+                for (Clustering<?> clustering : clusterings)
+                    insert.addUpdateForKey(writer.getUpdateFor(key), clustering, params);
+            }
+            return this;
+        }
+        catch (SSTableSimpleUnsortedWriter.SyncException e)
+        {
+            // If we use a BufferedWriter and had a problem writing to disk, the IOException has been
+            // wrapped in a SyncException (see BufferedWriter below). We want to extract that IOE.
+            throw (IOException)e.getCause();
+        }
+    }
+
+    /**
+     * Adds a new row to the writer given already serialized values.
+     * <p>
+     * This is equivalent to the other rawAddRow methods, but takes a map whose
+     * keys are the names of the columns to add instead of taking a list of the
+     * values in the order of the insert statement used during construction of
+     * this write.
+     *
+     * @param values a map of colum name to column values representing the new
+     * row to add. Note that if a column is not part of the map, it's value will
+     * be {@code null}. If the map contains keys that does not correspond to one
+     * of the column of the insert statement used when creating this writer, the
+     * the corresponding value is ignored.
+     * @return this writer.
+     */
+    public CQLSSTableWriter rawAddRow(Map<String, ByteBuffer> values)
+    throws InvalidRequestException, IOException
+    {
+        int size = Math.min(values.size(), boundNames.size());
+        List<ByteBuffer> rawValues = new ArrayList<>(size);
+        for (int i = 0; i < size; i++)
+        {
+            ColumnSpecification spec = boundNames.get(i);
+            rawValues.add(values.get(spec.name.toString()));
+        }
+        return rawAddRow(rawValues);
+    }
+
+    /**
+     * Returns the User Defined type, used in this SSTable Writer, that can
+     * be used to create UDTValue instances.
+     *
+     * @param dataType name of the User Defined type
+     * @return user defined type
+     */
+    public UserType getUDType(String dataType)
+    {
+        KeyspaceMetadata ksm = Schema.instance.getKeyspaceMetadata(insert.keyspace());
+        org.apache.cassandra.db.marshal.UserType userType = ksm.types.getNullable(ByteBufferUtil.bytes(dataType));
+        return (UserType) UDHelper.driverType(userType);
+    }
+
+    /**
+     * Close this writer.
+     * <p>
+     * This method should be called, otherwise the produced sstables are not
+     * guaranteed to be complete (and won't be in practice).
+     */
+    public void close() throws IOException
+    {
+        writer.close();
+    }
+
+    private ByteBuffer serialize(Object value, TypeCodec codec, ColumnSpecification columnSpecification)
+    {
+        if (value == null || value == UNSET_VALUE)
+            return (ByteBuffer) value;
+
+        try
+        {
+            return codec.serialize(value, ProtocolVersion.CURRENT);
+        }
+        catch (ClassCastException cce)
+        {
+            // For backwards-compatibility with consumers that may be passing
+            // an Integer for a Date field, for example.
+            return ((AbstractType)columnSpecification.type).decompose(value);
+        }
+    }
+    /**
+     * A Builder for a CQLSSTableWriter object.
+     */
+    public static class Builder
+    {
+        private File directory;
+
+        protected SSTableFormat.Type formatType = null;
+
+        private CreateTableStatement.Raw schemaStatement;
+        private final List<CreateTypeStatement.Raw> typeStatements;
+        private ModificationStatement.Parsed insertStatement;
+        private IPartitioner partitioner;
+
+        private boolean sorted = false;
+        private long bufferSizeInMB = 128;
+
+        protected Builder() {
+            this.typeStatements = new ArrayList<>();
+        }
+
+        /**
+         * The directory where to write the sstables.
+         * <p>
+         * This is a mandatory option.
+         *
+         * @param directory the directory to use, which should exists and be writable.
+         * @return this builder.
+         *
+         * @throws IllegalArgumentException if {@code directory} doesn't exist or is not writable.
+         */
+        public Builder inDirectory(String directory)
+        {
+            return inDirectory(new File(directory));
+        }
+
+        /**
+         * The directory where to write the sstables (mandatory option).
+         * <p>
+         * This is a mandatory option.
+         *
+         * @param directory the directory to use, which should exists and be writable.
+         * @return this builder.
+         *
+         * @throws IllegalArgumentException if {@code directory} doesn't exist or is not writable.
+         */
+        public Builder inDirectory(File directory)
+        {
+            if (!directory.exists())
+                throw new IllegalArgumentException(directory + "" doesn't exists"");
+            if (!directory.canWrite())
+                throw new IllegalArgumentException(directory + "" exists but is not writable"");
+
+            this.directory = directory;
+            return this;
+        }
+
+        public Builder withType(String typeDefinition) throws SyntaxException
+        {
+            typeStatements.add(QueryProcessor.parseStatement(typeDefinition, CreateTypeStatement.Raw.class, ""CREATE TYPE""));
+            return this;
+        }
+
+        /**
+         * The schema (CREATE TABLE statement) for the table for which sstable are to be created.
+         * <p>
+         * Please note that the provided CREATE TABLE statement <b>must</b> use a fully-qualified
+         * table name, one that include the keyspace name.
+         * <p>
+         * This is a mandatory option.
+         *
+         * @param schema the schema of the table for which sstables are to be created.
+         * @return this builder.
+         *
+         * @throws IllegalArgumentException if {@code schema} is not a valid CREATE TABLE statement
+         * or does not have a fully-qualified table name.
+         */
+        public Builder forTable(String schema)
+        {
+            this.schemaStatement = QueryProcessor.parseStatement(schema, CreateTableStatement.Raw.class, ""CREATE TABLE"");
+            return this;
+        }
+
+        /**
+         * The partitioner to use.
+         * <p>
+         * By default, {@code Murmur3Partitioner} will be used. If this is not the partitioner used
+         * by the cluster for which the SSTables are created, you need to use this method to
+         * provide the correct partitioner.
+         *
+         * @param partitioner the partitioner to use.
+         * @return this builder.
+         */
+        public Builder withPartitioner(IPartitioner partitioner)
+        {
+            this.partitioner = partitioner;
+            return this;
+        }
+
+        /**
+         * The INSERT or UPDATE statement defining the order of the values to add for a given CQL row.
+         * <p>
+         * Please note that the provided INSERT statement <b>must</b> use a fully-qualified
+         * table name, one that include the keyspace name. Moreover, said statement must use
+         * bind variables since these variables will be bound to values by the resulting writer.
+         * <p>
+         * This is a mandatory option.
+         *
+         * @param insert an insertion statement that defines the order
+         * of column values to use.
+         * @return this builder.
+         *
+         * @throws IllegalArgumentException if {@code insertStatement} is not a valid insertion
+         * statement, does not have a fully-qualified table name or have no bind variables.
+         */
+        public Builder using(String insert)
+        {
+            this.insertStatement = QueryProcessor.parseStatement(insert, ModificationStatement.Parsed.class, ""INSERT/UPDATE"");
+            return this;
+        }
+
+        /**
+         * The size of the buffer to use.
+         * <p>
+         * This defines how much data will be buffered before being written as
+         * a new SSTable. This correspond roughly to the data size that will have the created
+         * sstable.
+         * <p>
+         * The default is 128MB, which should be reasonable for a 1GB heap. If you experience
+         * OOM while using the writer, you should lower this value.
+         *
+         * @param size the size to use in MB.
+         * @return this builder.
+         */
+        public Builder withBufferSizeInMB(int size)
+        {
+            this.bufferSizeInMB = size;
+            return this;
+        }
+
+        /**
+         * Creates a CQLSSTableWriter that expects sorted inputs.
+         * <p>
+         * If this option is used, the resulting writer will expect rows to be
+         * added in SSTable sorted order (and an exception will be thrown if that
+         * is not the case during insertion). The SSTable sorted order means that
+         * rows are added such that their partition key respect the partitioner
+         * order.
+         * <p>
+         * You should thus only use this option is you know that you can provide
+         * the rows in order, which is rarely the case. If you can provide the
+         * rows in order however, using this sorted might be more efficient.
+         * <p>
+         * Note that if used, some option like withBufferSizeInMB will be ignored.
+         *
+         * @return this builder.
+         */
+        public Builder sorted()
+        {
+            this.sorted = true;
+            return this;
+        }
+
+        @SuppressWarnings(""resource"")
+        public CQLSSTableWriter build()
+        {
+            if (directory == null)
+                throw new IllegalStateException(""No ouptut directory specified, you should provide a directory with inDirectory()"");
+            if (schemaStatement == null)
+                throw new IllegalStateException(""Missing schema, you should provide the schema for the SSTable to create with forTable()"");
+            if (insertStatement == null)
+                throw new IllegalStateException(""No insert statement specified, you should provide an insert statement through using()"");
+
+            synchronized (CQLSSTableWriter.class)
+            {
+                if (Schema.instance.getKeyspaceMetadata(SchemaConstants.SCHEMA_KEYSPACE_NAME) == null)
+                    Schema.instance.load(Schema.getSystemKeyspaceMetadata());
+                if (Schema.instance.getKeyspaceMetadata(SchemaConstants.SYSTEM_KEYSPACE_NAME) == null)
+                    Schema.instance.load(SystemKeyspace.metadata());
+
+                String keyspaceName = schemaStatement.keyspace();
+
+                if (Schema.instance.getKeyspaceMetadata(keyspaceName) == null)
+                {
+                    Schema.instance.load(KeyspaceMetadata.create(keyspaceName,
+                                                                 KeyspaceParams.simple(1),
+                                                                 Tables.none(),
+                                                                 Views.none(),
+                                                                 Types.none(),
+                                                                 Functions.none()));
+                }
+
+                KeyspaceMetadata ksm = Schema.instance.getKeyspaceMetadata(keyspaceName);
+
+                TableMetadata tableMetadata = ksm.tables.getNullable(schemaStatement.table());
+                if (tableMetadata == null)
+                {
+                    Types types = createTypes(keyspaceName);
+                    tableMetadata = createTable(types);
+                    Schema.instance.load(ksm.withSwapped(ksm.tables.with(tableMetadata)).withSwapped(types));
+                }
+
+                UpdateStatement preparedInsert = prepareInsert();
+
+                TableMetadataRef ref = TableMetadataRef.forOfflineTools(tableMetadata);
+                AbstractSSTableSimpleWriter writer = sorted
+                                                   ? new SSTableSimpleWriter(directory, ref, preparedInsert.updatedColumns())
+                                                   : new SSTableSimpleUnsortedWriter(directory, ref, preparedInsert.updatedColumns(), bufferSizeInMB);
+
+                if (formatType != null)
+                    writer.setSSTableFormatType(formatType);
+
+                return new CQLSSTableWriter(writer, preparedInsert, preparedInsert.getBindVariables());
+            }
+        }
+
+        private Types createTypes(String keyspace)
+        {
+            Types.RawBuilder builder = Types.rawBuilder(keyspace);
+            for (CreateTypeStatement.Raw st : typeStatements)
+                st.addToRawBuilder(builder);
+            return builder.build();
+        }
+
+        /**
+         * Creates the table according to schema statement
+         *
+         * @param types types this table should be created with
+         */
+        private TableMetadata createTable(Types types)
+        {
+            ClientState state = ClientState.forInternalCalls();
+            CreateTableStatement statement = schemaStatement.prepare(state);
+            statement.validate(ClientState.forInternalCalls());
+
+            TableMetadata.Builder builder = statement.builder(types);
+            if (partitioner != null)
+                builder.partitioner(partitioner);
+
+            return builder.build();
+        }
+
+        /**
+         * Prepares insert statement for writing data to SSTable
+         *
+         * @return prepared Insert statement and it's bound names
+         */
+        private UpdateStatement prepareInsert()
+        {
+            ClientState state = ClientState.forInternalCalls();
+            UpdateStatement insert = (UpdateStatement) insertStatement.prepare(state);
+            insert.validate(state);
+
+            if (insert.hasConditions())
+                throw new IllegalArgumentException(""Conditional statements are not supported"");
+            if (insert.isCounter())
+                throw new IllegalArgumentException(""Counter update statements are not supported"");
+            if (insert.getBindVariables().isEmpty())
+                throw new IllegalArgumentException(""Provided insert statement has no bind variables"");
+
+            return insert;
+        }
+    }
+}
+"
+"M:org.apache.cassandra.locator.LocalStrategy:<init>(java.lang.String,org.apache.cassandra.locator.TokenMetadata,org.apache.cassandra.locator.IEndpointSnitch,java.util.Map)",(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/LocalStrategy.java,LocalStrategy,../data/xml/cassandra/LocalStrategy.xml,"public LocalStrategy(String keyspaceName, TokenMetadata tokenMetadata, IEndpointSnitch snitch, Map<String, String> configOptions)
+    {
+        super(keyspaceName, tokenMetadata, snitch, configOptions);
+        replicas = EndpointsForRange.of(
+                new Replica(FBUtilities.getBroadcastAddressAndPort(),
+                        DatabaseDescriptor.getPartitioner().getMinimumToken(),
+                        DatabaseDescriptor.getPartitioner().getMinimumToken(),
+                        true
+                )
+        );
+    }
+
+    "
+M:org.apache.cassandra.locator.ReplicaPlans:forLocalBatchlogWrite(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,forLocalBatchlogWrite,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/ReplicaPlans.java,ReplicaPlans,../data/xml/cassandra/ReplicaPlans.xml,"public static ReplicaPlan.ForTokenWrite forLocalBatchlogWrite()
+    {
+        Token token = DatabaseDescriptor.getPartitioner().getMinimumToken();
+        Keyspace systemKeypsace = Keyspace.open(SchemaConstants.SYSTEM_KEYSPACE_NAME);
+        Replica localSystemReplica = SystemReplicas.getSystemReplica(FBUtilities.getBroadcastAddressAndPort());
+
+        ReplicaLayout.ForTokenWrite liveAndDown = ReplicaLayout.forTokenWrite(
+                systemKeypsace.getReplicationStrategy(),
+                EndpointsForToken.of(token, localSystemReplica),
+                EndpointsForToken.empty(token)
+        );
+        return forWrite(systemKeypsace, ConsistencyLevel.ONE, liveAndDown, liveAndDown, writeAll);
+    }
+
+    "
+M:org.apache.cassandra.locator.ReplicaPlans:forBatchlogWrite(boolean),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,forBatchlogWrite,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/ReplicaPlans.java,ReplicaPlans,../data/xml/cassandra/ReplicaPlans.xml,"/**
+     * Requires that the provided endpoints are alive.  Converts them to their relevant system replicas.
+     * Note that the liveAndDown collection and live are equal to the provided endpoints.
+     *
+     * @param isAny if batch consistency level is ANY, in which case a local node will be picked
+     */
+public static ReplicaPlan.ForTokenWrite forBatchlogWrite(boolean isAny) throws UnavailableException
+    {
+        // A single case we write not for range or token, but multiple mutations to many tokens
+        Token token = DatabaseDescriptor.getPartitioner().getMinimumToken();
+
+        TokenMetadata.Topology topology = StorageService.instance.getTokenMetadata().cachedOnlyTokenMap().getTopology();
+        IEndpointSnitch snitch = DatabaseDescriptor.getEndpointSnitch();
+        Multimap<String, InetAddressAndPort> localEndpoints = HashMultimap.create(topology.getDatacenterRacks()
+                                                                                          .get(snitch.getLocalDatacenter()));
+        // Replicas are picked manually:
+        //  - replicas should be alive according to the failure detector
+        //  - replicas should be in the local datacenter
+        //  - choose min(2, number of qualifying candiates above)
+        //  - allow the local node to be the only replica only if it's a single-node DC
+        Collection<InetAddressAndPort> chosenEndpoints = filterBatchlogEndpoints(snitch.getLocalRack(), localEndpoints);
+
+        if (chosenEndpoints.isEmpty() && isAny)
+            chosenEndpoints = Collections.singleton(FBUtilities.getBroadcastAddressAndPort());
+
+        Keyspace systemKeypsace = Keyspace.open(SchemaConstants.SYSTEM_KEYSPACE_NAME);
+        ReplicaLayout.ForTokenWrite liveAndDown = ReplicaLayout.forTokenWrite(
+                systemKeypsace.getReplicationStrategy(),
+                SystemReplicas.getSystemReplicas(chosenEndpoints).forToken(token),
+                EndpointsForToken.empty(token)
+        );
+        // Batchlog is hosted by either one node or two nodes from different racks.
+        ConsistencyLevel consistencyLevel = liveAndDown.all().size() == 1 ? ConsistencyLevel.ONE : ConsistencyLevel.TWO;
+        // assume that we have already been given live endpoints, and skip applying the failure detector
+        return forWrite(systemKeypsace, consistencyLevel, liveAndDown, liveAndDown, writeAll);
+    }
+
+    "
+M:org.apache.cassandra.locator.SystemReplicas:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/SystemReplicas.java,SystemReplicas,../data/xml/cassandra/SystemReplicas.xml,"public class SystemReplicas
+{
+    private static final Map<InetAddressAndPort, Replica> systemReplicas = new ConcurrentHashMap<>();
+    public static final Range<Token> FULL_RANGE = new Range<>(DatabaseDescriptor.getPartitioner().getMinimumToken(),
+                                                              DatabaseDescriptor.getPartitioner().getMinimumToken());
+
+    private static Replica createSystemReplica(InetAddressAndPort endpoint)
+    {
+        return new Replica(endpoint, FULL_RANGE, true);
+    }
+
+    /**
+     * There are a few places where a system function borrows write path functionality, but doesn't otherwise
+     * fit into normal replication strategies (ie: hints and batchlog). So here we provide a replica instance
+     */
+    public static Replica getSystemReplica(InetAddressAndPort endpoint)
+    {
+        return systemReplicas.computeIfAbsent(endpoint, SystemReplicas::createSystemReplica);
+    }
+
+    public static EndpointsForRange getSystemReplicas(Collection<InetAddressAndPort> endpoints)
+    {
+        if (endpoints.isEmpty())
+            return EndpointsForRange.empty(FULL_RANGE);
+
+        return EndpointsForRange.copyOf(Collections2.transform(endpoints, SystemReplicas::getSystemReplica));
+    }
+}
+"
+M:org.apache.cassandra.locator.TokenMetadata:<init>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/TokenMetadata.java,TokenMetadata,../data/xml/cassandra/TokenMetadata.xml,"public TokenMetadata()
+    {
+        this(SortedBiMultiValMap.create(),
+             HashBiMap.create(),
+             Topology.empty(),
+             DatabaseDescriptor.getPartitioner());
+    }
+
+    
+public TokenMetadata(IEndpointSnitch snitch)
+    {
+        this(SortedBiMultiValMap.create(),
+             HashBiMap.create(),
+             Topology.builder(() -> snitch).build(),
+             DatabaseDescriptor.getPartitioner());
+    }
+
+    
+private TokenMetadata(BiMultiValMap<Token, InetAddressAndPort> tokenToEndpointMap, BiMap<InetAddressAndPort, UUID> endpointsMap, Topology topology, IPartitioner partitioner)
+    {
+        this(tokenToEndpointMap, endpointsMap, topology, partitioner, 0);
+    }
+
+    
+private TokenMetadata(BiMultiValMap<Token, InetAddressAndPort> tokenToEndpointMap, BiMap<InetAddressAndPort, UUID> endpointsMap, Topology topology, IPartitioner partitioner, long ringVersion)
+    {
+        this.tokenToEndpointMap = tokenToEndpointMap;
+        this.topology = topology;
+        this.partitioner = partitioner;
+        endpointToHostIdMap = endpointsMap;
+        sortedTokens = sortTokens();
+        this.ringVersion = ringVersion;
+    }
+
+    "
+M:org.apache.cassandra.locator.TokenMetadata:<init>(org.apache.cassandra.locator.IEndpointSnitch),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/TokenMetadata.java,TokenMetadata,../data/xml/cassandra/TokenMetadata.xml,"public TokenMetadata(IEndpointSnitch snitch)
+    {
+        this(SortedBiMultiValMap.create(),
+             HashBiMap.create(),
+             Topology.builder(() -> snitch).build(),
+             DatabaseDescriptor.getPartitioner());
+    }
+
+    "
+M:org.apache.cassandra.repair.consistent.LocalSessions:deserializeRange(java.nio.ByteBuffer),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,deserializeRange,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/repair/consistent/LocalSessions.java,LocalSessions,../data/xml/cassandra/LocalSessions.xml,"private static Range<Token> deserializeRange(ByteBuffer bb)
+    {
+        try (DataInputBuffer in = new DataInputBuffer(bb, false))
+        {
+            IPartitioner partitioner = DatabaseDescriptor.getPartitioner();
+            Token left = Token.serializer.deserialize(in, partitioner, 0);
+            Token right = Token.serializer.deserialize(in, partitioner, 0);
+            return new Range<>(left, right);
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    "
+M:org.apache.cassandra.schema.TableMetadata$Builder:build(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,build,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/schema/TableMetadata.java,TableMetadata$Builder,../data/xml/cassandra/TableMetadata.xml,"public TableMetadata build()
+        {
+            if (partitioner == null)
+                partitioner = DatabaseDescriptor.getPartitioner();
+
+            if (id == null)
+                id = TableId.generate();
+
+            if (Flag.isCQLTable(flags))
+                return new TableMetadata(this);
+            else
+                return new CompactTableMetadata(this);
+        }
+
+        "
+"M:org.apache.cassandra.service.ActiveRepairService:getSessions(boolean,java.lang.String)",(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,getSessions,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ActiveRepairService.java,ActiveRepairService,../data/xml/cassandra/ActiveRepairService.xml,"@Override
+    public List<Map<String, String>> getSessions(boolean all, String rangesStr)
+    {
+        Set<Range<Token>> ranges = RepairOption.parseRanges(rangesStr, DatabaseDescriptor.getPartitioner());
+        return consistent.local.sessionInfo(all, ranges);
+    }
+
+    "
+"M:org.apache.cassandra.service.ActiveRepairService:getRepairStats(java.util.List,java.lang.String)",(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,getRepairStats,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ActiveRepairService.java,ActiveRepairService,../data/xml/cassandra/ActiveRepairService.xml,"public List<CompositeData> getRepairStats(List<String> schemaArgs, String rangeString)
+    {
+        List<CompositeData> stats = new ArrayList<>();
+        Collection<Range<Token>> userRanges = rangeString != null
+                                              ? RepairOption.parseRanges(rangeString, DatabaseDescriptor.getPartitioner())
+                                              : null;
+
+        for (ColumnFamilyStore cfs : SchemaArgsParser.parse(schemaArgs))
+        {
+            String keyspace = cfs.keyspace.getName();
+            Collection<Range<Token>> ranges = userRanges != null
+                                              ? userRanges
+                                              : StorageService.instance.getLocalReplicas(keyspace).ranges();
+            RepairedState.Stats cfStats = consistent.local.getRepairedStats(cfs.metadata().id, ranges);
+            stats.add(RepairStats.fromRepairState(keyspace, cfs.name, cfStats).toComposite());
+        }
+
+        return stats;
+    }
+
+    "
+"M:org.apache.cassandra.service.ActiveRepairService:getPendingStats(java.util.List,java.lang.String)",(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,getPendingStats,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ActiveRepairService.java,ActiveRepairService,../data/xml/cassandra/ActiveRepairService.xml,"@Override
+    public List<CompositeData> getPendingStats(List<String> schemaArgs, String rangeString)
+    {
+        List<CompositeData> stats = new ArrayList<>();
+        Collection<Range<Token>> userRanges = rangeString != null
+                                              ? RepairOption.parseRanges(rangeString, DatabaseDescriptor.getPartitioner())
+                                              : null;
+        for (ColumnFamilyStore cfs : SchemaArgsParser.parse(schemaArgs))
+        {
+            String keyspace = cfs.keyspace.getName();
+            Collection<Range<Token>> ranges = userRanges != null
+                                              ? userRanges
+                                              : StorageService.instance.getLocalReplicas(keyspace).ranges();
+            PendingStats cfStats = consistent.local.getPendingStats(cfs.metadata().id, ranges);
+            stats.add(cfStats.toComposite());
+        }
+
+        return stats;
+    }
+
+    "
+"M:org.apache.cassandra.service.ActiveRepairService:cleanupPending(java.util.List,java.lang.String,boolean)",(S)org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),org.apache.cassandra.config.DatabaseDescriptor:getPartitioner(),partitioner,cleanupPending,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ActiveRepairService.java,ActiveRepairService,../data/xml/cassandra/ActiveRepairService.xml,"@Override
+    public List<CompositeData> cleanupPending(List<String> schemaArgs, String rangeString, boolean force)
+    {
+        List<CompositeData> stats = new ArrayList<>();
+        Collection<Range<Token>> userRanges = rangeString != null
+                                              ? RepairOption.parseRanges(rangeString, DatabaseDescriptor.getPartitioner())
+                                              : null;
+        for (ColumnFamilyStore cfs : SchemaArgsParser.parse(schemaArgs))
+        {
+            String keyspace = cfs.keyspace.getName();
+            Collection<Range<Token>> ranges = userRanges != null
+                                              ? userRanges
+                                              : StorageService.instance.getLocalReplicas(keyspace).ranges();
+            CleanupSummary summary = consistent.local.cleanup(cfs.metadata().id, ranges, force);
+            stats.add(summary.toComposite());
+        }
+        return stats;
+    }
+
+    "

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "LOB_TIMEOUT",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private void removeTemporaryLobs(boolean onTimeout) {\n        if (temporaryLobs != null) {\n            for (ValueLob v : temporaryLobs) {\n                if (!v.isLinkedToTable()) {\n                    v.remove();\n                }\n            }\n            temporaryLobs.clear();\n        }\n        if (temporaryResultLobs != null && !temporaryResultLobs.isEmpty()) {\n            long keepYoungerThan = System.nanoTime() - database.getSettings().lobTimeout * 1_000_000L;\n            while (!temporaryResultLobs.isEmpty()) {\n                TimeoutValue tv = temporaryResultLobs.getFirst();\n                if (onTimeout && tv.created - keepYoungerThan >= 0) {\n                    break;\n                }\n                ValueLob v = temporaryResultLobs.removeFirst().value;\n                if (!v.isLinkedToTable()) {\n                    v.remove();\n                }\n            }\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The LOB_TIMEOUT configuration directly influences the timing of operations involving temporary result LOBs. The method utilizes this configuration to determine how long to keep temporary result LOBs before removing them, which can lead to significant variations in performance based on the timeout value. If the timeout is set too high, it may lead to excessive memory usage and delays in processing, as more temporary LOBs will be retained longer than necessary. Conversely, a very low timeout may result in frequent removals, potentially impacting performance if the system is constantly managing these resources. Thus, the configuration has a substantial impact on system performance due to its influence on time-intensive memory management operations."
+        }
+    ]
+}

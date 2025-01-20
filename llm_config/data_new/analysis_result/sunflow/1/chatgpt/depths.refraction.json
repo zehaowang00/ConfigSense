@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'depths.refraction' in the Sunflow software project directly influences the rendering process, particularly in how light interacts with surfaces. Changes to this setting can lead to significant variations in the complexity of the calculations required for rendering scenes with refraction effects. A higher value may increase the number of rays traced and the computational load, resulting in longer execution times and higher memory consumption. Conversely, a lower value may simplify the calculations, leading to faster rendering but potentially at the cost of visual fidelity. Therefore, variations in this configuration can notably impact overall system performance."
+}

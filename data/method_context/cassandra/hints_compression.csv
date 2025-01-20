@@ -1,0 +1,22 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.hints.HintsService:createDescriptorParams(),(S)org.apache.cassandra.config.DatabaseDescriptor:getHintsCompression(),org.apache.cassandra.config.DatabaseDescriptor:getHintsCompression(),hints_compression,createDescriptorParams,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/hints/HintsService.java,HintsService,../data/xml/cassandra/HintsService.xml,"private static ImmutableMap<String, Object> createDescriptorParams()
+    {
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+
+        ParameterizedClass compressionConfig = DatabaseDescriptor.getHintsCompression();
+        if (compressionConfig != null)
+        {
+            ImmutableMap.Builder<String, Object> compressorParams = ImmutableMap.builder();
+
+            compressorParams.put(ParameterizedClass.CLASS_NAME, compressionConfig.class_name);
+            if (compressionConfig.parameters != null)
+            {
+                compressorParams.put(ParameterizedClass.PARAMETERS, compressionConfig.parameters);
+            }
+            builder.put(HintsDescriptor.COMPRESSION, compressorParams.build());
+        }
+
+        return builder.build();
+    }
+
+    "

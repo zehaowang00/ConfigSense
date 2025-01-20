@@ -1,0 +1,33 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.db.commitlog.CommitLog:<init>(org.apache.cassandra.db.commitlog.CommitLogArchiver,java.util.function.Function)",(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSync(),org.apache.cassandra.config.DatabaseDescriptor:getCommitLogSync(),commitlog_sync,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLog.java,CommitLog,../data/xml/cassandra/CommitLog.xml,"@VisibleForTesting
+    CommitLog(CommitLogArchiver archiver, Function<CommitLog, AbstractCommitLogSegmentManager> segmentManagerProvider)
+    {
+        this.configuration = new Configuration(DatabaseDescriptor.getCommitLogCompression(),
+                                               DatabaseDescriptor.getEncryptionContext());
+        DatabaseDescriptor.createAllDirectories();
+
+        this.archiver = archiver;
+        metrics = new CommitLogMetrics();
+
+        switch (DatabaseDescriptor.getCommitLogSync())
+        {
+            case periodic:
+                executor = new PeriodicCommitLogService(this);
+                break;
+            case batch:
+                executor = new BatchCommitLogService(this);
+                break;
+            case group:
+                executor = new GroupCommitLogService(this);
+                break;
+            default:
+                throw new IllegalArgumentException(""Unknown commitlog service type: "" + DatabaseDescriptor.getCommitLogSync());
+        }
+
+        segmentManager = segmentManagerProvider.apply(this);
+
+        // register metrics
+        metrics.attach(executor, segmentManager);
+    }
+
+    "

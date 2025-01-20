@@ -1,0 +1,14 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.engine.SessionLocal:setQueryTimeout(int),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public void setQueryTimeout(int queryTimeout) {
+        int max = database.getSettings().maxQueryTimeout;
+        if (max != 0 && (max < queryTimeout || queryTimeout == 0)) {
+            // the value must be at most max
+            queryTimeout = max;
+        }
+        this.queryTimeout = queryTimeout;
+        // must reset the cancel at here,
+        // otherwise it is still used
+        cancelAtNs = 0L;
+    }
+
+    ",MAX_QUERY_TIMEOUT,setQueryTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/engine/SessionLocal.java,SessionLocal,../data/xml/h2/SessionLocal.xml

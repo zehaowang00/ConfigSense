@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The '_nullSnapshotManager' configuration in the Prevayler project is performance-sensitive because it directly influences how snapshots of the system state are managed. Changes to this configuration can lead to variations in memory consumption and execution time, particularly during periods of high transaction volume. If snapshots are not managed efficiently, it can result in increased memory usage and longer processing times for transactions, thereby impacting overall system performance. Therefore, any modifications to this configuration can significantly affect the performance characteristics of the system."
+}

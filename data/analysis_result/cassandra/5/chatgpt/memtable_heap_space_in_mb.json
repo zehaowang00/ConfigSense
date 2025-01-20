@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'memtable_heap_space_in_mb' configuration in Cassandra directly affects the amount of memory allocated for memtables, which are in-memory data structures used for write operations before data is flushed to disk. A change in this configuration can significantly impact system performance by altering the speed of write operations and the frequency of flushes to disk. If the heap space is too low, it can lead to increased flushes, higher disk I/O, and potential write amplification, resulting in longer execution times and increased latency. Conversely, if the heap space is too high, it may lead to inefficient memory usage and garbage collection pauses, which can also degrade performance. Therefore, this configuration is classified as performance-sensitive."
+}

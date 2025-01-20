@@ -1,0 +1,9 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.net.OutboundConnectionSettings:shouldCompressConnection(org.apache.cassandra.locator.IEndpointSnitch,org.apache.cassandra.locator.InetAddressAndPort,org.apache.cassandra.locator.InetAddressAndPort)",(S)org.apache.cassandra.config.DatabaseDescriptor:internodeCompression(),org.apache.cassandra.config.DatabaseDescriptor:internodeCompression(),internode_compression,shouldCompressConnection,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/OutboundConnectionSettings.java,OutboundConnectionSettings,../data/xml/cassandra/OutboundConnectionSettings.xml,"@VisibleForTesting
+    static boolean shouldCompressConnection(IEndpointSnitch snitch, InetAddressAndPort localHost, InetAddressAndPort remoteHost)
+    {
+        return (DatabaseDescriptor.internodeCompression() == Config.InternodeCompression.all)
+               || ((DatabaseDescriptor.internodeCompression() == Config.InternodeCompression.dc) && !isInLocalDC(snitch, localHost, remoteHost));
+    }
+
+    "

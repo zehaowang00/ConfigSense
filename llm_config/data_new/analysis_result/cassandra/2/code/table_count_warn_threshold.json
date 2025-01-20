@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "table_count_warn_threshold",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n    public Set<String> clientWarnings(KeyspacesDiff diff)\n    {\n        int tableCount = Schema.instance.getNumberOfTables();\n        if (tableCount > DatabaseDescriptor.tableCountWarnThreshold())\n        {\n            String msg = String.format(\"Cluster already contains %d tables in %d keyspaces. Having a large number of tables will significantly slow down schema dependent cluster operations.\",\n                                       tableCount,\n                                       Schema.instance.getKeyspaces().size());\n            logger.warn(msg);\n            return ImmutableSet.of(msg);\n        }\n        return ImmutableSet.of();\n    }\n\n    \npublic int getTableCountWarnThreshold()\n    {\n        return DatabaseDescriptor.tableCountWarnThreshold();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `table_count_warn_threshold` directly influences the number of tables allowed in the schema, which can significantly impact schema-dependent cluster operations. If the number of tables exceeds this threshold, it can lead to performance degradation in operations that rely on schema information, making it a critical configuration for maintaining optimal system performance."
+        }
+    ]
+}

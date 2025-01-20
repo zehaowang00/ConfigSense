@@ -1,0 +1,16 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+"M:org.h2.engine.SessionLocal:<init>(org.h2.engine.Database,org.h2.engine.User,int)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public SessionLocal(Database database, User user, int id) {
+        this.database = database;
+        this.queryTimeout = database.getSettings().maxQueryTimeout;
+        this.queryCacheSize = database.getSettings().queryCacheSize;
+        this.user = user;
+        this.id = id;
+        this.lockTimeout = database.getLockTimeout();
+        Schema mainSchema = database.getMainSchema();
+        this.currentSchemaName = mainSchema != null ? mainSchema.getName()
+                : database.sysIdentifier(Constants.SCHEMA_MAIN);
+        timeZone = DateTimeUtils.getTimeZone();
+        sessionStart = DateTimeUtils.currentTimestamp(timeZone, commandStartOrEnd = Instant.now());
+    }
+
+    ",QUERY_CACHE_SIZE,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/engine/SessionLocal.java,SessionLocal,../data/xml/h2/SessionLocal.xml

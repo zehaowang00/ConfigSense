@@ -1,0 +1,23 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.Memtable:createMemtableAllocatorPool(),(S)org.apache.cassandra.config.DatabaseDescriptor:getMemtableAllocationType(),org.apache.cassandra.config.DatabaseDescriptor:getMemtableAllocationType(),memtable_allocation_type,createMemtableAllocatorPool,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/Memtable.java,Memtable,../data/xml/cassandra/Memtable.xml,"private static MemtablePool createMemtableAllocatorPool()
+    {
+        long heapLimit = DatabaseDescriptor.getMemtableHeapSpaceInMb() << 20;
+        long offHeapLimit = DatabaseDescriptor.getMemtableOffheapSpaceInMb() << 20;
+        final float cleaningThreshold = DatabaseDescriptor.getMemtableCleanupThreshold();
+        final MemtableCleaner cleaner = ColumnFamilyStore::flushLargestMemtable;
+        switch (DatabaseDescriptor.getMemtableAllocationType())
+        {
+            case unslabbed_heap_buffers:
+                return new HeapPool(heapLimit, cleaningThreshold, cleaner);
+            case heap_buffers:
+                return new SlabPool(heapLimit, 0, cleaningThreshold, cleaner);
+            case offheap_buffers:
+                return new SlabPool(heapLimit, offHeapLimit, cleaningThreshold, cleaner);
+            case offheap_objects:
+                return new NativePool(heapLimit, offHeapLimit, cleaningThreshold, cleaner);
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    "

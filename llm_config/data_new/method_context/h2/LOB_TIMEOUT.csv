@@ -1,0 +1,26 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.engine.SessionLocal:removeTemporaryLobs(boolean),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"private void removeTemporaryLobs(boolean onTimeout) {
+        if (temporaryLobs != null) {
+            for (ValueLob v : temporaryLobs) {
+                if (!v.isLinkedToTable()) {
+                    v.remove();
+                }
+            }
+            temporaryLobs.clear();
+        }
+        if (temporaryResultLobs != null && !temporaryResultLobs.isEmpty()) {
+            long keepYoungerThan = System.nanoTime() - database.getSettings().lobTimeout * 1_000_000L;
+            while (!temporaryResultLobs.isEmpty()) {
+                TimeoutValue tv = temporaryResultLobs.getFirst();
+                if (onTimeout && tv.created - keepYoungerThan >= 0) {
+                    break;
+                }
+                ValueLob v = temporaryResultLobs.removeFirst().value;
+                if (!v.isLinkedToTable()) {
+                    v.remove();
+                }
+            }
+        }
+    }
+
+    ",LOB_TIMEOUT,removeTemporaryLobs,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/engine/SessionLocal.java,SessionLocal,../data/xml/h2/SessionLocal.xml

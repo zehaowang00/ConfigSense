@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "DROP_RESTRICT",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public DropView(SessionLocal session, Schema schema) {\n        super(session, schema);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT :\n                ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropTable(SessionLocal session) {\n        super(session);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT :\n                    ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropDomain(SessionLocal session, Schema schema) {\n        super(session, schema);\n        dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintActionType.RESTRICT\n                : ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropSchema(SessionLocal session) {\n        super(session);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;\n    }\n\n    \npublic AlterTableDropConstraint(SessionLocal session, Schema schema, boolean ifExists) {\n        super(session, schema);\n        this.ifExists = ifExists;\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `DROP_RESTRICT` setting primarily determines the action taken when dropping database objects (e.g., views, tables, domains, schemas, and constraints) and does not directly influence the execution time or memory usage of these operations in a significant manner. The choice between `RESTRICT` and `CASCADE` affects the behavior of the drop operation but does not inherently lead to substantial performance variations. The operations involved in dropping database objects are generally not time-intensive or memory-heavy, thus classifying this configuration as performance insensitive."
+        }
+    ]
+}

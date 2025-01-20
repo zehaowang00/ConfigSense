@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'keepUnoptimizedFilesPostProcessor' directly influences whether unoptimized files are retained after processing. If set to true, the system may consume significantly more disk space and memory, as it retains additional data that would otherwise be discarded. This can lead to increased execution time for file operations, as the system has to manage and potentially process larger amounts of data. Conversely, setting it to false may optimize resource usage and improve overall performance by reducing the overhead associated with managing unnecessary files. Therefore, changes to this configuration can notably affect system performance."
+}

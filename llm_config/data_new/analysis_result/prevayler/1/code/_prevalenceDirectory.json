@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "_prevalenceDirectory",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private Journal<P> journal() throws IOException {\n    if (_transientMode) {\n      return new TransientJournal<P>();\n    } else {\n      PrevaylerDirectory directory = new PrevaylerDirectory(prevalenceDirectory());\n      return new PersistentJournal<P>(directory, _journalSizeThreshold, _journalAgeThreshold, _journalDiskSync,\n          journalSuffix(), monitor());\n    }\n  }\n\n  \nprivate GenericSnapshotManager<P> snapshotManager() throws Exception {\n    if (_nullSnapshotManager != null)\n      return _nullSnapshotManager;\n\n    PrevaylerDirectory directory = new PrevaylerDirectory(prevalenceDirectory());\n    if (!_snapshotSerializers.isEmpty())\n      return new GenericSnapshotManager<P>(_snapshotSerializers, _primarySnapshotSuffix, prevalentSystem(), directory,\n          journalSerializer());\n\n    String snapshotSuffix = \"snapshot\";\n    JavaSerializer snapshotSerializer = new JavaSerializer();\n    return new GenericSnapshotManager<P>(Collections.singletonMap(snapshotSuffix, snapshotSerializer), snapshotSuffix,\n        prevalentSystem(), directory, journalSerializer());\n  }\n\n  \n  /**\n   * Configures the directory where the created Prevayler will read and write its\n   * .journal and .snapshot files. The default is a directory called\n   * \"PrevalenceBase\" under the current directory.\n   *\n   * @param prevalenceDirectory Will be ignored for the .snapshot files if a\n   *                            SnapshotManager is configured.\n   */\n  public void configurePrevalenceDirectory(String prevalenceDirectory) {\n    _prevalenceDirectory = prevalenceDirectory;\n  }"
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `_prevalenceDirectory` configuration directly impacts the performance of the system by determining where the journal and snapshot files are stored. The operations of reading and writing these files can be time-intensive, especially if the directory is located on a slower disk or if the files grow large. The choice of directory can significantly affect I/O performance, which is critical for a system that relies on persistent storage for state management. Thus, any inefficiency in file access due to directory configuration can lead to substantial performance variations."
+        }
+    ]
+}

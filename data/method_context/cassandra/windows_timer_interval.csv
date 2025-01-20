@@ -1,0 +1,90 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.CassandraDaemon:activate(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWindowsTimerInterval(),org.apache.cassandra.config.DatabaseDescriptor:getWindowsTimerInterval(),windows_timer_interval,activate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CassandraDaemon.java,CassandraDaemon,../data/xml/cassandra/CassandraDaemon.xml,"/**
+     * A convenience method to initialize and start the daemon in one shot.
+     */
+public void activate()
+    {
+        // Do not put any references to DatabaseDescriptor above the forceStaticInitialization call.
+        try
+        {
+            applyConfig();
+
+            registerNativeAccess();
+
+            if (FBUtilities.isWindows)
+            {
+                // We need to adjust the system timer on windows from the default 15ms down to the minimum of 1ms as this
+                // impacts timer intervals, thread scheduling, driver interrupts, etc.
+                WindowsTimer.startTimerPeriod(DatabaseDescriptor.getWindowsTimerInterval());
+            }
+
+            setup();
+
+            String pidFile = CASSANDRA_PID_FILE.getString();
+
+            if (pidFile != null)
+            {
+                new File(pidFile).deleteOnExit();
+            }
+
+            if (CASSANDRA_FOREGROUND.getString() == null)
+            {
+                System.out.close();
+                System.err.close();
+            }
+
+            start();
+
+            logger.info(""Startup complete"");
+        }
+        catch (Throwable e)
+        {
+            boolean logStackTrace =
+                    e instanceof ConfigurationException ? ((ConfigurationException)e).logStackTrace : true;
+
+            System.out.println(""Exception ("" + e.getClass().getName() + "") encountered during startup: "" + e.getMessage());
+
+            if (logStackTrace)
+            {
+                if (runManaged)
+                    logger.error(""Exception encountered during startup"", e);
+                // try to warn user on stdout too, if we haven't already detached
+                e.printStackTrace();
+                exitOrFail(3, ""Exception encountered during startup"", e);
+            }
+            else
+            {
+                if (runManaged)
+                    logger.error(""Exception encountered during startup: {}"", e.getMessage());
+                // try to warn user on stdout too, if we haven't already detached
+                System.err.println(e.getMessage());
+                exitOrFail(3, ""Exception encountered during startup: "" + e.getMessage());
+            }
+        }
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService$1:runMayThrow(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWindowsTimerInterval(),org.apache.cassandra.config.DatabaseDescriptor:getWindowsTimerInterval(),windows_timer_interval,runMayThrow,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService$1,../data/xml/cassandra/StorageService.xml,"@Override
+            public void runMayThrow() throws InterruptedException, ExecutionException, IOException
+            {
+                drain(true);
+
+                if (FBUtilities.isWindows)
+                    WindowsTimer.endTimerPeriod(DatabaseDescriptor.getWindowsTimerInterval());
+
+                LoggingSupportFactory.getLoggingSupport().onShutdown();
+            }
+        }"
+M:org.apache.cassandra.service.StorageService:removeShutdownHook(),(S)org.apache.cassandra.config.DatabaseDescriptor:getWindowsTimerInterval(),org.apache.cassandra.config.DatabaseDescriptor:getWindowsTimerInterval(),windows_timer_interval,removeShutdownHook,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"/**
+     * In the event of forceful termination we need to remove the shutdown hook to prevent hanging (OOM for instance)
+     */
+public void removeShutdownHook()
+    {
+        if (drainOnShutdown != null)
+            Runtime.getRuntime().removeShutdownHook(drainOnShutdown);
+
+        if (FBUtilities.isWindows)
+            WindowsTimer.endTimerPeriod(DatabaseDescriptor.getWindowsTimerInterval());
+    }
+
+    "

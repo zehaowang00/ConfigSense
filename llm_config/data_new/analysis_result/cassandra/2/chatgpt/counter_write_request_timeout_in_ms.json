@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'counter_write_request_timeout_in_ms' in Cassandra is performance-sensitive because it directly influences the timeout behavior of write requests for counter columns. A lower timeout value may lead to increased request failures and retries under high load, resulting in notable variations in execution time and overall throughput. Conversely, a higher timeout value can allow for longer wait times, potentially increasing resource consumption and affecting system responsiveness. Therefore, changes to this configuration can significantly impact both execution time and memory consumption, classifying it as performance-sensitive."
+}

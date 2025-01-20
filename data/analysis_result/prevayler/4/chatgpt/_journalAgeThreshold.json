@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The '_journalAgeThreshold' configuration in the Prevayler software project directly influences how long the system retains journal entries before they are purged. A lower threshold may lead to more frequent purging of journal entries, which can significantly reduce memory consumption and improve performance in scenarios with high transaction rates. Conversely, a higher threshold can lead to increased memory usage and potential performance degradation due to larger journal sizes, which may slow down the system during recovery operations. Therefore, changes to this configuration can notably affect execution time and resource utilization, classifying it as performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option '_n' in the 'catena' software project is performance-sensitive because changes in its value can lead to significant variations in execution time and resource utilization. For instance, if '_n' controls the number of threads or the size of a data buffer, increasing its value may improve throughput but could also lead to higher memory consumption and potential contention issues, while decreasing it could result in underutilization of system resources. Such variations directly impact the overall performance of the system, making it critical to optimize this configuration for the best performance outcomes."
+}

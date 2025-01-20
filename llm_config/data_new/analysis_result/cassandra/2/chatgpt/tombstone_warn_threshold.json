@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'tombstone_warn_threshold' configuration in Cassandra is performance-sensitive because it directly influences how the system handles tombstones during read operations. A lower threshold may lead to more frequent warnings and potential performance degradation due to increased overhead in managing tombstones, which can affect execution time and memory consumption. Conversely, a higher threshold might delay necessary actions, leading to increased memory usage and slower read performance as the system struggles with an accumulation of tombstones. Thus, changes to this configuration can significantly impact overall system performance."
+}

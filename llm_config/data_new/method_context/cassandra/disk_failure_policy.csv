@@ -1,0 +1,132 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.DefaultFSErrorHandler:handleCorruptSSTable(org.apache.cassandra.io.sstable.CorruptSSTableException),(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskFailurePolicy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskFailurePolicy(),disk_failure_policy,handleCorruptSSTable,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/DefaultFSErrorHandler.java,DefaultFSErrorHandler,../data/xml/cassandra/DefaultFSErrorHandler.xml,"@Override
+    public void handleCorruptSSTable(CorruptSSTableException e)
+    {
+        if (!StorageService.instance.isDaemonSetupCompleted())
+            handleStartupFSError(e);
+
+        switch (DatabaseDescriptor.getDiskFailurePolicy())
+        {
+            case stop_paranoid:
+                // exception not logged here on purpose as it is already logged
+                logger.error(""Stopping transports as disk_failure_policy is "" + DatabaseDescriptor.getDiskFailurePolicy());
+                StorageService.instance.stopTransports();
+                break;
+        }
+    }
+
+    "
+M:org.apache.cassandra.service.DefaultFSErrorHandler:handleFSError(org.apache.cassandra.io.FSError),(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskFailurePolicy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskFailurePolicy(),disk_failure_policy,handleFSError,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/DefaultFSErrorHandler.java,DefaultFSErrorHandler,../data/xml/cassandra/DefaultFSErrorHandler.xml,"@Override
+    public void handleFSError(FSError e)
+    {
+        if (!StorageService.instance.isDaemonSetupCompleted())
+            handleStartupFSError(e);
+
+        switch (DatabaseDescriptor.getDiskFailurePolicy())
+        {
+            case stop_paranoid:
+            case stop:
+                // exception not logged here on purpose as it is already logged
+                logger.error(""Stopping transports as disk_failure_policy is "" + DatabaseDescriptor.getDiskFailurePolicy());
+                StorageService.instance.stopTransports();
+                break;
+            case best_effort:
+
+                // There are a few scenarios where we know that the node will not be able to operate properly.
+                // For those scenarios we want to stop the transports and let the administrators handle the problem.
+                // Those scenarios are:
+                // * All the disks are full
+                // * All the disks for a given keyspace have been marked as unwriteable
+                if (e instanceof FSDiskFullWriteError || e instanceof FSNoDiskAvailableForWriteError)
+                {
+                    logger.error(""Stopping transports: "" + e.getCause().getMessage());
+                    StorageService.instance.stopTransports();
+                }
+
+                // for both read and write errors mark the path as unwritable.
+                DisallowedDirectories.maybeMarkUnwritable(e.path);
+                if (e instanceof FSReadError)
+                {
+                    File directory = DisallowedDirectories.maybeMarkUnreadable(e.path);
+                    if (directory != null)
+                        Keyspace.removeUnreadableSSTables(directory);
+                }
+                break;
+            case ignore:
+                // already logged, so left nothing to do
+                break;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    "
+M:org.apache.cassandra.service.DefaultFSErrorHandler:handleStartupFSError(java.lang.Throwable),(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskFailurePolicy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskFailurePolicy(),disk_failure_policy,handleStartupFSError,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/DefaultFSErrorHandler.java,DefaultFSErrorHandler,../data/xml/cassandra/DefaultFSErrorHandler.xml,"private static void handleStartupFSError(Throwable t)
+    {
+        switch (DatabaseDescriptor.getDiskFailurePolicy())
+        {
+            case stop_paranoid:
+            case stop:
+            case die:
+                logger.error(""Exiting forcefully due to file system exception on startup, disk failure policy \""{}\"""",
+                             DatabaseDescriptor.getDiskFailurePolicy(),
+                             t);
+                JVMStabilityInspector.killCurrentJVM(t, true);
+                break;
+            default:
+                break;
+        }
+    }
+}"
+"M:org.apache.cassandra.utils.JVMStabilityInspector:inspectThrowable(java.lang.Throwable,java.util.function.Consumer)",(S)org.apache.cassandra.config.DatabaseDescriptor:getDiskFailurePolicy(),org.apache.cassandra.config.DatabaseDescriptor:getDiskFailurePolicy(),disk_failure_policy,inspectThrowable,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/utils/JVMStabilityInspector.java,JVMStabilityInspector,../data/xml/cassandra/JVMStabilityInspector.xml,"public static void inspectThrowable(Throwable t, Consumer<Throwable> fn) throws OutOfMemoryError
+    {
+        boolean isUnstable = false;
+        if (t instanceof OutOfMemoryError)
+        {
+            if (Boolean.getBoolean(""cassandra.printHeapHistogramOnOutOfMemoryError""))
+            {
+                // We want to avoid printing multiple time the heap histogram if multiple OOM errors happen in a short
+                // time span.
+                synchronized(lock)
+                {
+                    if (printingHeapHistogram)
+                        return;
+                    printingHeapHistogram = true;
+                }
+                HeapUtils.logHeapHistogram();
+            }
+
+            logger.error(""OutOfMemory error letting the JVM handle the error:"", t);
+
+            StorageService.instance.removeShutdownHook();
+
+            forceHeapSpaceOomMaybe((OutOfMemoryError) t);
+
+            // We let the JVM handle the error. The startup checks should have warned the user if it did not configure
+            // the JVM behavior in case of OOM (CASSANDRA-13006).
+            throw (OutOfMemoryError) t;
+        }
+        else if (t instanceof UnrecoverableIllegalStateException)
+        {
+            isUnstable = true;
+        }
+
+        if (DatabaseDescriptor.getDiskFailurePolicy() == Config.DiskFailurePolicy.die)
+            if (t instanceof FSError || t instanceof CorruptSSTableException)
+                isUnstable = true;
+
+        fn.accept(t);
+
+        // Check for file handle exhaustion
+        if (t instanceof FileNotFoundException || t instanceof SocketException)
+            if (t.getMessage() != null && t.getMessage().contains(""Too many open files""))
+                isUnstable = true;
+
+        if (isUnstable)
+            killer.killCurrentJVM(t);
+
+        if (t.getCause() != null)
+            inspectThrowable(t.getCause(), fn);
+    }
+
+    "

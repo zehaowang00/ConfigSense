@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'native_transport_max_frame_size_in_mb' in Cassandra controls the maximum size of frames that can be sent over the native transport protocol. A change in this value can significantly impact system performance, as larger frame sizes can lead to increased memory consumption and potential delays in processing, while smaller frame sizes may result in more frequent fragmentation and overhead in handling multiple smaller frames. This can affect execution time and overall throughput, making it a performance-sensitive configuration."
+}

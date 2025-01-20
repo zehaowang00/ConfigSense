@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'cas_contention_timeout_in_ms' in Cassandra directly affects how long the system will wait for a Compare-And-Swap (CAS) operation to succeed before timing out. A shorter timeout can lead to more frequent retries and increased contention, which can significantly impact execution time and throughput under high load. Conversely, a longer timeout may cause delays in processing requests, leading to increased memory consumption as operations queue up. Therefore, changes to this configuration can lead to notable variations in system performance, making it performance-sensitive."
+}

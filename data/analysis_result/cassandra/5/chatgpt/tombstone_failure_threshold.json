@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'tombstone_failure_threshold' configuration in Cassandra is performance-sensitive because it directly influences how the system handles tombstones during read operations. A lower threshold can lead to increased tombstone purging, which can improve read performance by reducing the amount of data scanned. Conversely, a higher threshold may result in excessive tombstone accumulation, leading to degraded read performance and increased memory consumption. Therefore, changes to this configuration can significantly impact execution time and resource utilization, making it critical for performance tuning."
+}

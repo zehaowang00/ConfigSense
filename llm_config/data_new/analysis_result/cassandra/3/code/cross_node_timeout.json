@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "cross_node_timeout",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private static long getExpiresAtNanos(long createdAtNanos, long currentTimeNanos, long expirationPeriodNanos)\n        {\n            if (!DatabaseDescriptor.hasCrossNodeTimeout() || createdAtNanos > currentTimeNanos)\n                createdAtNanos = currentTimeNanos;\n            return createdAtNanos + expirationPeriodNanos;\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The code snippet primarily involves basic arithmetic operations and a conditional check to determine the expiration time based on the provided parameters. There are no time-intensive or memory-intensive operations present, and the logic does not indicate any significant performance impact on the system. The operations performed are lightweight and do not contribute to substantial performance variations."
+        }
+    ]
+}

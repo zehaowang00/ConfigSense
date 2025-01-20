@@ -1,0 +1,568 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.config.DatabaseDescriptor:getMinRpcTimeout(java.util.concurrent.TimeUnit),(S)org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),request_timeout_in_ms,getMinRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/config/DatabaseDescriptor.java,DatabaseDescriptor,../data/xml/cassandra/DatabaseDescriptor.xml,"/**
+     * @return the minimum configured {read, write, range, truncate, misc} timeout
+     */
+public static long getMinRpcTimeout(TimeUnit unit)
+    {
+        return Longs.min(getRpcTimeout(unit),
+                         getReadRpcTimeout(unit),
+                         getRangeRpcTimeout(unit),
+                         getWriteRpcTimeout(unit),
+                         getCounterWriteRpcTimeout(unit),
+                         getTruncateRpcTimeout(unit));
+    }
+
+    "
+M:org.apache.cassandra.net.HandshakeProtocol:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),request_timeout_in_ms,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/HandshakeProtocol.java,HandshakeProtocol,../data/xml/cassandra/HandshakeProtocol.xml,"/**
+ * Messages for the handshake phase of the internode protocol.
+ *
+ * The modern handshake is composed of 2 messages: Initiate and Accept
+ * <p>
+ * The legacy handshake is composed of 3 messages, the first being sent by the initiator of the connection. The other
+ * side then answer with the 2nd message. At that point, if a version mismatch is detected by the connection initiator,
+ * it will simply disconnect and reconnect with a more appropriate version. But if the version is acceptable, the connection
+ * initiator sends the third message of the protocol, after which it considers the connection ready.
+ */
+class HandshakeProtocol
+{
+    static final long TIMEOUT_MILLIS = 3 * DatabaseDescriptor.getRpcTimeout(MILLISECONDS);
+
+    /**
+     * The initial message sent when a node creates a new connection to a remote peer. This message contains:
+     *   1) the {@link Message#PROTOCOL_MAGIC} number (4 bytes).
+     *   2) the connection flags (4 bytes), which encodes:
+     *      - the version the initiator thinks should be used for the connection (in practice, either the initiator
+     *        version if it's the first time we connect to that remote since startup, or the last version known for that
+     *        peer otherwise).
+     *      - the ""mode"" of the connection: whether it is for streaming or for messaging.
+     *      - whether compression should be used or not (if it is, compression is enabled _after_ the last message of the
+     *        handshake has been sent).
+     *   3) the connection initiator's broadcast address
+     *   4) a CRC protecting the message from corruption
+     * <p>
+     * More precisely, connection flags:
+     * <pre>
+     * {@code
+     *                      1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+     *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |C C C M C      |    REQUEST    |      MIN      |      MAX      |
+     * |A A M O R      |    VERSION    |   SUPPORTED   |   SUPPORTED   |
+     * |T T P D C      |  (DEPRECATED) |    VERSION    |    VERSION    |
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * }
+     * </pre>
+     * CAT - QOS category, 2 bits: SMALL, LARGE, URGENT, or LEGACY (unset)
+     * CMP - compression enabled bit
+     * MOD - connection mode; if the bit is on, the connection is for streaming; if the bit is off, it is for inter-node messaging.
+     * CRC - crc enabled bit
+     * VERSION - {@link org.apache.cassandra.net.MessagingService#current_version}
+     */
+    static class Initiate
+    {
+        /** Contains the PROTOCOL_MAGIC (int) and the flags (int). */
+        private static final int MIN_LENGTH = 8;
+        private static final int MAX_LENGTH = 12 + InetAddressAndPort.Serializer.MAXIMUM_SIZE;
+
+        @Deprecated // this is ignored by post40 nodes, i.e. if maxMessagingVersion is set
+        final int requestMessagingVersion;
+        // the messagingVersion bounds the sender will accept to initiate a connection;
+        // if the remote peer supports any, the newest supported version will be selected; otherwise the nearest supported version
+        final AcceptVersions acceptVersions;
+        final ConnectionType type;
+        final Framing framing;
+        final InetAddressAndPort from;
+
+        Initiate(int requestMessagingVersion, AcceptVersions acceptVersions, ConnectionType type, Framing framing, InetAddressAndPort from)
+        {
+            this.requestMessagingVersion = requestMessagingVersion;
+            this.acceptVersions = acceptVersions;
+            this.type = type;
+            this.framing = framing;
+            this.from = from;
+        }
+
+        @VisibleForTesting
+        int encodeFlags()
+        {
+            int flags = 0;
+            if (type.isMessaging())
+                flags |= type.twoBitID();
+            if (type.isStreaming())
+                flags |= 1 << 3;
+
+            // framing id is split over 2nd and 4th bits, for backwards compatibility
+            flags |= ((framing.id & 1) << 2) | ((framing.id & 2) << 3);
+            flags |= (requestMessagingVersion << 8);
+
+            if (requestMessagingVersion < VERSION_40 || acceptVersions.max < VERSION_40)
+                return flags; // for testing, permit serializing as though we are pre40
+
+            flags |= (acceptVersions.min << 16);
+            flags |= (acceptVersions.max << 24);
+            return flags;
+        }
+
+        ByteBuf encode()
+        {
+            ByteBuffer buffer = BufferPools.forNetworking().get(MAX_LENGTH, BufferType.OFF_HEAP);
+            try (DataOutputBufferFixed out = new DataOutputBufferFixed(buffer))
+            {
+                out.writeInt(Message.PROTOCOL_MAGIC);
+                out.writeInt(encodeFlags());
+
+                if (requestMessagingVersion >= VERSION_40 && acceptVersions.max >= VERSION_40)
+                {
+                    inetAddressAndPortSerializer.serialize(from, out, requestMessagingVersion);
+                    out.writeInt(computeCrc32(buffer, 0, buffer.position()));
+                }
+                buffer.flip();
+                return GlobalBufferPoolAllocator.wrap(buffer);
+            }
+            catch (IOException e)
+            {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        static Initiate maybeDecode(ByteBuf buf) throws IOException
+        {
+            if (buf.readableBytes() < MIN_LENGTH)
+                return null;
+
+            ByteBuffer nio = buf.nioBuffer();
+            int start = nio.position();
+            try (DataInputBuffer in = new DataInputBuffer(nio, false))
+            {
+                validateLegacyProtocolMagic(in.readInt());
+                int flags = in.readInt();
+
+                int requestedMessagingVersion = getBits(flags, 8, 8);
+                int minMessagingVersion = getBits(flags, 16, 8);
+                int maxMessagingVersion = getBits(flags, 24, 8);
+                int framingBits = getBits(flags, 2, 1) | (getBits(flags, 4, 1) << 1);
+                Framing framing = Framing.forId(framingBits);
+
+                boolean isStream = getBits(flags, 3, 1) == 1;
+
+                ConnectionType type = isStream
+                                    ? ConnectionType.STREAMING
+                                    : ConnectionType.fromId(getBits(flags, 0, 2));
+
+                InetAddressAndPort from = null;
+
+                if (requestedMessagingVersion >= VERSION_40 && maxMessagingVersion >= MessagingService.VERSION_40)
+                {
+                    from = inetAddressAndPortSerializer.deserialize(in, requestedMessagingVersion);
+
+                    int computed = computeCrc32(nio, start, nio.position());
+                    int read = in.readInt();
+                    if (read != computed)
+                        throw new InvalidCrc(read, computed);
+                }
+
+                buf.skipBytes(nio.position() - start);
+                return new Initiate(requestedMessagingVersion,
+                                    minMessagingVersion == 0 && maxMessagingVersion == 0
+                                        ? null : new AcceptVersions(minMessagingVersion, maxMessagingVersion),
+                                    type, framing, from);
+
+            }
+            catch (EOFException e)
+            {
+                return null;
+            }
+        }
+
+        @VisibleForTesting
+        @Override
+        public boolean equals(Object other)
+        {
+            if (!(other instanceof Initiate))
+                return false;
+
+            Initiate that = (Initiate)other;
+            return    this.type == that.type
+                   && this.framing == that.framing
+                   && this.requestMessagingVersion == that.requestMessagingVersion
+                   && Objects.equals(this.acceptVersions, that.acceptVersions);
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format(""Initiate(request: %d, min: %d, max: %d, type: %s, framing: %b, from: %s)"",
+                                 requestMessagingVersion,
+                                 acceptVersions == null ? requestMessagingVersion : acceptVersions.min,
+                                 acceptVersions == null ? requestMessagingVersion : acceptVersions.max,
+                                 type, framing, from);
+        }
+    }
+
+
+    /**
+     * The second message of the handshake, sent by the node receiving the {@link Initiate} back to the
+     * connection initiator.
+     *
+     * This message contains
+     *   1) the messaging version of the peer sending this message
+     *   2) the negotiated messaging version if one could be accepted by both peers,
+     *      or if not the closest version that this peer could support to the ones requested
+     *   3) a CRC protectingn the integrity of the message
+     *
+     * Note that the pre40 equivalent of this message contains ONLY the messaging version of the peer.
+     */
+    static class Accept
+    {
+        /** The messaging version sent by the receiving peer (int). */
+        private static final int MAX_LENGTH = 12;
+
+        final int useMessagingVersion;
+        final int maxMessagingVersion;
+
+        Accept(int useMessagingVersion, int maxMessagingVersion)
+        {
+            this.useMessagingVersion = useMessagingVersion;
+            this.maxMessagingVersion = maxMessagingVersion;
+        }
+
+        ByteBuf encode(ByteBufAllocator allocator)
+        {
+            ByteBuf buffer = allocator.directBuffer(MAX_LENGTH);
+            buffer.clear();
+            buffer.writeInt(maxMessagingVersion);
+            buffer.writeInt(useMessagingVersion);
+            buffer.writeInt(computeCrc32(buffer, 0, 8));
+            return buffer;
+        }
+
+        /**
+         * Respond to pre40 nodes only with our current messagingVersion
+         */
+        static ByteBuf respondPre40(int messagingVersion, ByteBufAllocator allocator)
+        {
+            ByteBuf buffer = allocator.directBuffer(4);
+            buffer.clear();
+            buffer.writeInt(messagingVersion);
+            return buffer;
+        }
+
+        static Accept maybeDecode(ByteBuf in, int handshakeMessagingVersion) throws InvalidCrc
+        {
+            int readerIndex = in.readerIndex();
+            if (in.readableBytes() < 4)
+                return null;
+            int maxMessagingVersion = in.readInt();
+            int useMessagingVersion = 0;
+
+            // if the other node is pre-4.0, it will respond only with its maxMessagingVersion
+            if (maxMessagingVersion < VERSION_40 || handshakeMessagingVersion < VERSION_40)
+                return new Accept(useMessagingVersion, maxMessagingVersion);
+
+            if (in.readableBytes() < 8)
+            {
+                in.readerIndex(readerIndex);
+                return null;
+            }
+            useMessagingVersion = in.readInt();
+
+            // verify crc
+            int computed = computeCrc32(in, readerIndex, readerIndex + 8);
+            int read = in.readInt();
+            if (read != computed)
+                throw new InvalidCrc(read, computed);
+
+            return new Accept(useMessagingVersion, maxMessagingVersion);
+        }
+
+        @VisibleForTesting
+        @Override
+        public boolean equals(Object other)
+        {
+            return other instanceof Accept
+                   && this.useMessagingVersion == ((Accept) other).useMessagingVersion
+                   && this.maxMessagingVersion == ((Accept) other).maxMessagingVersion;
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format(""Accept(use: %d, max: %d)"", useMessagingVersion, maxMessagingVersion);
+        }
+    }
+
+    /**
+     * The third message of the handshake, sent by pre40 nodes on reception of {@link Accept}.
+     * This message contains:
+     *   1) The connection initiator's {@link org.apache.cassandra.net.MessagingService#current_version} (4 bytes).
+     *      This indicates the max messaging version supported by this node.
+     *   2) The connection initiator's broadcast address as encoded by {@link InetAddressAndPort.Serializer}.
+     *      This can be either 7 bytes for an IPv4 address, or 19 bytes for an IPv6 one, post40.
+     *      This can be either 5 bytes for an IPv4 address, or 17 bytes for an IPv6 one, pre40.
+     * <p>
+     * This message concludes the legacy handshake protocol.
+     */
+    static class ConfirmOutboundPre40
+    {
+        private static final int MAX_LENGTH = 4 + InetAddressAndPort.Serializer.MAXIMUM_SIZE;
+
+        final int maxMessagingVersion;
+        final InetAddressAndPort from;
+
+        ConfirmOutboundPre40(int maxMessagingVersion, InetAddressAndPort from)
+        {
+            this.maxMessagingVersion = maxMessagingVersion;
+            this.from = from;
+        }
+
+        ByteBuf encode()
+        {
+            ByteBuffer buffer = BufferPools.forNetworking().get(MAX_LENGTH, BufferType.OFF_HEAP);
+            try (DataOutputBufferFixed out = new DataOutputBufferFixed(buffer))
+            {
+                out.writeInt(maxMessagingVersion);
+                // pre-4.0 nodes should only receive the address, never port, and it's ok to hardcode VERSION_30
+                inetAddressAndPortSerializer.serialize(from, out, VERSION_30);
+                buffer.flip();
+                return GlobalBufferPoolAllocator.wrap(buffer);
+            }
+            catch (IOException e)
+            {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        @SuppressWarnings(""resource"")
+        static ConfirmOutboundPre40 maybeDecode(ByteBuf in)
+        {
+            ByteBuffer nio = in.nioBuffer();
+            int start = nio.position();
+            DataInputPlus input = new DataInputBuffer(nio, false);
+            try
+            {
+                int version = input.readInt();
+                InetAddressAndPort address = inetAddressAndPortSerializer.deserialize(input, version);
+                in.skipBytes(nio.position() - start);
+                return new ConfirmOutboundPre40(version, address);
+            }
+            catch (EOFException e)
+            {
+                // makes the assumption we didn't have enough bytes to deserialize an IPv6 address,
+                // as we only check the MIN_LENGTH of the buf.
+                return null;
+            }
+            catch (IOException e)
+            {
+                throw new IllegalStateException(e);
+            }
+        }
+
+        @VisibleForTesting
+        @Override
+        public boolean equals(Object other)
+        {
+            if (!(other instanceof ConfirmOutboundPre40))
+                return false;
+
+            ConfirmOutboundPre40 that = (ConfirmOutboundPre40) other;
+            return this.maxMessagingVersion == that.maxMessagingVersion
+                   && Objects.equals(this.from, that.from);
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format(""ConfirmOutboundPre40(maxMessagingVersion: %d; address: %s)"", maxMessagingVersion, from);
+        }
+    }
+
+    private static int getBits(int packed, int start, int count)
+    {
+        return (packed >>> start) & ~(-1 << count);
+    }
+
+}
+"
+"M:org.apache.cassandra.service.ActiveRepairService:prepareForRepair(java.util.UUID,org.apache.cassandra.locator.InetAddressAndPort,java.util.Set,org.apache.cassandra.repair.messages.RepairOption,boolean,java.util.List)",(S)org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),request_timeout_in_ms,prepareForRepair,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ActiveRepairService.java,ActiveRepairService,../data/xml/cassandra/ActiveRepairService.xml,"public UUID prepareForRepair(UUID parentRepairSession, InetAddressAndPort coordinator, Set<InetAddressAndPort> endpoints, RepairOption options, boolean isForcedRepair, List<ColumnFamilyStore> columnFamilyStores)
+    {
+        if (!verifyCompactionsPendingThreshold(parentRepairSession, options.getPreviewKind()))
+            failRepair(parentRepairSession, ""Rejecting incoming repair, pending compactions above threshold""); // failRepair throws exception
+
+        long repairedAt = getRepairedAt(options, isForcedRepair);
+        registerParentRepairSession(parentRepairSession, coordinator, columnFamilyStores, options.getRanges(), options.isIncremental(), repairedAt, options.isGlobal(), options.getPreviewKind());
+        final CountDownLatch prepareLatch = new CountDownLatch(endpoints.size());
+        final AtomicBoolean status = new AtomicBoolean(true);
+        final Set<String> failedNodes = Collections.synchronizedSet(new HashSet<String>());
+        RequestCallback callback = new RequestCallback()
+        {
+            @Override
+            public void onResponse(Message msg)
+            {
+                prepareLatch.countDown();
+            }
+
+            @Override
+            public void onFailure(InetAddressAndPort from, RequestFailureReason failureReason)
+            {
+                status.set(false);
+                failedNodes.add(from.toString());
+                prepareLatch.countDown();
+            }
+
+            @Override
+            public boolean invokeOnFailure()
+            {
+                return true;
+            }
+        };
+
+        List<TableId> tableIds = new ArrayList<>(columnFamilyStores.size());
+        for (ColumnFamilyStore cfs : columnFamilyStores)
+            tableIds.add(cfs.metadata.id);
+
+        for (InetAddressAndPort neighbour : endpoints)
+        {
+            if (FailureDetector.instance.isAlive(neighbour))
+            {
+                PrepareMessage message = new PrepareMessage(parentRepairSession, tableIds, options.getRanges(), options.isIncremental(), repairedAt, options.isGlobal(), options.getPreviewKind());
+                Message<RepairMessage> msg = Message.out(PREPARE_MSG, message);
+                MessagingService.instance().sendWithCallback(msg, neighbour, callback);
+            }
+            else
+            {
+                // we pre-filter the endpoints we want to repair for forced incremental repairs. So if any of the
+                // remaining ones go down, we still want to fail so we don't create repair sessions that can't complete
+                if (isForcedRepair && !options.isIncremental())
+                {
+                    prepareLatch.countDown();
+                }
+                else
+                {
+                    // bailout early to avoid potentially waiting for a long time.
+                    failRepair(parentRepairSession, ""Endpoint not alive: "" + neighbour);
+                }
+
+            }
+        }
+        try
+        {
+            if (!prepareLatch.await(DatabaseDescriptor.getRpcTimeout(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS))
+                failRepair(parentRepairSession, ""Did not get replies from all endpoints."");
+        }
+        catch (InterruptedException e)
+        {
+            failRepair(parentRepairSession, ""Interrupted while waiting for prepare repair response."");
+        }
+
+        if (!status.get())
+        {
+            failRepair(parentRepairSession, ""Got negative replies from endpoints "" + failedNodes);
+        }
+
+        return parentRepairSession;
+    }
+
+    "
+M:org.apache.cassandra.service.StorageProxy:describeSchemaVersions(boolean),(S)org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),request_timeout_in_ms,describeSchemaVersions,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"/**
+     * initiate a request/response session with each live node to check whether or not everybody is using the same
+     * migration id. This is useful for determining if a schema change has propagated through the cluster. Disagreement
+     * is assumed if any node fails to respond.
+     */
+public static Map<String, List<String>> describeSchemaVersions(boolean withPort)
+    {
+        final String myVersion = Schema.instance.getVersion().toString();
+        final Map<InetAddressAndPort, UUID> versions = new ConcurrentHashMap<>();
+        final Set<InetAddressAndPort> liveHosts = Gossiper.instance.getLiveMembers();
+        final CountDownLatch latch = new CountDownLatch(liveHosts.size());
+
+        RequestCallback<UUID> cb = message ->
+        {
+            // record the response from the remote node.
+            versions.put(message.from(), message.payload);
+            latch.countDown();
+        };
+        // an empty message acts as a request to the SchemaVersionVerbHandler.
+        Message message = Message.out(Verb.SCHEMA_VERSION_REQ, noPayload);
+        for (InetAddressAndPort endpoint : liveHosts)
+            MessagingService.instance().sendWithCallback(message, endpoint, cb);
+
+        try
+        {
+            // wait for as long as possible. timeout-1s if possible.
+            latch.await(DatabaseDescriptor.getRpcTimeout(NANOSECONDS), NANOSECONDS);
+        }
+        catch (InterruptedException ex)
+        {
+            throw new AssertionError(""This latch shouldn't have been interrupted."");
+        }
+
+        // maps versions to hosts that are on that version.
+        Map<String, List<String>> results = new HashMap<String, List<String>>();
+        Iterable<InetAddressAndPort> allHosts = Iterables.concat(Gossiper.instance.getLiveMembers(), Gossiper.instance.getUnreachableMembers());
+        for (InetAddressAndPort host : allHosts)
+        {
+            UUID version = versions.get(host);
+            String stringVersion = version == null ? UNREACHABLE : version.toString();
+            List<String> hosts = results.get(stringVersion);
+            if (hosts == null)
+            {
+                hosts = new ArrayList<String>();
+                results.put(stringVersion, hosts);
+            }
+            hosts.add(host.getHostAddress(withPort));
+        }
+
+        // we're done: the results map is ready to return to the client.  the rest is just debug logging:
+        if (results.get(UNREACHABLE) != null)
+            logger.debug(""Hosts not in agreement. Didn't get a response from everybody: {}"", StringUtils.join(results.get(UNREACHABLE), "",""));
+        for (Map.Entry<String, List<String>> entry : results.entrySet())
+        {
+            // check for version disagreement. log the hosts that don't agree.
+            if (entry.getKey().equals(UNREACHABLE) || entry.getKey().equals(myVersion))
+                continue;
+            for (String host : entry.getValue())
+                logger.debug(""{} disagrees ({})"", host, entry.getKey());
+        }
+        if (results.size() == 1)
+            logger.debug(""Schemas are in agreement."");
+
+        return results;
+    }
+
+    "
+M:org.apache.cassandra.service.StorageProxy:getRpcTimeout(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),request_timeout_in_ms,getRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public Long getRpcTimeout() { return DatabaseDescriptor.getRpcTimeout(MILLISECONDS); }
+    "
+M:org.apache.cassandra.service.StorageService:getRpcTimeout(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),request_timeout_in_ms,getRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public long getRpcTimeout()
+    {
+        return DatabaseDescriptor.getRpcTimeout(MILLISECONDS);
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:sendReplicationNotification(org.apache.cassandra.locator.InetAddressAndPort),(S)org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRpcTimeout(java.util.concurrent.TimeUnit),request_timeout_in_ms,sendReplicationNotification,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"/**
+     * Sends a notification to a node indicating we have finished replicating data.
+     *
+     * @param remote node to send notification to
+     */
+private void sendReplicationNotification(InetAddressAndPort remote)
+    {
+        // notify the remote token
+        Message msg = Message.out(REPLICATION_DONE_REQ, noPayload);
+        IFailureDetector failureDetector = FailureDetector.instance;
+        if (logger.isDebugEnabled())
+            logger.debug(""Notifying {} of replication completion\n"", remote);
+        while (failureDetector.isAlive(remote))
+        {
+            AsyncOneResponse ior = new AsyncOneResponse();
+            MessagingService.instance().sendWithCallback(msg, remote, ior);
+
+            if (!ior.awaitUninterruptibly(DatabaseDescriptor.getRpcTimeout(NANOSECONDS), NANOSECONDS))
+                continue; // try again if we timeout
+
+            if (!ior.isSuccess())
+                throw new AssertionError(ior.cause());
+
+            return;
+        }
+    }
+
+    "

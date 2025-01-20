@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "index_summary_resize_interval_in_minutes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private IndexSummaryManager()\n    {\n        executor = new DebuggableScheduledThreadPoolExecutor(1, \"IndexSummaryManager\", Thread.MIN_PRIORITY);\n\n        long indexSummarySizeInMB = DatabaseDescriptor.getIndexSummaryCapacityInMB();\n        int interval = DatabaseDescriptor.getIndexSummaryResizeIntervalInMinutes();\n        logger.info(\"Initializing index summary manager with a memory pool size of {} MB and a resize interval of {} minutes\",\n                    indexSummarySizeInMB, interval);\n\n        setMemoryPoolCapacityInMB(DatabaseDescriptor.getIndexSummaryCapacityInMB());\n        setResizeIntervalInMinutes(DatabaseDescriptor.getIndexSummaryResizeIntervalInMinutes());\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `index_summary_resize_interval_in_minutes` directly influences how frequently the index summary is resized, which can lead to significant memory usage and potential performance degradation if the interval is too short. Frequent resizing operations can be time-intensive, especially in a system that handles large datasets, thus impacting overall system performance."
+        }
+    ]
+}

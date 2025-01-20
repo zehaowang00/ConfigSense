@@ -1,0 +1,58 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.command.query.Select:isEverything(org.h2.expression.ExpressionVisitor),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public boolean isEverything(ExpressionVisitor visitor) {
+        switch (visitor.getType()) {
+        case ExpressionVisitor.DETERMINISTIC: {
+            if (isForUpdate) {
+                return false;
+            }
+            for (TableFilter f : filters) {
+                if (!f.getTable().isDeterministic()) {
+                    return false;
+                }
+            }
+            break;
+        }
+        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
+            for (TableFilter f : filters) {
+                long m = f.getTable().getMaxDataModificationId();
+                visitor.addDataModificationId(m);
+            }
+            break;
+        }
+        case ExpressionVisitor.EVALUATABLE: {
+            if (!session.getDatabase().getSettings().optimizeEvaluatableSubqueries) {
+                return false;
+            }
+            break;
+        }
+        case ExpressionVisitor.GET_DEPENDENCIES: {
+            for (TableFilter f : filters) {
+                Table table = f.getTable();
+                visitor.addDependency(table);
+                table.addDependencies(visitor.getDependencies());
+            }
+            break;
+        }
+        default:
+        }
+        ExpressionVisitor v2 = visitor.incrementQueryLevel(1);
+        for (Expression e : expressions) {
+            if (!e.isEverything(v2)) {
+                return false;
+            }
+        }
+        if (condition != null && !condition.isEverything(v2)) {
+            return false;
+        }
+        if (having != null && !having.isEverything(v2)) {
+            return false;
+        }
+        if (qualify != null && !qualify.isEverything(v2)) {
+            return false;
+        }
+        return true;
+    }
+
+
+    ",OPTIMIZE_EVALUATABLE_SUBQUERIES,isEverything,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/query/Select.java,Select,../data/xml/h2/Select.xml

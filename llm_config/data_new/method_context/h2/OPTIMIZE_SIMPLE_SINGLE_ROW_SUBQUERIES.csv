@@ -1,0 +1,21 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.expression.Subquery:optimize(org.h2.engine.SessionLocal),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public Expression optimize(SessionLocal session) {
+        query.prepare();
+        if (query.isConstantQuery()) {
+            setType();
+            return ValueExpression.get(getValue(session));
+        }
+        if (outerResolvers != null && session.getDatabase().getSettings().optimizeSimpleSingleRowSubqueries) {
+            Expression e = query.getIfSingleRow();
+            if (e != null && e.isEverything(ExpressionVisitor.getDecrementQueryLevelVisitor(outerResolvers, 0))) {
+                e.isEverything(ExpressionVisitor.getDecrementQueryLevelVisitor(outerResolvers, 1));
+                return e.optimize(session);
+            }
+        }
+        outerResolvers = null;
+        setType();
+        return this;
+    }
+
+    ",OPTIMIZE_SIMPLE_SINGLE_ROW_SUBQUERIES,optimize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/expression/Subquery.java,Subquery,../data/xml/h2/Subquery.xml

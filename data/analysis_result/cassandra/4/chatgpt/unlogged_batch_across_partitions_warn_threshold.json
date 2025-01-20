@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'unlogged_batch_across_partitions_warn_threshold' in Cassandra is performance-sensitive because it directly influences how unlogged batches are handled across partitions. A change in this threshold can lead to significant variations in execution time and resource utilization. If the threshold is set too low, it may trigger warnings for legitimate operations, causing unnecessary overhead and potentially leading to increased latency as the system processes more warnings. Conversely, if set too high, it may allow inefficient batch operations that could lead to increased memory consumption and longer execution times, especially under heavy loads. Therefore, adjustments to this configuration can have a notable impact on overall system performance."
+}

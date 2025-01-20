@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "QUERY_CACHE_SIZE",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public SessionLocal(Database database, User user, int id) {\n        this.database = database;\n        this.queryTimeout = database.getSettings().maxQueryTimeout;\n        this.queryCacheSize = database.getSettings().queryCacheSize;\n        this.user = user;\n        this.id = id;\n        this.lockTimeout = database.getLockTimeout();\n        Schema mainSchema = database.getMainSchema();\n        this.currentSchemaName = mainSchema != null ? mainSchema.getName()\n                : database.sysIdentifier(Constants.SCHEMA_MAIN);\n        timeZone = DateTimeUtils.getTimeZone();\n        sessionStart = DateTimeUtils.currentTimestamp(timeZone, commandStartOrEnd = Instant.now());\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `queryCacheSize` directly impacts the performance of query execution and retrieval in the database. A larger cache size can significantly reduce the time spent on repeated queries by storing results in memory, thus minimizing disk I/O operations. Conversely, a smaller cache size may lead to increased memory usage and slower query performance due to frequent cache misses. Given that query performance can be critical in high-load scenarios, this configuration can lead to substantial variations in system performance, classifying it as performance-sensitive."
+        }
+    ]
+}

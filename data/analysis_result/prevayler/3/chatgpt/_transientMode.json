@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The '_transientMode' configuration in the Prevayler software project directly affects how data is stored and retrieved. When enabled, it can significantly alter the execution time and memory consumption due to changes in how transactions are handled and persisted. In transient mode, data is kept in memory rather than being written to disk, which can lead to faster access times but may also increase memory usage. Conversely, disabling this mode results in more frequent disk I/O operations, which can slow down performance. Therefore, changes to this configuration can lead to notable variations in system performance, classifying it as performance-sensitive."
+}

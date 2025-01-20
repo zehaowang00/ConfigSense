@@ -1,0 +1,25 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.StorageService:setInterDCStreamThroughputMbPerSec(int),(S)org.apache.cassandra.config.DatabaseDescriptor:getInterDCStreamThroughputOutboundMegabitsPerSec(),org.apache.cassandra.config.DatabaseDescriptor:getInterDCStreamThroughputOutboundMegabitsPerSec(),inter_dc_stream_throughput_outbound_megabits_per_sec,setInterDCStreamThroughputMbPerSec,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public void setInterDCStreamThroughputMbPerSec(int value)
+    {
+        int oldValue = DatabaseDescriptor.getInterDCStreamThroughputOutboundMegabitsPerSec();
+        DatabaseDescriptor.setInterDCStreamThroughputOutboundMegabitsPerSec(value);
+        StreamManager.StreamRateLimiter.updateInterDCThroughput();
+        logger.info(""setinterdcstreamthroughput: throttle set to {} Mb/s (was {} Mb/s)"", value, oldValue);
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getInterDCStreamThroughputMbPerSec(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInterDCStreamThroughputOutboundMegabitsPerSec(),org.apache.cassandra.config.DatabaseDescriptor:getInterDCStreamThroughputOutboundMegabitsPerSec(),inter_dc_stream_throughput_outbound_megabits_per_sec,getInterDCStreamThroughputMbPerSec,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getInterDCStreamThroughputMbPerSec()
+    {
+        return DatabaseDescriptor.getInterDCStreamThroughputOutboundMegabitsPerSec();
+    }
+
+
+    "
+M:org.apache.cassandra.streaming.StreamManager$StreamRateLimiter:calculateInterDCRateInBytes(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInterDCStreamThroughputOutboundMegabitsPerSec(),org.apache.cassandra.config.DatabaseDescriptor:getInterDCStreamThroughputOutboundMegabitsPerSec(),inter_dc_stream_throughput_outbound_megabits_per_sec,calculateInterDCRateInBytes,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/streaming/StreamManager.java,StreamManager$StreamRateLimiter,../data/xml/cassandra/StreamManager.xml,"private static double calculateInterDCRateInBytes()
+        {
+            return DatabaseDescriptor.getInterDCStreamThroughputOutboundMegabitsPerSec() > 0
+                   ? DatabaseDescriptor.getInterDCStreamThroughputOutboundMegabitsPerSec() * BYTES_PER_MEGABIT
+                   : Double.MAX_VALUE; // if throughput is set to 0 or negative value, throttling is disabled
+        }
+
+        "

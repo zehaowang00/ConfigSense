@@ -1,0 +1,13 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.config.DatabaseDescriptor:getSnapshotRateLimiter(),(S)org.apache.cassandra.config.DatabaseDescriptor:getSnapshotLinksPerSecond(),org.apache.cassandra.config.DatabaseDescriptor:getSnapshotLinksPerSecond(),snapshot_links_per_second,getSnapshotRateLimiter,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/config/DatabaseDescriptor.java,DatabaseDescriptor,../data/xml/cassandra/DatabaseDescriptor.xml,"public static RateLimiter getSnapshotRateLimiter()
+    {
+        return RateLimiter.create(getSnapshotLinksPerSecond());
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getSnapshotLinksPerSecond(),(S)org.apache.cassandra.config.DatabaseDescriptor:getSnapshotLinksPerSecond(),org.apache.cassandra.config.DatabaseDescriptor:getSnapshotLinksPerSecond(),snapshot_links_per_second,getSnapshotLinksPerSecond,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public long getSnapshotLinksPerSecond()
+    {
+        return DatabaseDescriptor.getSnapshotLinksPerSecond();
+    }
+
+    "

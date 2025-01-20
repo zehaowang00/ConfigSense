@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "stream_throughput_outbound_megabits_per_sec",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public void setStreamThroughputMbPerSec(int value)\n    {\n        int oldValue = DatabaseDescriptor.getStreamThroughputOutboundMegabitsPerSec();\n        DatabaseDescriptor.setStreamThroughputOutboundMegabitsPerSec(value);\n        StreamManager.StreamRateLimiter.updateThroughput();\n        logger.info(\"setstreamthroughput: throttle set to {} Mb/s (was {} Mb/s)\", value, oldValue);\n    }\n\n    \npublic int getStreamThroughputMbPerSec()\n    {\n        return DatabaseDescriptor.getStreamThroughputOutboundMegabitsPerSec();\n    }\n\n    \nprivate static double calculateRateInBytes()\n        {\n            return DatabaseDescriptor.getStreamThroughputOutboundMegabitsPerSec() > 0\n                   ? DatabaseDescriptor.getStreamThroughputOutboundMegabitsPerSec() * BYTES_PER_MEGABIT\n                   : Double.MAX_VALUE; // if throughput is set to 0 or negative value, throttling is disabled\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `stream_throughput_outbound_megabits_per_sec` setting directly influences the throughput of data streaming operations, which can significantly affect system performance. Adjusting this value impacts the rate at which data is processed and transmitted, potentially leading to time-intensive operations if set too low, or resource contention if set too high. The method `StreamManager.StreamRateLimiter.updateThroughput()` indicates that changes to this configuration can lead to immediate adjustments in resource allocation, further emphasizing its performance sensitivity."
+        }
+    ]
+}

@@ -1,0 +1,7 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.StorageService:getColumnIndexCacheSize(),(S)org.apache.cassandra.config.DatabaseDescriptor:getColumnIndexCacheSizeInKB(),org.apache.cassandra.config.DatabaseDescriptor:getColumnIndexCacheSizeInKB(),column_index_cache_size_in_kb,getColumnIndexCacheSize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getColumnIndexCacheSize()
+    {
+        return DatabaseDescriptor.getColumnIndexCacheSizeInKB();
+    }
+
+    "

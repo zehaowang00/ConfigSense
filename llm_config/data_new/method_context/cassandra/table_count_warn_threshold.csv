@@ -1,0 +1,23 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.cql3.statements.schema.CreateTableStatement:clientWarnings(org.apache.cassandra.schema.Keyspaces$KeyspacesDiff),(S)org.apache.cassandra.config.DatabaseDescriptor:tableCountWarnThreshold(),org.apache.cassandra.config.DatabaseDescriptor:tableCountWarnThreshold(),table_count_warn_threshold,clientWarnings,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/schema/CreateTableStatement.java,CreateTableStatement,../data/xml/cassandra/CreateTableStatement.xml,"@Override
+    public Set<String> clientWarnings(KeyspacesDiff diff)
+    {
+        int tableCount = Schema.instance.getNumberOfTables();
+        if (tableCount > DatabaseDescriptor.tableCountWarnThreshold())
+        {
+            String msg = String.format(""Cluster already contains %d tables in %d keyspaces. Having a large number of tables will significantly slow down schema dependent cluster operations."",
+                                       tableCount,
+                                       Schema.instance.getKeyspaces().size());
+            logger.warn(msg);
+            return ImmutableSet.of(msg);
+        }
+        return ImmutableSet.of();
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getTableCountWarnThreshold(),(S)org.apache.cassandra.config.DatabaseDescriptor:tableCountWarnThreshold(),org.apache.cassandra.config.DatabaseDescriptor:tableCountWarnThreshold(),table_count_warn_threshold,getTableCountWarnThreshold,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getTableCountWarnThreshold()
+    {
+        return DatabaseDescriptor.tableCountWarnThreshold();
+    }
+
+    "

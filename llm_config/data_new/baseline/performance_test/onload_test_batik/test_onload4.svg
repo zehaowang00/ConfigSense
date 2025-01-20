@@ -1,0 +1,18 @@
+<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">
+    <script type="text/ecmascript">
+        <![CDATA[
+        // onload script
+        window.onload = function() {
+            for (var i = 0; i < 10000; i++) { // Use 'var' instead of 'let'
+                var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", Math.random() * 500);
+                circle.setAttribute("cy", Math.random() * 500);
+                circle.setAttribute("r", Math.random() * 50);
+                circle.setAttribute("fill", "rgb(" + Math.floor(Math.random() * 255) + ", " +
+                                    Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ")");
+                document.documentElement.appendChild(circle);
+            }
+        }
+        ]]>
+    </script>
+</svg>

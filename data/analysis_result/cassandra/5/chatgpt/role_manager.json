@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'role_manager' configuration in Cassandra is critical for managing access control and permissions within the system. Changes to this configuration can significantly impact how roles are assigned and managed, which in turn affects the performance of query execution and data access. If the configuration is misconfigured or altered, it can lead to increased latency in authentication and authorization processes, thereby causing notable variations in execution time and potentially increasing memory consumption due to inefficient role management. Therefore, it is classified as performance-sensitive."
+}

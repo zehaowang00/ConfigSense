@@ -1,0 +1,31 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.transport.Server:<init>(org.apache.cassandra.transport.Server$Builder),(S)org.apache.cassandra.config.DatabaseDescriptor:getRpcKeepAlive(),org.apache.cassandra.config.DatabaseDescriptor:getRpcKeepAlive(),rpc_keepalive,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/transport/Server.java,Server,../data/xml/cassandra/Server.xml,"private Server (Builder builder)
+    {
+        this.socket = builder.getSocket();
+        this.tlsEncryptionPolicy = builder.tlsEncryptionPolicy;
+        if (builder.workerGroup != null)
+        {
+            workerGroup = builder.workerGroup;
+        }
+        else
+        {
+            if (useEpoll)
+                workerGroup = new EpollEventLoopGroup();
+            else
+                workerGroup = new NioEventLoopGroup();
+        }
+
+        pipelineConfigurator = builder.pipelineConfigurator != null
+                               ? builder.pipelineConfigurator
+                               : new PipelineConfigurator(useEpoll,
+                                                          DatabaseDescriptor.getRpcKeepAlive(),
+                                                          DatabaseDescriptor.useNativeTransportLegacyFlusher(),
+                                                          builder.tlsEncryptionPolicy);
+
+        EventNotifier notifier = builder.eventNotifier != null ? builder.eventNotifier : new EventNotifier();
+        notifier.registerConnectionTracker(connectionTracker);
+        StorageService.instance.register(notifier);
+        Schema.instance.registerListener(notifier);
+    }
+
+    "

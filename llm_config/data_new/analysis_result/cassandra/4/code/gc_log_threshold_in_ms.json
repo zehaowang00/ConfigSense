@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "gc_log_threshold_in_ms",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public GCInspector()\n    {\n        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();\n\n        try\n        {\n            ObjectName gcName = new ObjectName(ManagementFactory.GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE + \",*\");\n            for (ObjectName name : mbs.queryNames(gcName, null))\n            {\n                GarbageCollectorMXBean gc = ManagementFactory.newPlatformMXBeanProxy(mbs, name.getCanonicalName(), GarbageCollectorMXBean.class);\n                gcStates.put(gc.getName(), new GCState(gc, assumeGCIsPartiallyConcurrent(gc), assumeGCIsOldGen(gc)));\n            }\n            ObjectName me = new ObjectName(MBEAN_NAME);\n            if (!mbs.isRegistered(me))\n                MBeanWrapper.instance.registerMBean(this, new ObjectName(MBEAN_NAME));\n        }\n        catch (MalformedObjectNameException | IOException e)\n        {\n            throw new RuntimeException(e);\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The garbage collection process can significantly impact application performance, especially if the `gc_log_threshold_in_ms` configuration influences how frequently garbage collection logs are generated. If this threshold is set too low, it could lead to excessive logging, which can consume CPU and memory resources, causing performance degradation. Additionally, the operations related to querying and managing garbage collector MBeans are inherently tied to the performance of the garbage collection process, making any configuration that affects this behavior critical for overall system performance."
+        }
+    ]
+}

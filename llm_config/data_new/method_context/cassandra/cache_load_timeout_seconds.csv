@@ -1,0 +1,99 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.cache.AutoSavingCache:loadSaved(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCacheLoadTimeout(),org.apache.cassandra.config.DatabaseDescriptor:getCacheLoadTimeout(),cache_load_timeout_seconds,loadSaved,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cache/AutoSavingCache.java,AutoSavingCache,../data/xml/cassandra/AutoSavingCache.xml,"public int loadSaved()
+    {
+        int count = 0;
+        long start = System.nanoTime();
+
+        // modern format, allows both key and value (so key cache load can be purely sequential)
+        File dataPath = getCacheDataPath(CURRENT_VERSION);
+        File crcPath = getCacheCrcPath(CURRENT_VERSION);
+        if (dataPath.exists() && crcPath.exists())
+        {
+            DataInputStreamPlus in = null;
+            try
+            {
+                logger.info(""reading saved cache {}"", dataPath);
+                in = new DataInputStreamPlus(new LengthAvailableInputStream(new BufferedInputStream(streamFactory.getInputStream(dataPath, crcPath)), dataPath.length()));
+
+                //Check the schema has not changed since CFs are looked up by name which is ambiguous
+                UUID schemaVersion = new UUID(in.readLong(), in.readLong());
+                if (!schemaVersion.equals(Schema.instance.getVersion()))
+                    throw new RuntimeException(""Cache schema version ""
+                                              + schemaVersion
+                                              + "" does not match current schema version ""
+                                              + Schema.instance.getVersion());
+
+                ArrayDeque<Future<Pair<K, V>>> futures = new ArrayDeque<>();
+                long loadByNanos = start + TimeUnit.SECONDS.toNanos(DatabaseDescriptor.getCacheLoadTimeout());
+                while (System.nanoTime() < loadByNanos && in.available() > 0)
+                {
+                    //tableId and indexName are serialized by the serializers in CacheService
+                    //That is delegated there because there are serializer specific conditions
+                    //where a cache key is skipped and not written
+                    TableId tableId = TableId.deserialize(in);
+                    String indexName = in.readUTF();
+                    if (indexName.isEmpty())
+                        indexName = null;
+
+                    ColumnFamilyStore cfs = Schema.instance.getColumnFamilyStoreInstance(tableId);
+                    if (indexName != null && cfs != null)
+                        cfs = cfs.indexManager.getIndexByName(indexName).getBackingTable().orElse(null);
+
+                    Future<Pair<K, V>> entryFuture = cacheLoader.deserialize(in, cfs);
+                    // Key cache entry can return null, if the SSTable doesn't exist.
+                    if (entryFuture == null)
+                        continue;
+
+                    futures.offer(entryFuture);
+                    count++;
+
+                    /*
+                     * Kind of unwise to accrue an unbounded number of pending futures
+                     * So now there is this loop to keep a bounded number pending.
+                     */
+                    do
+                    {
+                        while (futures.peek() != null && futures.peek().isDone())
+                        {
+                            Future<Pair<K, V>> future = futures.poll();
+                            Pair<K, V> entry = future.get();
+                            if (entry != null && entry.right != null)
+                                put(entry.left, entry.right);
+                        }
+
+                        if (futures.size() > 1000)
+                            Thread.yield();
+                    } while(futures.size() > 1000);
+                }
+
+                Future<Pair<K, V>> future = null;
+                while ((future = futures.poll()) != null)
+                {
+                    Pair<K, V> entry = future.get();
+                    if (entry != null && entry.right != null)
+                        put(entry.left, entry.right);
+                }
+            }
+            catch (CorruptFileException e)
+            {
+                JVMStabilityInspector.inspectThrowable(e);
+                logger.warn(String.format(""Non-fatal checksum error reading saved cache %s"", dataPath.getAbsolutePath()), e);
+            }
+            catch (Throwable t)
+            {
+                JVMStabilityInspector.inspectThrowable(t);
+                logger.info(String.format(""Harmless error reading saved cache %s"", dataPath.getAbsolutePath()), t);
+            }
+            finally
+            {
+                FileUtils.closeQuietly(in);
+                cacheLoader.cleanupAfterDeserialize();
+            }
+        }
+        if (logger.isTraceEnabled())
+            logger.trace(""completed reading ({} ms; {} keys) saved cache {}"",
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start), count, dataPath);
+        return count;
+    }
+
+    "

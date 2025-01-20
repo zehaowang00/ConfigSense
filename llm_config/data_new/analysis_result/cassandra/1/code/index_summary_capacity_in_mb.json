@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "index_summary_capacity_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private IndexSummaryManager()\n    {\n        executor = new DebuggableScheduledThreadPoolExecutor(1, \"IndexSummaryManager\", Thread.MIN_PRIORITY);\n\n        long indexSummarySizeInMB = DatabaseDescriptor.getIndexSummaryCapacityInMB();\n        int interval = DatabaseDescriptor.getIndexSummaryResizeIntervalInMinutes();\n        logger.info(\"Initializing index summary manager with a memory pool size of {} MB and a resize interval of {} minutes\",\n                    indexSummarySizeInMB, interval);\n\n        setMemoryPoolCapacityInMB(DatabaseDescriptor.getIndexSummaryCapacityInMB());\n        setResizeIntervalInMinutes(DatabaseDescriptor.getIndexSummaryResizeIntervalInMinutes());\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `index_summary_capacity_in_mb` directly influences the memory pool size for the Index Summary Manager, which can significantly affect memory usage and performance. A larger memory pool may lead to increased memory consumption, potentially causing garbage collection overhead and impacting overall system performance. Conversely, a smaller pool may lead to insufficient memory for operations, resulting in performance degradation. Therefore, this configuration has substantial implications for system-level performance due to its potential for time-intensive memory management operations."
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enablePngCrush' configuration in the dconverter software project is performance-sensitive because enabling PNG crushing can significantly affect the execution time and memory consumption during image processing. When this option is activated, the software performs additional compression on PNG files, which can lead to increased CPU usage and longer processing times, especially with large images or batches of images. Conversely, disabling this option may reduce resource usage and improve throughput, demonstrating that the configuration's value directly impacts system performance."
+}

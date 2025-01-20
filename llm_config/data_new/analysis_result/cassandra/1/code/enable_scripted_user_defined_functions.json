@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "enable_scripted_user_defined_functions",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public static void assertUdfsEnabled(String language)\n    {\n        if (!DatabaseDescriptor.enableUserDefinedFunctions())\n            throw new InvalidRequestException(\"User-defined functions are disabled in cassandra.yaml - set enable_user_defined_functions=true to enable\");\n        if (!\"java\".equalsIgnoreCase(language) && !DatabaseDescriptor.enableScriptedUserDefinedFunctions())\n            throw new InvalidRequestException(\"Scripted user-defined functions are disabled in cassandra.yaml - set enable_scripted_user_defined_functions=true to enable if you are aware of the security risks\");\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the check for `enable_scripted_user_defined_functions` primarily serves as a validation mechanism to ensure that user-defined functions can be executed safely. While enabling scripted user-defined functions may have implications for security and functionality, it does not directly lead to significant performance variations due to time-intensive or memory-intensive operations. The operation itself is a simple boolean check and does not involve substantial resource consumption."
+        }
+    ]
+}

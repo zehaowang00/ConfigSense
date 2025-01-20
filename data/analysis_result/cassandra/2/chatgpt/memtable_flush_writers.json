@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'memtable_flush_writers' configuration in Cassandra directly influences how memtables are flushed to disk. Increasing the number of flush writers can significantly enhance write throughput and reduce write latency, especially under heavy load. Conversely, setting this value too low can lead to increased memory consumption and longer write times, as memtables fill up and wait to be flushed. This can cause notable variations in execution time and overall system performance, making this configuration performance-sensitive."
+}

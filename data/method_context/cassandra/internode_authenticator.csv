@@ -1,0 +1,133 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.auth.AuthConfig:applyAuth(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeAuthenticator(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeAuthenticator(),internode_authenticator,applyAuth,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/AuthConfig.java,AuthConfig,../data/xml/cassandra/AuthConfig.xml,"public static void applyAuth()
+    {
+        // some tests need this
+        if (initialized)
+            return;
+
+        initialized = true;
+
+        Config conf = DatabaseDescriptor.getRawConfig();
+
+        IAuthenticator authenticator = new AllowAllAuthenticator();
+
+        /* Authentication, authorization and role management backend, implementing IAuthenticator, IAuthorizer & IRoleMapper*/
+        if (conf.authenticator != null)
+            authenticator = FBUtilities.newAuthenticator(conf.authenticator);
+
+        // the configuration options regarding credentials caching are only guaranteed to
+        // work with PasswordAuthenticator, so log a message if some other authenticator
+        // is in use and non-default values are detected
+        if (!(authenticator instanceof PasswordAuthenticator)
+            && (conf.credentials_update_interval_in_ms != -1
+                || conf.credentials_validity_in_ms != 2000
+                || conf.credentials_cache_max_entries != 1000))
+        {
+            logger.info(""Configuration options credentials_update_interval_in_ms, credentials_validity_in_ms and "" +
+                        ""credentials_cache_max_entries may not be applicable for the configured authenticator ({})"",
+                        authenticator.getClass().getName());
+        }
+
+        DatabaseDescriptor.setAuthenticator(authenticator);
+
+        // authorizer
+
+        IAuthorizer authorizer = new AllowAllAuthorizer();
+
+        if (conf.authorizer != null)
+            authorizer = FBUtilities.newAuthorizer(conf.authorizer);
+
+        if (!authenticator.requireAuthentication() && authorizer.requireAuthorization())
+            throw new ConfigurationException(conf.authenticator + "" can't be used with "" + conf.authorizer, false);
+
+        DatabaseDescriptor.setAuthorizer(authorizer);
+
+        // role manager
+
+        IRoleManager roleManager;
+        if (conf.role_manager != null)
+            roleManager = FBUtilities.newRoleManager(conf.role_manager);
+        else
+            roleManager = new CassandraRoleManager();
+
+        if (authenticator instanceof PasswordAuthenticator && !(roleManager instanceof CassandraRoleManager))
+            throw new ConfigurationException(""CassandraRoleManager must be used with PasswordAuthenticator"", false);
+
+        DatabaseDescriptor.setRoleManager(roleManager);
+
+        // authenticator
+
+        if (conf.internode_authenticator != null)
+            DatabaseDescriptor.setInternodeAuthenticator(FBUtilities.construct(conf.internode_authenticator, ""internode_authenticator""));
+
+        // network authorizer
+        INetworkAuthorizer networkAuthorizer = FBUtilities.newNetworkAuthorizer(conf.network_authorizer);
+        DatabaseDescriptor.setNetworkAuthorizer(networkAuthorizer);
+        if (networkAuthorizer.requireAuthorization() && !authenticator.requireAuthentication())
+        {
+            throw new ConfigurationException(conf.network_authorizer + "" can't be used with "" + conf.authenticator, false);
+        }
+
+        // Validate at last to have authenticator, authorizer, role-manager and internode-auth setup
+        // in case these rely on each other.
+
+        authenticator.validateConfiguration();
+        authorizer.validateConfiguration();
+        roleManager.validateConfiguration();
+        networkAuthorizer.validateConfiguration();
+        DatabaseDescriptor.getInternodeAuthenticator().validateConfiguration();
+    }
+}"
+M:org.apache.cassandra.net.InboundConnectionSettings:withDefaults(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeAuthenticator(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeAuthenticator(),internode_authenticator,withDefaults,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/InboundConnectionSettings.java,InboundConnectionSettings,../data/xml/cassandra/InboundConnectionSettings.xml,"// note that connectTo is updated even if specified, in the case of pre40 messaging and using encryption (to update port)
+public InboundConnectionSettings withDefaults()
+    {
+        // this is for the socket that can be plain, only ssl, or optional plain/ssl
+        if (bindAddress.port != DatabaseDescriptor.getStoragePort() && bindAddress.port != DatabaseDescriptor.getSSLStoragePort())
+            throw new ConfigurationException(format(""Local endpoint port %d doesn't match YAML configured port %d or legacy SSL port %d"",
+                                                    bindAddress.port, DatabaseDescriptor.getStoragePort(), DatabaseDescriptor.getSSLStoragePort()));
+
+        IInternodeAuthenticator authenticator = this.authenticator;
+        ServerEncryptionOptions encryption = this.encryption;
+        Integer socketReceiveBufferSizeInBytes = this.socketReceiveBufferSizeInBytes;
+        Integer applicationReceiveQueueCapacityInBytes = this.applicationReceiveQueueCapacityInBytes;
+        AcceptVersions acceptMessaging = this.acceptMessaging;
+        AcceptVersions acceptStreaming = this.acceptStreaming;
+        SocketFactory socketFactory = this.socketFactory;
+        Function<InetAddressAndPort, InboundMessageHandlers> handlersFactory = this.handlers;
+
+        if (authenticator == null)
+            authenticator = DatabaseDescriptor.getInternodeAuthenticator();
+
+        if (encryption == null)
+            encryption = DatabaseDescriptor.getInternodeMessagingEncyptionOptions();
+
+        if (socketReceiveBufferSizeInBytes == null)
+            socketReceiveBufferSizeInBytes = DatabaseDescriptor.getInternodeSocketReceiveBufferSizeInBytes();
+
+        if (applicationReceiveQueueCapacityInBytes == null)
+            applicationReceiveQueueCapacityInBytes = DatabaseDescriptor.getInternodeApplicationReceiveQueueCapacityInBytes();
+
+        if (acceptMessaging == null)
+            acceptMessaging = accept_messaging;
+
+        if (acceptStreaming == null)
+            acceptStreaming = accept_streaming;
+
+        if (socketFactory == null)
+            socketFactory = instance().socketFactory;
+
+        if (handlersFactory == null)
+            handlersFactory = instance()::getInbound;
+
+        Preconditions.checkArgument(socketReceiveBufferSizeInBytes == 0 || socketReceiveBufferSizeInBytes >= 1 << 10, ""illegal socket send buffer size: "" + socketReceiveBufferSizeInBytes);
+        Preconditions.checkArgument(applicationReceiveQueueCapacityInBytes >= 1 << 10, ""illegal application receive queue capacity: "" + applicationReceiveQueueCapacityInBytes);
+
+        return new InboundConnectionSettings(authenticator, bindAddress, encryption, socketReceiveBufferSizeInBytes, applicationReceiveQueueCapacityInBytes, acceptMessaging, acceptStreaming, socketFactory, handlersFactory);
+    }
+}"
+M:org.apache.cassandra.net.OutboundConnectionSettings:authenticator(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeAuthenticator(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeAuthenticator(),internode_authenticator,authenticator,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/OutboundConnectionSettings.java,OutboundConnectionSettings,../data/xml/cassandra/OutboundConnectionSettings.xml,"public IInternodeAuthenticator authenticator()
+    {
+        return authenticator != null ? authenticator : DatabaseDescriptor.getInternodeAuthenticator();
+    }
+
+    "

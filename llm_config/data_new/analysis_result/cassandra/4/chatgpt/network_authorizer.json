@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'network_authorizer' configuration in Cassandra is performance-sensitive because it directly influences the authorization checks performed during network communication. Changes to this configuration can lead to variations in the execution time of requests, especially under high load or when dealing with numerous concurrent connections. If the authorization logic becomes more complex or if the configuration allows for different authorization strategies, it can significantly impact the overall throughput and latency of the system. Therefore, any adjustments to this setting can lead to notable variations in system performance."
+}

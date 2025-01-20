@@ -1,0 +1,70 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.cache.AutoSavingCache$1:<init>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getTrickleFsyncIntervalInKb(),org.apache.cassandra.config.DatabaseDescriptor:getTrickleFsyncIntervalInKb(),trickle_fsync_interval_in_kb,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cache/AutoSavingCache.java,AutoSavingCache$1,../data/xml/cassandra/AutoSavingCache.xml,"AutoSavingCache<K extends CacheKey, V> 
+AutoSavingCache.class
+AutoSavingCache.streamFactory 
+public AutoSavingCache(ICache<K, V> cache, CacheService.CacheType cacheType, CacheSerializer<K, V> cacheloader)
+    {
+        super(cacheType.toString(), cache);
+        this.cacheType = cacheType;
+        this.cacheLoader = cacheloader;
+    }
+
+    "
+M:org.apache.cassandra.hints.HintsWriter$Session:maybeFsync(),(S)org.apache.cassandra.config.DatabaseDescriptor:getTrickleFsyncIntervalInKb(),org.apache.cassandra.config.DatabaseDescriptor:getTrickleFsyncIntervalInKb(),trickle_fsync_interval_in_kb,maybeFsync,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/hints/HintsWriter.java,HintsWriter$Session,../data/xml/cassandra/HintsWriter.xml,"private void maybeFsync()
+        {
+            if (position() >= lastSyncPosition + DatabaseDescriptor.getTrickleFsyncIntervalInKb() * 1024L)
+                fsync();
+        }
+
+        "
+M:org.apache.cassandra.hints.HintsWriter$Session:maybeSkipCache(),(S)org.apache.cassandra.config.DatabaseDescriptor:getTrickleFsyncIntervalInKb(),org.apache.cassandra.config.DatabaseDescriptor:getTrickleFsyncIntervalInKb(),trickle_fsync_interval_in_kb,maybeSkipCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/hints/HintsWriter.java,HintsWriter$Session,../data/xml/cassandra/HintsWriter.xml,"private void maybeSkipCache()
+        {
+            long position = position();
+
+            // don't skip page cache for tiny files, on the assumption that if they are tiny, the target node is probably
+            // alive, and if so, the file will be closed and dispatched shortly (within a minute), and the file will be dropped.
+            if (position >= DatabaseDescriptor.getTrickleFsyncIntervalInKb() * 1024L)
+                NativeLibrary.trySkipCache(fd, 0, position - (position % PAGE_SIZE), file.getPath());
+        }
+    }"
+"M:org.apache.cassandra.io.sstable.format.big.BigTableWriter:<init>(org.apache.cassandra.io.sstable.Descriptor,long,long,java.util.UUID,boolean,org.apache.cassandra.schema.TableMetadataRef,org.apache.cassandra.io.sstable.metadata.MetadataCollector,org.apache.cassandra.db.SerializationHeader,java.util.Collection,org.apache.cassandra.db.lifecycle.LifecycleNewTracker)",(S)org.apache.cassandra.config.DatabaseDescriptor:getTrickleFsyncIntervalInKb(),org.apache.cassandra.config.DatabaseDescriptor:getTrickleFsyncIntervalInKb(),trickle_fsync_interval_in_kb,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/io/sstable/format/big/BigTableWriter.java,BigTableWriter,../data/xml/cassandra/BigTableWriter.xml,"public BigTableWriter(Descriptor descriptor,
+                          long keyCount,
+                          long repairedAt,
+                          UUID pendingRepair,
+                          boolean isTransient,
+                          TableMetadataRef metadata,
+                          MetadataCollector metadataCollector, 
+                          SerializationHeader header,
+                          Collection<SSTableFlushObserver> observers,
+                          LifecycleNewTracker lifecycleNewTracker)
+    {
+        super(descriptor, keyCount, repairedAt, pendingRepair, isTransient, metadata, metadataCollector, header, observers);
+        lifecycleNewTracker.trackNew(this); // must track before any files are created
+
+        if (compression)
+        {
+            final CompressionParams compressionParams = compressionFor(lifecycleNewTracker.opType());
+
+            dataFile = new CompressedSequentialWriter(new File(getFilename()),
+                                             descriptor.filenameFor(Component.COMPRESSION_INFO),
+                                             new File(descriptor.filenameFor(Component.DIGEST)),
+                                             writerOption,
+                                             compressionParams,
+                                             metadataCollector);
+        }
+        else
+        {
+            dataFile = new ChecksummedSequentialWriter(new File(getFilename()),
+                    new File(descriptor.filenameFor(Component.CRC)),
+                    new File(descriptor.filenameFor(Component.DIGEST)),
+                    writerOption);
+        }
+        dbuilder = new FileHandle.Builder(descriptor.filenameFor(Component.DATA)).compressed(compression)
+                                              .mmapped(DatabaseDescriptor.getDiskAccessMode() == Config.DiskAccessMode.mmap);
+        chunkCache.ifPresent(dbuilder::withChunkCache);
+        iwriter = new IndexWriter(keyCount);
+
+        columnIndexWriter = new ColumnIndex(this.header, dataFile, descriptor.version, this.observers, getRowIndexEntrySerializer().indexInfoSerializer());
+    }
+
+    "

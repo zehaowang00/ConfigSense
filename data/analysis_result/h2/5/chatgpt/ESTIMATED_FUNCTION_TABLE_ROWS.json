@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'ESTIMATED_FUNCTION_TABLE_ROWS' directly influences the query optimization process in the H2 database. A change in its value can lead to significant variations in how the query planner estimates the cost of executing queries. If the estimate is too low or too high, it can result in suboptimal execution plans, leading to increased execution times and higher memory consumption during query processing. Therefore, this configuration is critical for performance tuning and is considered performance-sensitive."
+}

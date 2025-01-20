@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'ANALYZE_SAMPLE' in the h2 software project is performance-sensitive because it directly influences the execution time of queries and the efficiency of data retrieval processes. Changes in this configuration can lead to significant variations in how the database engine analyzes and optimizes queries, which in turn affects overall system performance, including response times and resource utilization. A higher sample rate may improve accuracy but could increase execution time and memory consumption, while a lower sample rate may reduce resource usage but at the cost of performance accuracy. Therefore, adjustments to this configuration can have a notable impact on system performance."
+}

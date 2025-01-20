@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'network_authorizer' configuration in Cassandra plays a critical role in managing access control for network requests. Changes to this configuration can significantly affect the performance of the system, particularly in scenarios with high traffic or numerous concurrent connections. For instance, if the authorization checks become more complex or if the configuration leads to increased latency in authorization responses, it can cause notable variations in execution time for client requests. Additionally, if the configuration impacts how resources are allocated for handling network requests, it can also lead to variations in memory consumption, ultimately affecting the overall throughput and responsiveness of the system."
+}

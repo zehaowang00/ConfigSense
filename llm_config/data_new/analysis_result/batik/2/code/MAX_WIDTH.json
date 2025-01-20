@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "MAX_WIDTH",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * Sets document size according to the hints.\n     * Global variables width and height are modified.\n     *\n     * @param docWidth Width of the document.\n     * @param docHeight Height of the document.\n     */\nprotected void setImageSize(float docWidth, float docHeight) {\n\n        // Compute the image's width and height according the hints\n        float imgWidth = -1;\n        if (hints.containsKey(KEY_WIDTH)) {\n            imgWidth = (Float) hints.get(KEY_WIDTH);\n        }\n        float imgHeight = -1;\n        if (hints.containsKey(KEY_HEIGHT)) {\n            imgHeight = (Float) hints.get(KEY_HEIGHT);\n        }\n\n        if (imgWidth > 0 && imgHeight > 0) {\n            width = imgWidth;\n            height = imgHeight;\n        } else if (imgHeight > 0) {\n            width = (docWidth * imgHeight) / docHeight;\n            height = imgHeight;\n        } else if (imgWidth > 0) {\n            width = imgWidth;\n            height = (docHeight * imgWidth) / docWidth;\n        } else {\n            width = docWidth;\n            height = docHeight;\n        }\n\n        // Limit image size according to the maximuxm size hints.\n        float imgMaxWidth = -1;\n        if (hints.containsKey(KEY_MAX_WIDTH)) {\n            imgMaxWidth = (Float) hints.get(KEY_MAX_WIDTH);\n        }\n        float imgMaxHeight = -1;\n        if (hints.containsKey(KEY_MAX_HEIGHT)) {\n            imgMaxHeight = (Float) hints.get(KEY_MAX_HEIGHT);\n        }\n\n        if ((imgMaxHeight > 0) && (height > imgMaxHeight)) {\n            width = (docWidth * imgMaxHeight) / docHeight;\n            height = imgMaxHeight;\n        }\n        if ((imgMaxWidth > 0) && (width > imgMaxWidth)) {\n            width = imgMaxWidth;\n            height = (docHeight * imgMaxWidth) / docWidth;\n        }\n    }\n\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The MAX_WIDTH configuration primarily influences the dimensions of an image based on provided hints, but it does not involve any time-intensive or memory-heavy operations. The calculations performed are simple arithmetic operations that do not significantly impact performance. The operations are conditional and only adjust width and height based on the hints, which are not expected to cause substantial performance variations in a typical use case."
+        }
+    ]
+}

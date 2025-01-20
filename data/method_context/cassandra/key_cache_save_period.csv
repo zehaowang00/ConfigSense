@@ -1,0 +1,30 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.CacheService:initKeyCache(),(S)org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheSavePeriod(),org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheSavePeriod(),key_cache_save_period,initKeyCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"/**
+     * @return auto saving cache object
+     */
+private AutoSavingCache<KeyCacheKey, RowIndexEntry> initKeyCache()
+    {
+        logger.info(""Initializing key cache with capacity of {} MBs."", DatabaseDescriptor.getKeyCacheSizeInMB());
+
+        long keyCacheInMemoryCapacity = DatabaseDescriptor.getKeyCacheSizeInMB() * 1024 * 1024;
+
+        // as values are constant size we can use singleton weigher
+        // where 48 = 40 bytes (average size of the key) + 8 bytes (size of value)
+        ICache<KeyCacheKey, RowIndexEntry> kc;
+        kc = CaffeineCache.create(keyCacheInMemoryCapacity);
+        AutoSavingCache<KeyCacheKey, RowIndexEntry> keyCache = new AutoSavingCache<>(kc, CacheType.KEY_CACHE, new KeyCacheSerializer());
+
+        int keyCacheKeysToSave = DatabaseDescriptor.getKeyCacheKeysToSave();
+
+        keyCache.scheduleSaving(DatabaseDescriptor.getKeyCacheSavePeriod(), keyCacheKeysToSave);
+
+        return keyCache;
+    }
+
+    "
+M:org.apache.cassandra.service.CacheService:getKeyCacheSavePeriodInSeconds(),(S)org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheSavePeriod(),org.apache.cassandra.config.DatabaseDescriptor:getKeyCacheSavePeriod(),key_cache_save_period,getKeyCacheSavePeriodInSeconds,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"public int getKeyCacheSavePeriodInSeconds()
+    {
+        return DatabaseDescriptor.getKeyCacheSavePeriod();
+    }
+
+    "

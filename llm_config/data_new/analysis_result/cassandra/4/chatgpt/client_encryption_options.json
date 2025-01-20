@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'client_encryption_options' configuration in Cassandra is performance-sensitive because it directly impacts the overhead associated with encrypting and decrypting data transmitted between clients and the server. Changes in encryption algorithms or key sizes can lead to significant variations in execution time due to the computational resources required for encryption processes. Additionally, increased encryption can also affect memory consumption, as more resources may be allocated for managing encryption keys and buffers. Therefore, any modifications to this configuration can lead to notable variations in system performance, making it performance-sensitive."
+}

@@ -1,0 +1,225 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.dht.BootStrapper:bootstrap(org.apache.cassandra.dht.StreamStateStore,boolean)",(S)org.apache.cassandra.config.DatabaseDescriptor:getStreamingConnectionsPerHost(),org.apache.cassandra.config.DatabaseDescriptor:getStreamingConnectionsPerHost(),streaming_connections_per_host,bootstrap,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/dht/BootStrapper.java,BootStrapper,../data/xml/cassandra/BootStrapper.xml,"public ListenableFuture<StreamState> bootstrap(StreamStateStore stateStore, boolean useStrictConsistency)
+    {
+        logger.trace(""Beginning bootstrap process"");
+
+        RangeStreamer streamer = new RangeStreamer(tokenMetadata,
+                                                   tokens,
+                                                   address,
+                                                   StreamOperation.BOOTSTRAP,
+                                                   useStrictConsistency,
+                                                   DatabaseDescriptor.getEndpointSnitch(),
+                                                   stateStore,
+                                                   true,
+                                                   DatabaseDescriptor.getStreamingConnectionsPerHost());
+        final List<String> nonLocalStrategyKeyspaces = Schema.instance.getNonLocalStrategyKeyspaces();
+        if (nonLocalStrategyKeyspaces.isEmpty())
+            logger.debug(""Schema does not contain any non-local keyspaces to stream on bootstrap"");
+        for (String keyspaceName : nonLocalStrategyKeyspaces)
+        {
+            AbstractReplicationStrategy strategy = Keyspace.open(keyspaceName).getReplicationStrategy();
+            streamer.addRanges(keyspaceName, strategy.getPendingAddressRanges(tokenMetadata, tokens, address));
+        }
+
+        StreamResultFuture bootstrapStreamResult = streamer.fetchAsync();
+        bootstrapStreamResult.addEventListener(new StreamEventHandler()
+        {
+            private final AtomicInteger receivedFiles = new AtomicInteger();
+            private final AtomicInteger totalFilesToReceive = new AtomicInteger();
+
+            @Override
+            public void handleStreamEvent(StreamEvent event)
+            {
+                switch (event.eventType)
+                {
+                    case STREAM_PREPARED:
+                        StreamEvent.SessionPreparedEvent prepared = (StreamEvent.SessionPreparedEvent) event;
+                        int currentTotal = totalFilesToReceive.addAndGet((int) prepared.session.getTotalFilesToReceive());
+                        ProgressEvent prepareProgress = new ProgressEvent(ProgressEventType.PROGRESS, receivedFiles.get(), currentTotal, ""prepare with "" + prepared.session.peer + "" complete"");
+                        fireProgressEvent(""bootstrap"", prepareProgress);
+                        break;
+
+                    case FILE_PROGRESS:
+                        StreamEvent.ProgressEvent progress = (StreamEvent.ProgressEvent) event;
+                        if (progress.progress.isCompleted())
+                        {
+                            int received = receivedFiles.incrementAndGet();
+                            ProgressEvent currentProgress = new ProgressEvent(ProgressEventType.PROGRESS, received, totalFilesToReceive.get(), ""received file "" + progress.progress.fileName);
+                            fireProgressEvent(""bootstrap"", currentProgress);
+                        }
+                        break;
+
+                    case STREAM_COMPLETE:
+                        StreamEvent.SessionCompleteEvent completeEvent = (StreamEvent.SessionCompleteEvent) event;
+                        ProgressEvent completeProgress = new ProgressEvent(ProgressEventType.PROGRESS, receivedFiles.get(), totalFilesToReceive.get(), ""session with "" + completeEvent.peer + "" complete"");
+                        fireProgressEvent(""bootstrap"", completeProgress);
+                        break;
+                }
+            }
+
+            @Override
+            public void onSuccess(StreamState streamState)
+            {
+                ProgressEventType type;
+                String message;
+
+                if (streamState.hasFailedSession())
+                {
+                    type = ProgressEventType.ERROR;
+                    message = ""Some bootstrap stream failed"";
+                }
+                else
+                {
+                    type = ProgressEventType.SUCCESS;
+                    message = ""Bootstrap streaming success"";
+                }
+                ProgressEvent currentProgress = new ProgressEvent(type, receivedFiles.get(), totalFilesToReceive.get(), message);
+                fireProgressEvent(""bootstrap"", currentProgress);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable)
+            {
+                ProgressEvent currentProgress = new ProgressEvent(ProgressEventType.ERROR, receivedFiles.get(), totalFilesToReceive.get(), throwable.getMessage());
+                fireProgressEvent(""bootstrap"", currentProgress);
+            }
+        });
+        return bootstrapStreamResult;
+    }
+
+    "
+"M:org.apache.cassandra.service.StorageService:rebuild(java.lang.String,java.lang.String,java.lang.String,java.lang.String)",(S)org.apache.cassandra.config.DatabaseDescriptor:getStreamingConnectionsPerHost(),org.apache.cassandra.config.DatabaseDescriptor:getStreamingConnectionsPerHost(),streaming_connections_per_host,rebuild,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public void rebuild(String sourceDc)
+    {
+        rebuild(sourceDc, null, null, null);
+    }
+
+    
+public void rebuild(String sourceDc, String keyspace, String tokens, String specificSources)
+    {
+        // check ongoing rebuild
+        if (!isRebuilding.compareAndSet(false, true))
+        {
+            throw new IllegalStateException(""Node is still rebuilding. Check nodetool netstats."");
+        }
+
+        // check the arguments
+        if (keyspace == null && tokens != null)
+        {
+            throw new IllegalArgumentException(""Cannot specify tokens without keyspace."");
+        }
+
+        logger.info(""rebuild from dc: {}, {}, {}"", sourceDc == null ? ""(any dc)"" : sourceDc,
+                    keyspace == null ? ""(All keyspaces)"" : keyspace,
+                    tokens == null ? ""(All tokens)"" : tokens);
+
+        try
+        {
+            RangeStreamer streamer = new RangeStreamer(tokenMetadata,
+                                                       null,
+                                                       FBUtilities.getBroadcastAddressAndPort(),
+                                                       StreamOperation.REBUILD,
+                                                       useStrictConsistency && !replacing,
+                                                       DatabaseDescriptor.getEndpointSnitch(),
+                                                       streamStateStore,
+                                                       false,
+                                                       DatabaseDescriptor.getStreamingConnectionsPerHost());
+            if (sourceDc != null)
+                streamer.addSourceFilter(new RangeStreamer.SingleDatacenterFilter(DatabaseDescriptor.getEndpointSnitch(), sourceDc));
+
+            if (keyspace == null)
+            {
+                for (String keyspaceName : Schema.instance.getNonLocalStrategyKeyspaces())
+                    streamer.addRanges(keyspaceName, getLocalReplicas(keyspaceName));
+            }
+            else if (tokens == null)
+            {
+                streamer.addRanges(keyspace, getLocalReplicas(keyspace));
+            }
+            else
+            {
+                Token.TokenFactory factory = getTokenFactory();
+                List<Range<Token>> ranges = new ArrayList<>();
+                Pattern rangePattern = Pattern.compile(""\\(\\s*(-?\\w+)\\s*,\\s*(-?\\w+)\\s*\\]"");
+                try (Scanner tokenScanner = new Scanner(tokens))
+                {
+                    while (tokenScanner.findInLine(rangePattern) != null)
+                    {
+                        MatchResult range = tokenScanner.match();
+                        Token startToken = factory.fromString(range.group(1));
+                        Token endToken = factory.fromString(range.group(2));
+                        logger.info(""adding range: ({},{}]"", startToken, endToken);
+                        ranges.add(new Range<>(startToken, endToken));
+                    }
+                    if (tokenScanner.hasNext())
+                        throw new IllegalArgumentException(""Unexpected string: "" + tokenScanner.next());
+                }
+
+                // Ensure all specified ranges are actually ranges owned by this host
+                RangesAtEndpoint localReplicas = getLocalReplicas(keyspace);
+                RangesAtEndpoint.Builder streamRanges = new RangesAtEndpoint.Builder(FBUtilities.getBroadcastAddressAndPort(), ranges.size());
+                for (Range<Token> specifiedRange : ranges)
+                {
+                    boolean foundParentRange = false;
+                    for (Replica localReplica : localReplicas)
+                    {
+                        if (localReplica.contains(specifiedRange))
+                        {
+                            streamRanges.add(localReplica.decorateSubrange(specifiedRange));
+                            foundParentRange = true;
+                            break;
+                        }
+                    }
+                    if (!foundParentRange)
+                    {
+                        throw new IllegalArgumentException(String.format(""The specified range %s is not a range that is owned by this node. Please ensure that all token ranges specified to be rebuilt belong to this node."", specifiedRange.toString()));
+                    }
+                }
+
+                if (specificSources != null)
+                {
+                    String[] stringHosts = specificSources.split("","");
+                    Set<InetAddressAndPort> sources = new HashSet<>(stringHosts.length);
+                    for (String stringHost : stringHosts)
+                    {
+                        try
+                        {
+                            InetAddressAndPort endpoint = InetAddressAndPort.getByName(stringHost);
+                            if (FBUtilities.getBroadcastAddressAndPort().equals(endpoint))
+                            {
+                                throw new IllegalArgumentException(""This host was specified as a source for rebuilding. Sources for a rebuild can only be other nodes in the cluster."");
+                            }
+                            sources.add(endpoint);
+                        }
+                        catch (UnknownHostException ex)
+                        {
+                            throw new IllegalArgumentException(""Unknown host specified "" + stringHost, ex);
+                        }
+                    }
+                    streamer.addSourceFilter(new RangeStreamer.AllowedSourcesFilter(sources));
+                }
+
+                streamer.addRanges(keyspace, streamRanges.build());
+            }
+
+            StreamResultFuture resultFuture = streamer.fetchAsync();
+            // wait for result
+            resultFuture.get();
+        }
+        catch (InterruptedException e)
+        {
+            throw new RuntimeException(""Interrupted while waiting on rebuild streaming"");
+        }
+        catch (ExecutionException e)
+        {
+            // This is used exclusively through JMX, so log the full trace but only throw a simple RTE
+            logger.error(""Error while rebuilding node"", e.getCause());
+            throw new RuntimeException(""Error while rebuilding node: "" + e.getCause().getMessage());
+        }
+        finally
+        {
+            // rebuild is done (successfully or not)
+            isRebuilding.set(false);
+        }
+    }
+
+    "

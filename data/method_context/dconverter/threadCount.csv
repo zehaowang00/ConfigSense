@@ -1,0 +1,174 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:at.favre.tools.dconvert.WorkerHandler:<init>(java.util.List,at.favre.tools.dconvert.arg.Arguments,at.favre.tools.dconvert.WorkerHandler$Callback)",(M)at.favre.tools.dconvert.arg.Arguments:getThreadCount(),at.favre.tools.dconvert.arg.Arguments:getThreadCount(),threadCount,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/WorkerHandler.java,WorkerHandler,../data/xml/dconverter/WorkerHandler.xml,"public WorkerHandler(List<T> processors, Arguments arguments, Callback callback) {
+        this.processors = processors;
+        this.threadPool = new ThreadPoolExecutor(arguments.threadCount, arguments.threadCount, 5, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1024 * 10));
+        this.callback = callback;
+        this.arguments = arguments;
+    }
+
+    "
+M:at.favre.tools.dconvert.ui.GUIController:loadPrefs(),(M)at.favre.tools.dconvert.arg.Arguments:getThreadCount(),at.favre.tools.dconvert.arg.Arguments:getThreadCount(),threadCount,loadPrefs,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/ui/GUIController.java,GUIController,../data/xml/dconverter/GUIController.xml,"private void loadPrefs() {
+        Arguments args = preferenceStore.get();
+        if (args != null) {
+            textFieldSrcPath.setText(args.src != null ? args.src.getAbsolutePath() : """");
+            textFieldDstPath.setText(args.dst != null ? args.dst.getAbsolutePath() : """");
+
+            scaleSlider.setValue(Arguments.DEFAULT_SCALE);
+            textFieldDp.setText(String.valueOf((int) args.scale));
+
+            if (args.scaleMode == EScaleMode.FACTOR) {
+                rbFactor.setSelected(true);
+                scaleSlider.setValue(args.scale);
+                textFieldDp.setText("""");
+            } else if (args.scaleMode == EScaleMode.DP_WIDTH) {
+                rbDpWidth.setSelected(true);
+            } else if (args.scaleMode == EScaleMode.DP_HEIGHT) {
+                rbDpHeight.setSelected(true);
+            }
+
+            setPlatformToogles(args.platform);
+            choiceCompression.getSelectionModel().select(args.outputCompressionMode);
+            choiceCompressionQuality.getSelectionModel().select(toJpgQ(args.compressionQuality));
+            choiceRounding.getSelectionModel().select(args.roundingHandler);
+            choiceThreads.getSelectionModel().select(Integer.valueOf(args.threadCount));
+            choiceDownScale.getSelectionModel().select(args.downScalingAlgorithm);
+            choiceUpScale.getSelectionModel().select(args.upScalingAlgorithm);
+
+            cbSkipExisting.setSelected(args.skipExistingFiles);
+            cbSkipUpscaling.setSelected(args.skipUpscaling);
+            cbAndroidIncludeLdpiTvdpi.setSelected(args.includeAndroidLdpiTvdpi);
+            cbAntiAliasing.setSelected(args.enableAntiAliasing);
+            cbMipmapInsteadDrawable.setSelected(args.createMipMapInsteadOfDrawableDir);
+            cbHaltOnError.setSelected(args.haltOnError);
+            cbDryRun.setSelected(args.dryRun);
+            cbEnablePngCrush.setSelected(args.enablePngCrush);
+            cbPostConvertWebp.setSelected(args.postConvertWebp);
+            cbEnableMozJpeg.setSelected(args.enableMozJpeg);
+            cbKeepUnoptimized.setSelected(args.keepUnoptimizedFilesPostProcessor);
+            cbIosCreateImageset.setSelected(args.iosCreateImagesetFolders);
+            cbCleanBeforeConvert.setSelected(args.clearDirBeforeConvert);
+            rbOptAdvanced.setSelected(args.guiAdvancedOptions);
+            rbOptSimple.setSelected(!args.guiAdvancedOptions);
+
+        }
+    }
+
+    "
+"M:at.favre.tools.dconvert.DConvert:execute(at.favre.tools.dconvert.arg.Arguments,boolean,at.favre.tools.dconvert.DConvert$HandlerCallback)",(M)at.favre.tools.dconvert.arg.Arguments:getThreadCount(),at.favre.tools.dconvert.arg.Arguments:getThreadCount(),threadCount,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/DConvert.java,DConvert,../data/xml/dconverter/DConvert.xml,"/**
+     * Starts the execution of the dconvert
+     *
+     * @param args                  from user interface
+     * @param blockingWaitForFinish if true will block the thread until all threads are finished
+     * @param callback              main callback
+     */
+public void execute(Arguments args, boolean blockingWaitForFinish, HandlerCallback callback) {
+        beginMs = System.currentTimeMillis();
+        handlerCallback = callback;
+
+        logStringBuilder.append(""registered image readers:\n"").append(getRegisteredImageReadersAndWriters()).append(""\n"");
+        logStringBuilder.append(""begin execution using "").append(args.threadCount).append("" theads\n"");
+        logStringBuilder.append(""args: "").append(args).append(""\n"");
+
+        if (!args.filesToProcess.isEmpty()) {
+            List<IPlatformConverter> converters = new ArrayList<>();
+            List<IPostProcessor> postProcessors = new ArrayList<>();
+
+            for (EPlatform ePlatform : args.platform) {
+                logStringBuilder.append(""add "").append(ePlatform.getConverter().getClass().getSimpleName()).append(""\n"");
+                converters.add(ePlatform.getConverter());
+            }
+
+            if (args.clearDirBeforeConvert) {
+                logStringBuilder.append(""clear out dirs before convert\n"");
+                for (IPlatformConverter converter : converters) {
+                    converter.clean(args);
+                }
+            }
+
+            if (args.enablePngCrush) {
+                IPostProcessor postProcessor = new PngCrushProcessor();
+                if (postProcessor.isSupported()) {
+                    logStringBuilder.append(""add pngcrush postprocessor\n"");
+                    postProcessors.add(postProcessor);
+                } else {
+                    logStringBuilder.append(""WARNING: Tool 'pngcrush' cannot be accessed. Is it set in PATH?\n"");
+                }
+            }
+            if (args.postConvertWebp) {
+                IPostProcessor postProcessor = new WebpProcessor();
+                if (postProcessor.isSupported()) {
+                    logStringBuilder.append(""add cwebp postprocessor\n"");
+                    postProcessors.add(postProcessor);
+                } else {
+                    logStringBuilder.append(""WARNING: Tool 'cwebp' cannot be accessed. Is it set in PATH?\n"");
+                }
+            }
+            if (args.enableMozJpeg) {
+                IPostProcessor postProcessor = new MozJpegProcessor();
+                if (postProcessor.isSupported()) {
+                    logStringBuilder.append(""add mozJpeg postprocessor\n"");
+                    postProcessors.add(postProcessor);
+                } else {
+                    logStringBuilder.append(""WARNING: Tool 'jpegtran' cannot be accessed. Is it set in PATH?\n"");
+                }
+            }
+
+            int convertJobs = args.filesToProcess.size() * converters.size();
+            int postProcessorJobs = convertJobs * postProcessors.size();
+
+            float convertPercentage = (float) convertJobs / (float) (convertJobs + postProcessorJobs);
+            float postProcessPercentage = (float) postProcessorJobs / (float) (convertJobs + postProcessorJobs);
+
+            mainLatch = new CountDownLatch(1);
+
+            for (File srcFile : args.filesToProcess) {
+                logStringBuilder.append(""add "").append(srcFile).append("" to processing queue\n"");
+
+                if (!srcFile.exists() || !srcFile.isFile()) {
+                    throw new IllegalStateException(""srcFile "" + srcFile + "" does not exist"");
+                }
+            }
+
+            new WorkerHandler<>(converters, args, new WorkerHandler.Callback() {
+                @Override
+                public void onProgress(float percent) {
+                    handlerCallback.onProgress(convertPercentage * percent);
+                }
+
+                @Override
+                public void onFinished(final int finishedJobsConverters, List<File> outFiles, final StringBuilder logConverters, final List<Exception> exceptionsConverters, final boolean haltedDuringProcessConverters) {
+                    logStringBuilder.append(logConverters);
+                    if (haltedDuringProcessConverters) {
+                        informFinished(finishedJobsConverters, exceptionsConverters, true);
+                    } else {
+                        new WorkerHandler<>(postProcessors, args, new WorkerHandler.Callback() {
+                            @Override
+                            public void onProgress(float percent) {
+                                handlerCallback.onProgress(convertPercentage + (postProcessPercentage * percent));
+                            }
+
+                            @Override
+                            public void onFinished(int finishedJobsPostProcessors, List<File> outFiles, StringBuilder log, List<Exception> exceptions, boolean haltedDuringProcess) {
+                                exceptionsConverters.addAll(exceptions);
+                                logStringBuilder.append(log);
+                                informFinished(finishedJobsPostProcessors + finishedJobsConverters, exceptionsConverters, haltedDuringProcess);
+                            }
+                        }).start(outFiles);
+                    }
+                }
+            }).start(args.filesToProcess);
+
+            if (blockingWaitForFinish) {
+                try {
+                    mainLatch.await(60, TimeUnit.MINUTES);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            logStringBuilder.append(""no files to convert\n"");
+            informFinished(0, Collections.emptyList(), false);
+        }
+    }
+
+    "

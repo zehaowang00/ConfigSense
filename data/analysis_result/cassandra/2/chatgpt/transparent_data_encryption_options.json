@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'transparent_data_encryption_options' configuration in Cassandra is performance-sensitive because enabling or modifying encryption can significantly impact I/O performance and CPU utilization. Encryption processes add overhead to data read/write operations, which can lead to increased execution times and higher memory consumption. The extent of this impact can vary based on the encryption algorithm used, the volume of data being processed, and the underlying hardware capabilities. Therefore, changes to this configuration can lead to notable variations in system performance."
+}

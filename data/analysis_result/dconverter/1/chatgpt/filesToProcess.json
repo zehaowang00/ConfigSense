@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'filesToProcess' configuration in the dconverter software project directly influences the amount of data being handled during execution. A change in this configuration can lead to significant variations in execution time as it determines how many files are processed in a single run. If the number of files increases, the system may experience higher memory consumption and longer processing times due to increased I/O operations and data handling. Conversely, reducing the number of files may lead to faster execution and lower memory usage. Therefore, this configuration is classified as performance-sensitive due to its direct impact on system performance metrics."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'cached_rows_warn_threshold' configuration in Cassandra determines the threshold for warning logs related to the number of cached rows. A change in this threshold can significantly impact performance monitoring and alerting mechanisms. If set too low, it may generate excessive warnings, leading to unnecessary overhead in logging and potentially affecting system performance. Conversely, if set too high, it may mask performance issues related to caching, leading to degraded performance due to inefficient memory usage and slower query responses. Therefore, variations in this configuration can notably affect execution time and memory consumption, classifying it as performance-sensitive."
+}

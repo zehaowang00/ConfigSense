@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "cdc_total_space_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private long allowableCDCBytes()\n        {\n            return (long)DatabaseDescriptor.getCDCSpaceInMB() * 1024 * 1024;\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method `allowableCDCBytes()` performs a simple arithmetic operation to convert the CDC space from megabytes to bytes. This operation involves basic multiplication and casting, which are not time-intensive or memory-intensive. Therefore, it does not significantly impact system-level performance."
+        }
+    ]
+}

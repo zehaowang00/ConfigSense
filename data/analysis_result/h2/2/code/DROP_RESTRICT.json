@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "DROP_RESTRICT",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public DropView(SessionLocal session, Schema schema) {\n        super(session, schema);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT :\n                ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropTable(SessionLocal session) {\n        super(session);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT :\n                    ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropDomain(SessionLocal session, Schema schema) {\n        super(session, schema);\n        dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintActionType.RESTRICT\n                : ConstraintActionType.CASCADE;\n    }\n\n    \npublic DropSchema(SessionLocal session) {\n        super(session);\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;\n    }\n\n    \npublic AlterTableDropConstraint(SessionLocal session, Schema schema, boolean ifExists) {\n        super(session, schema);\n        this.ifExists = ifExists;\n        dropAction = session.getDatabase().getSettings().dropRestrict ?\n                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the `DROP_RESTRICT` setting primarily determines the behavior of drop operations (RESTRICT vs. CASCADE) but does not inherently involve time-intensive or memory-intensive operations. The impact of this configuration is more about the logical handling of constraints rather than performance, as it does not directly lead to significant variations in execution time or resource consumption during drop operations."
+        }
+    ]
+}

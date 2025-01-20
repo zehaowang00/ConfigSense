@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'depths.diffuse' configuration in the Sunflow software project directly influences the rendering quality and computational workload during the rendering process. Changes to this configuration can lead to significant variations in the number of calculations performed for light diffusion, which in turn affects execution time and memory consumption. A higher value may increase the depth of calculations, resulting in longer rendering times and higher memory usage, while a lower value may reduce quality but improve performance. Therefore, this configuration is classified as performance-sensitive due to its substantial impact on system performance metrics."
+}

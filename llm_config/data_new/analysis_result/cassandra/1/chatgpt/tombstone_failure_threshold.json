@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'tombstone_failure_threshold' configuration in Cassandra determines the maximum number of tombstones (deleted data markers) that can be present in a partition before a read operation is considered a failure. A lower threshold can lead to increased read failures, which can significantly impact application performance, as it may force the system to perform additional retries or fallbacks. Conversely, a higher threshold may allow for more tombstones, potentially leading to increased memory consumption and longer read times due to the need to process more tombstones during queries. Therefore, changes to this configuration can notably affect execution time and resource utilization, making it performance-sensitive."
+}

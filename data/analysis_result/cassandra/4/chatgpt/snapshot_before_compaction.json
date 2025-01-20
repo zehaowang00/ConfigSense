@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'snapshot_before_compaction' configuration in Cassandra is performance-sensitive because it directly influences the system's memory usage and I/O operations during compaction processes. When enabled, snapshots are created before data compaction, which can lead to increased disk space consumption and potentially higher garbage collection overhead. This can result in notable variations in execution time and overall system performance, especially in environments with large datasets or frequent compaction operations. Changes to this configuration can significantly impact the performance characteristics of the database, making it a critical parameter to monitor and optimize."
+}

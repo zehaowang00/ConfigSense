@@ -1,0 +1,10 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.cql3.functions.UDFunction:assertUdfsEnabled(java.lang.String),(S)org.apache.cassandra.config.DatabaseDescriptor:enableScriptedUserDefinedFunctions(),org.apache.cassandra.config.DatabaseDescriptor:enableScriptedUserDefinedFunctions(),enable_scripted_user_defined_functions,assertUdfsEnabled,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/functions/UDFunction.java,UDFunction,../data/xml/cassandra/UDFunction.xml,"public static void assertUdfsEnabled(String language)
+    {
+        if (!DatabaseDescriptor.enableUserDefinedFunctions())
+            throw new InvalidRequestException(""User-defined functions are disabled in cassandra.yaml - set enable_user_defined_functions=true to enable"");
+        if (!""java"".equalsIgnoreCase(language) && !DatabaseDescriptor.enableScriptedUserDefinedFunctions())
+            throw new InvalidRequestException(""Scripted user-defined functions are disabled in cassandra.yaml - set enable_scripted_user_defined_functions=true to enable if you are aware of the security risks"");
+    }
+
+    "

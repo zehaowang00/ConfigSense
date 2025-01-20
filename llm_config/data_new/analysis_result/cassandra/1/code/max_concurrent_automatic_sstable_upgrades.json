@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "max_concurrent_automatic_sstable_upgrades",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "boolean maybeRunUpgradeTask(CompactionStrategyManager strategy)\n        {\n            logger.debug(\"Checking for upgrade tasks {}.{}\", cfs.keyspace.getName(), cfs.getTableName());\n            try\n            {\n                if (currentlyBackgroundUpgrading.incrementAndGet() <= DatabaseDescriptor.maxConcurrentAutoUpgradeTasks())\n                {\n                    AbstractCompactionTask upgradeTask = strategy.findUpgradeSSTableTask();\n                    if (upgradeTask != null)\n                    {\n                        upgradeTask.execute(active);\n                        return true;\n                    }\n                }\n            }\n            finally\n            {\n                currentlyBackgroundUpgrading.decrementAndGet();\n            }\n            logger.trace(\"No tasks available\");\n            return false;\n        }\n    }\npublic int getMaxConcurrentAutoUpgradeTasks()\n    {\n        return DatabaseDescriptor.maxConcurrentAutoUpgradeTasks();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `max_concurrent_auto_upgrade_tasks` configuration directly influences the number of concurrent upgrade tasks that can be executed. If this value is set too high, it may lead to excessive resource consumption (CPU, memory, I/O), especially during time-intensive operations like upgrading SSTables, which can significantly impact overall system performance. Conversely, if set too low, it could lead to underutilization of resources, delaying necessary upgrades and potentially causing performance bottlenecks. Therefore, this configuration has a substantial impact on system-level performance, classifying it as performance sensitive."
+        }
+    ]
+}

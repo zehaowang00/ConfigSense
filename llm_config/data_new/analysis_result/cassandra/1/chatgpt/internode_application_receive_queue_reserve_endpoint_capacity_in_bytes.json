@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_application_receive_queue_reserve_endpoint_capacity_in_bytes' directly influences the capacity of the receive queue for internode communication in Cassandra. A change in this value can significantly impact the system's ability to handle incoming requests from other nodes, affecting throughput and latency. If the reserve capacity is too low, it can lead to dropped messages or increased wait times, thereby causing notable variations in execution time and overall system performance. Conversely, setting this value too high may lead to excessive memory consumption, which can also degrade performance. Therefore, this configuration is performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "The configuration option 'native_transport_allow_older_protocols' in Cassandra primarily controls the compatibility of the native transport layer with older protocol versions. While it may affect the ability of clients using older protocols to connect to the server, changing this configuration does not directly influence the core performance metrics such as execution time or memory consumption of the system. The performance impact is minimal and largely dependent on the specific use case and client interactions rather than the configuration itself."
+}

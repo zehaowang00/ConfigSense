@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enable_drop_compact_storage' configuration in Cassandra directly influences how data is managed and stored on disk. When enabled, it allows for more efficient space reclamation by dropping compacted storage, which can lead to significant variations in disk I/O and memory usage. If this configuration is set to 'true', it can reduce the amount of disk space used and improve read performance by eliminating unnecessary data, while setting it to 'false' may lead to increased disk usage and potentially slower read operations due to the presence of more data. Therefore, changes to this configuration can notably affect execution time and memory consumption, classifying it as performance-sensitive."
+}

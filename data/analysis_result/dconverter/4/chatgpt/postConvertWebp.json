@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'postConvertWebp' configuration in the dconverter project directly influences the processing of image files after conversion to the WebP format. Changes to this configuration can significantly affect execution time, as it determines how the system handles post-processing tasks such as compression, quality adjustments, or additional transformations. If the configuration is set to a more resource-intensive post-processing method, it can lead to increased CPU usage and memory consumption, resulting in longer execution times. Conversely, a less intensive setting may improve performance but could compromise output quality. Therefore, variations in this configuration can lead to notable changes in system performance, classifying it as performance-sensitive."
+}

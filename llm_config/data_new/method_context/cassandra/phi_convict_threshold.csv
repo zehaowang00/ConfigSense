@@ -1,0 +1,47 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.gms.FailureDetector:getPhiConvictThreshold(),(S)org.apache.cassandra.config.DatabaseDescriptor:getPhiConvictThreshold(),org.apache.cassandra.config.DatabaseDescriptor:getPhiConvictThreshold(),phi_convict_threshold,getPhiConvictThreshold,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/gms/FailureDetector.java,FailureDetector,../data/xml/cassandra/FailureDetector.xml,"public double getPhiConvictThreshold()
+    {
+        return DatabaseDescriptor.getPhiConvictThreshold();
+    }
+
+    "
+"M:org.apache.cassandra.repair.RepairSession:convict(org.apache.cassandra.locator.InetAddressAndPort,double)",(S)org.apache.cassandra.config.DatabaseDescriptor:getPhiConvictThreshold(),org.apache.cassandra.config.DatabaseDescriptor:getPhiConvictThreshold(),phi_convict_threshold,convict,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/repair/RepairSession.java,RepairSession,../data/xml/cassandra/RepairSession.xml,"public void convict(InetAddressAndPort endpoint, double phi)
+    {
+        if (!commonRange.endpoints.contains(endpoint))
+            return;
+
+        // We want a higher confidence in the failure detection than usual because failing a repair wrongly has a high cost.
+        if (phi < 2 * DatabaseDescriptor.getPhiConvictThreshold())
+            return;
+
+        // Though unlikely, it is possible to arrive here multiple time and we
+        // want to avoid print an error message twice
+        if (!isFailed.compareAndSet(false, true))
+            return;
+
+        Exception exception = new IOException(String.format(""Endpoint %s died"", endpoint));
+        logger.error(""{} session completed with the following error"", previewKind.logPrefix(getId()), exception);
+        // If a node failed, we stop everything (though there could still be some activity in the background)
+        forceShutdown(exception);
+    }
+
+    "
+"M:org.apache.cassandra.service.ActiveRepairService:convict(org.apache.cassandra.locator.InetAddressAndPort,double)",(S)org.apache.cassandra.config.DatabaseDescriptor:getPhiConvictThreshold(),org.apache.cassandra.config.DatabaseDescriptor:getPhiConvictThreshold(),phi_convict_threshold,convict,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ActiveRepairService.java,ActiveRepairService,../data/xml/cassandra/ActiveRepairService.xml,"/**
+     * Something has happened to a remote node - if that node is a coordinator, we mark the parent repair session id as failed.
+     *
+     * The fail marker is kept in the map for 24h to make sure that if the coordinator does not agree
+     * that the repair failed, we need to fail the entire repair session
+     *
+     * @param ep  endpoint to be convicted
+     * @param phi the value of phi with with ep was convicted
+     */
+public void convict(InetAddressAndPort ep, double phi)
+    {
+        // We want a higher confidence in the failure detection than usual because failing a repair wrongly has a high cost.
+        if (phi < 2 * DatabaseDescriptor.getPhiConvictThreshold() || parentRepairSessions.isEmpty())
+            return;
+
+        abort((prs) -> prs.coordinator.equals(ep), ""Removing {} in parent repair sessions"");
+    }
+
+    "

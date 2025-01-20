@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'includeAndroidLdpiTvdpi' affects the resources and assets included in the application build for different screen densities. Changing this configuration can significantly impact the size of the application package, the memory consumption during runtime, and the rendering performance on devices with various screen densities. If the assets for ldpi and tvdpi are included or excluded, it can lead to variations in execution time and resource utilization, especially on devices with limited memory or processing power. Therefore, this configuration is deemed performance-sensitive."
+}

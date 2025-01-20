@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'OPTIMIZE_OR' in the H2 database can significantly impact query performance by altering how logical OR operations are processed. When enabled, it optimizes the execution plan for queries that involve OR conditions, potentially reducing execution time and resource consumption. If this option is set to a value that does not optimize these operations, it can lead to increased execution times and higher memory usage, especially in complex queries or large datasets. Therefore, changes to this configuration can lead to notable variations in system performance."
+}

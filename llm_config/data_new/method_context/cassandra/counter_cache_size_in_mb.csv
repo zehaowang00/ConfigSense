@@ -1,0 +1,25 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.CacheService:initCounterCache(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheSizeInMB(),org.apache.cassandra.config.DatabaseDescriptor:getCounterCacheSizeInMB(),counter_cache_size_in_mb,initCounterCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"private AutoSavingCache<CounterCacheKey, ClockAndCount> initCounterCache()
+    {
+        logger.info(""Initializing counter cache with capacity of {} MBs"", DatabaseDescriptor.getCounterCacheSizeInMB());
+
+        long capacity = DatabaseDescriptor.getCounterCacheSizeInMB() * 1024 * 1024;
+
+        AutoSavingCache<CounterCacheKey, ClockAndCount> cache =
+            new AutoSavingCache<>(CaffeineCache.create(capacity),
+                                  CacheType.COUNTER_CACHE,
+                                  new CounterCacheSerializer());
+
+        int keysToSave = DatabaseDescriptor.getCounterCacheKeysToSave();
+
+        logger.info(""Scheduling counter cache save to every {} seconds (going to save {} keys)."",
+                    DatabaseDescriptor.getCounterCacheSavePeriod(),
+                    keysToSave == Integer.MAX_VALUE ? ""all"" : keysToSave);
+
+        cache.scheduleSaving(DatabaseDescriptor.getCounterCacheSavePeriod(), keysToSave);
+
+        return cache;
+    }
+
+
+    "

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "internode_application_send_queue_reserve_endpoint_capacity_in_bytes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public OutboundConnectionSettings withDefaultReserveLimits()\n    {\n        Integer applicationReserveSendQueueEndpointCapacityInBytes = this.applicationSendQueueReserveEndpointCapacityInBytes;\n        ResourceLimits.Limit applicationReserveSendQueueGlobalCapacityInBytes = this.applicationSendQueueReserveGlobalCapacityInBytes;\n\n        if (applicationReserveSendQueueEndpointCapacityInBytes == null)\n            applicationReserveSendQueueEndpointCapacityInBytes = DatabaseDescriptor.getInternodeApplicationSendQueueReserveEndpointCapacityInBytes();\n        if (applicationReserveSendQueueGlobalCapacityInBytes == null)\n            applicationReserveSendQueueGlobalCapacityInBytes = MessagingService.instance().outboundGlobalReserveLimit;\n\n        return withApplicationReserveSendQueueCapacityInBytes(applicationReserveSendQueueEndpointCapacityInBytes, applicationReserveSendQueueGlobalCapacityInBytes);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `internode_application_send_queue_reserve_endpoint_capacity_in_bytes` directly influences the capacity of the send queue, which can affect the throughput and latency of message processing in a distributed system. If this capacity is set incorrectly, it can lead to significant delays or memory pressure, resulting in performance degradation during high-load scenarios. The retrieval of this configuration from `DatabaseDescriptor` indicates that it may involve time-intensive operations, especially if it requires database access or complex calculations, further emphasizing its potential impact on system performance."
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'stream_entire_sstables' configuration in Cassandra determines whether the entire SSTable files are streamed during repairs and data migrations. Changing this configuration can significantly impact system performance, as streaming entire SSTables can lead to increased I/O operations and network bandwidth usage, affecting execution time and memory consumption. If set to true, it may improve consistency and reduce the number of operations needed during repairs, but at the cost of higher resource usage. Conversely, setting it to false may reduce resource consumption but could lead to longer repair times and potential inconsistencies, thus making it a performance-sensitive configuration."
+}

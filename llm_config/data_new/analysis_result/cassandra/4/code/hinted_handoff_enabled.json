@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "hinted_handoff_enabled",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public boolean getHintedHandoffEnabled()\n    {\n        return DatabaseDescriptor.hintedHandoffEnabled();\n    }\n\n    \npublic static boolean shouldHint(Replica replica)\n    {\n        if (!DatabaseDescriptor.hintedHandoffEnabled())\n            return false;\n        if (replica.isTransient() || replica.isSelf())\n            return false;\n\n        Set<String> disabledDCs = DatabaseDescriptor.hintedHandoffDisabledDCs();\n        if (!disabledDCs.isEmpty())\n        {\n            final String dc = DatabaseDescriptor.getEndpointSnitch().getDatacenter(replica);\n            if (disabledDCs.contains(dc))\n            {\n                Tracing.trace(\"Not hinting {} since its data center {} has been disabled {}\", replica, dc, disabledDCs);\n                return false;\n            }\n        }\n        boolean hintWindowExpired = Gossiper.instance.getEndpointDowntime(replica.endpoint()) > DatabaseDescriptor.getMaxHintWindow();\n        if (hintWindowExpired)\n        {\n            HintsService.instance.metrics.incrPastWindow(replica.endpoint());\n            Tracing.trace(\"Not hinting {} which has been down {} ms\", replica, Gossiper.instance.getEndpointDowntime(replica.endpoint()));\n        }\n        return !hintWindowExpired;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the `hinted_handoff_enabled` configuration primarily controls whether hints are sent to replicas that are down, but it does not directly involve time-intensive or memory-intensive operations. The checks performed in the `shouldHint` method are primarily conditional checks and do not involve significant resource consumption that would lead to substantial performance variations. The operations related to checking the data center and downtime are lightweight and do not indicate a performance-sensitive configuration."
+        }
+    ]
+}

@@ -1,0 +1,30 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.command.ddl.Analyze:<init>(org.h2.engine.SessionLocal),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public Analyze(SessionLocal session) {
+        super(session);
+        sampleRows = session.getDatabase().getSettings().analyzeSample;
+    }
+
+    ",ANALYZE_SAMPLE,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/ddl/Analyze.java,Analyze,../data/xml/h2/Analyze.xml
+M:org.h2.engine.SessionLocal:analyzeTables(),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"private void analyzeTables() {
+        // On rare occasions it can be called concurrently (i.e. from close())
+        // without proper locking, but instead of oversynchronizing
+        // we just skip this optional operation in such case
+        if (tablesToAnalyze != null &&
+                Thread.holdsLock(this)) {
+            // take a local copy and clear because in rare cases we can call
+            // back into markTableForAnalyze while iterating here
+            HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;
+            tablesToAnalyze = null;
+            int rowCount = getDatabase().getSettings().analyzeSample / 10;
+            for (Table table : tablesToAnalyzeLocal) {
+                Analyze.analyzeTable(this, table, rowCount, false);
+            }
+            // analyze can lock the meta
+            database.unlockMeta(this);
+            // table analysis opens a new transaction(s),
+            // so we need to commit afterwards whatever leftovers might be
+            commit(true);
+        }
+    }
+
+    ",ANALYZE_SAMPLE,analyzeTables,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/engine/SessionLocal.java,SessionLocal,../data/xml/h2/SessionLocal.xml

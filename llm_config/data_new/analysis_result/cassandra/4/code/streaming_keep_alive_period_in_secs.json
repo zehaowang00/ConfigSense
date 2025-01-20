@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "streaming_keep_alive_period_in_secs",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private void logError(Throwable e)\n    {\n        if (e instanceof SocketTimeoutException)\n        {\n            logger.error(\"[Stream #{}] Did not receive response from peer {}{} for {} secs. Is peer down? \" +\n                         \"If not, maybe try increasing streaming_keep_alive_period_in_secs.\", planId(),\n                         peer.getHostAddressAndPort(),\n                         template.connectTo == null ? \"\" : \" through \" + template.connectTo.getHostAddressAndPort(),\n                         2 * DatabaseDescriptor.getStreamingKeepAlivePeriod(),\n                         e);\n        }\n        else\n        {\n            logger.error(\"[Stream #{}] Streaming error occurred on session with peer {}{}\", planId(),\n                         peer.getHostAddressAndPort(),\n                         template.connectTo == null ? \"\" : \" through \" + template.connectTo.getHostAddressAndPort(),\n                         e);\n        }\n    }\n\n    \nprivate void scheduleKeepAliveTask(Channel channel)\n    {\n        int keepAlivePeriod = DatabaseDescriptor.getStreamingKeepAlivePeriod();\n        if (logger.isDebugEnabled())\n            logger.debug(\"{} Scheduling keep-alive task with {}s period.\", createLogTag(session, channel), keepAlivePeriod);\n\n        KeepAliveTask task = new KeepAliveTask(channel, session);\n        ScheduledFuture<?> scheduledFuture = channel.eventLoop().scheduleAtFixedRate(task, 0, keepAlivePeriod, TimeUnit.SECONDS);\n        channelKeepAlives.add(scheduledFuture);\n        task.future = scheduledFuture;\n    }\n    \n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `streaming_keep_alive_period_in_secs` directly influences the frequency of keep-alive tasks scheduled in the system. A shorter keep-alive period can lead to increased task scheduling and potentially higher CPU usage, while a longer period may delay necessary checks on peer connectivity, impacting overall system responsiveness. Given that this configuration affects the timing of operations that can be critical in a streaming context, it can lead to significant performance variations, making it performance sensitive."
+        }
+    ]
+}

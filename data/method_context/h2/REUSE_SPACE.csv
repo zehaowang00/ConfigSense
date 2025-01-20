@@ -1,0 +1,66 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.mvstore.db.Store:<init>(org.h2.engine.Database),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"/**
+     * Creates the store.
+     *
+     * @param db the database
+     */
+public Store(Database db) {
+        byte[] key = db.getFileEncryptionKey();
+        String dbPath = db.getDatabasePath();
+        MVStore.Builder builder = new MVStore.Builder();
+        boolean encrypted = false;
+        if (dbPath != null) {
+            String fileName = dbPath + Constants.SUFFIX_MV_FILE;
+            MVStoreTool.compactCleanUp(fileName);
+            builder.fileName(fileName);
+            builder.pageSplitSize(db.getPageSize());
+            if (db.isReadOnly()) {
+                builder.readOnly();
+            } else {
+                // possibly create the directory
+                boolean exists = FileUtils.exists(fileName);
+                if (exists && !FileUtils.canWrite(fileName)) {
+                    // read only
+                } else {
+                    String dir = FileUtils.getParent(fileName);
+                    FileUtils.createDirectories(dir);
+                }
+                int autoCompactFillRate = db.getSettings().autoCompactFillRate;
+                if (autoCompactFillRate <= 100) {
+                    builder.autoCompactFillRate(autoCompactFillRate);
+                }
+            }
+            if (key != null) {
+                encrypted = true;
+                builder.encryptionKey(decodePassword(key));
+            }
+            if (db.getSettings().compressData) {
+                builder.compress();
+                // use a larger page split size to improve the compression ratio
+                builder.pageSplitSize(64 * 1024);
+            }
+            builder.backgroundExceptionHandler((t, e) -> db.setBackgroundException(DbException.convert(e)));
+            // always start without background thread first, and if necessary,
+            // it will be set up later, after db has been fully started,
+            // otherwise background thread would compete for store lock
+            // with maps opening procedure
+            builder.autoCommitDisabled();
+        }
+        this.encrypted = encrypted;
+        try {
+            this.mvStore = builder.open();
+            FileStore fs = mvStore.getFileStore();
+            fileName = fs != null ? fs.getFileName() : null;
+            if (!db.getSettings().reuseSpace) {
+                mvStore.setReuseSpace(false);
+            }
+            mvStore.setVersionsToKeep(0);
+            this.transactionStore = new TransactionStore(mvStore,
+                    new MetaType<>(db, mvStore.backgroundExceptionHandler), new ValueDataType(db, null),
+                    db.getLockTimeout());
+        } catch (MVStoreException e) {
+            throw convertMVStoreException(e);
+        }
+    }
+
+    ",REUSE_SPACE,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/mvstore/db/Store.java,Store,../data/xml/h2/Store.xml

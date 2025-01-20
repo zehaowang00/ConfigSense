@@ -1,0 +1,98 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+"M:org.h2.schema.FunctionAlias$JavaMethod:execute(org.h2.engine.SessionLocal,org.h2.expression.Expression[],boolean)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"private Object execute(SessionLocal session, Expression[] args, boolean columnList) {
+            Class<?>[] paramClasses = method.getParameterTypes();
+            Object[] params = new Object[paramClasses.length];
+            int p = 0;
+            JdbcConnection conn = session.createConnection(columnList);
+            if (hasConnectionParam && params.length > 0) {
+                params[p++] = conn;
+            }
+
+            // allocate array for varArgs parameters
+            Object varArg = null;
+            if (varArgs) {
+                int len = args.length - params.length + 1 +
+                        (hasConnectionParam ? 1 : 0);
+                varArg = Array.newInstance(varArgClass, len);
+                params[params.length - 1] = varArg;
+            }
+
+            for (int a = 0, len = args.length; a < len; a++, p++) {
+                boolean currentIsVarArg = varArgs &&
+                        p >= paramClasses.length - 1;
+                Class<?> paramClass;
+                if (currentIsVarArg) {
+                    paramClass = varArgClass;
+                } else {
+                    paramClass = paramClasses[p];
+                }
+                Value v = args[a].getValue(session);
+                Object o;
+                if (Value.class.isAssignableFrom(paramClass)) {
+                    o = v;
+                } else {
+                    boolean primitive = paramClass.isPrimitive();
+                    if (v == ValueNull.INSTANCE) {
+                        if (primitive) {
+                            if (columnList) {
+                                // If the column list is requested, the parameters
+                                // may be null. Need to set to default value,
+                                // otherwise the function can't be called at all.
+                                o = DataType.getDefaultForPrimitiveType(paramClass);
+                            } else {
+                                // NULL for a java primitive: return NULL
+                                return null;
+                            }
+                        } else {
+                            o = null;
+                        }
+                    } else {
+                        o = ValueToObjectConverter.valueToObject(
+                                (Class<?>) (primitive ? Utils.getNonPrimitiveClass(paramClass) : paramClass), v, conn);
+                    }
+                }
+                if (currentIsVarArg) {
+                    Array.set(varArg, p - params.length + 1, o);
+                } else {
+                    params[p] = o;
+                }
+            }
+            boolean old = session.getAutoCommit();
+            Value identity = session.getLastIdentity();
+            boolean defaultConnection = session.getDatabase().
+                    getSettings().defaultConnection;
+            try {
+                session.setAutoCommit(false);
+                Object returnValue;
+                try {
+                    if (defaultConnection) {
+                        Driver.setDefaultConnection(session.createConnection(columnList));
+                    }
+                    returnValue = method.invoke(null, params);
+                    if (returnValue == null) {
+                        return null;
+                    }
+                } catch (InvocationTargetException e) {
+                    StringBuilder builder = new StringBuilder(method.getName()).append('(');
+                    for (int i = 0, length = params.length; i < length; i++) {
+                        if (i > 0) {
+                            builder.append("", "");
+                        }
+                        builder.append(params[i]);
+                    }
+                    builder.append(')');
+                    throw DbException.convertInvocation(e, builder.toString());
+                } catch (Exception e) {
+                    throw DbException.convert(e);
+                }
+                return returnValue;
+            } finally {
+                session.setLastIdentity(identity);
+                session.setAutoCommit(old);
+                if (defaultConnection) {
+                    Driver.setDefaultConnection(null);
+                }
+            }
+        }
+
+        ",DEFAULT_CONNECTION,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/schema/FunctionAlias.java,FunctionAlias$JavaMethod,../data/xml/h2/FunctionAlias.xml

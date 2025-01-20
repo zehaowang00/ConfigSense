@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'prepared_statements_cache_size_mb' configuration in Cassandra directly influences the caching behavior of prepared statements. A larger cache size can significantly reduce the execution time of queries that utilize prepared statements by minimizing the need for repeated parsing and planning of those statements. Conversely, a smaller cache size may lead to increased execution time and higher memory consumption due to more frequent cache misses and the need to recompile queries. Therefore, changes in this configuration can lead to notable variations in system performance, making it performance-sensitive."
+}

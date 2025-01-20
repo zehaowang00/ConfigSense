@@ -1,0 +1,78 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.diag.DiagnosticEventService:publish(org.apache.cassandra.diag.DiagnosticEvent),(S)org.apache.cassandra.config.DatabaseDescriptor:diagnosticEventsEnabled(),org.apache.cassandra.config.DatabaseDescriptor:diagnosticEventsEnabled(),diagnostic_events_enabled,publish,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/diag/DiagnosticEventService.java,DiagnosticEventService,../data/xml/cassandra/DiagnosticEventService.xml,"/**
+     * Makes provided event available to all subscribers.
+     */
+public void publish(DiagnosticEvent event)
+    {
+        if (!DatabaseDescriptor.diagnosticEventsEnabled())
+            return;
+
+        logger.trace(""Publishing: {}={}"", event.getClass().getName(), event.toMap());
+
+        // event class + type
+        ImmutableMultimap<Enum<?>, Consumer<DiagnosticEvent>> consumersByType = subscribersByClassAndType.get(event.getClass());
+        if (consumersByType != null)
+        {
+            ImmutableCollection<Consumer<DiagnosticEvent>> consumers = consumersByType.get(event.getType());
+            if (consumers != null)
+            {
+                for (Consumer<DiagnosticEvent> consumer : consumers)
+                    consumer.accept(event);
+            }
+        }
+
+        // event class
+        Set<Consumer<DiagnosticEvent>> consumersByEvents = subscribersByClass.get(event.getClass());
+        if (consumersByEvents != null)
+        {
+            for (Consumer<DiagnosticEvent> consumer : consumersByEvents)
+                consumer.accept(event);
+        }
+
+        // all events
+        for (Consumer<DiagnosticEvent> consumer : subscribersAll)
+            consumer.accept(event);
+    }
+
+    "
+M:org.apache.cassandra.diag.DiagnosticEventService:isEnabled(java.lang.Class),(S)org.apache.cassandra.config.DatabaseDescriptor:diagnosticEventsEnabled(),org.apache.cassandra.config.DatabaseDescriptor:diagnosticEventsEnabled(),diagnostic_events_enabled,isEnabled,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/diag/DiagnosticEventService.java,DiagnosticEventService,../data/xml/cassandra/DiagnosticEventService.xml,"/**
+     * Indicates if events are enabled for specified event class based on {@link DatabaseDescriptor#diagnosticEventsEnabled()}
+     * and {@link #hasSubscribers(Class)}.
+     * @param event DiagnosticEvent class implementation
+     */
+public <E extends DiagnosticEvent> boolean isEnabled(Class<E> event)
+    {
+        return DatabaseDescriptor.diagnosticEventsEnabled() && hasSubscribers(event);
+    }
+
+    
+/**
+     * Indicates if events are enabled for specified event class based on {@link DatabaseDescriptor#diagnosticEventsEnabled()}
+     * and {@link #hasSubscribers(Class, Enum)}.
+     * @param event DiagnosticEvent class implementation
+     * @param eventType Subscribed event type matched against {@link DiagnosticEvent#getType()}
+     */
+public <E extends DiagnosticEvent, T extends Enum<T>> boolean isEnabled(Class<E> event, T eventType)
+    {
+        return DatabaseDescriptor.diagnosticEventsEnabled() && hasSubscribers(event, eventType);
+    }
+
+    "
+"M:org.apache.cassandra.diag.DiagnosticEventService:isEnabled(java.lang.Class,java.lang.Enum)",(S)org.apache.cassandra.config.DatabaseDescriptor:diagnosticEventsEnabled(),org.apache.cassandra.config.DatabaseDescriptor:diagnosticEventsEnabled(),diagnostic_events_enabled,isEnabled,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/diag/DiagnosticEventService.java,DiagnosticEventService,../data/xml/cassandra/DiagnosticEventService.xml,"/**
+     * Indicates if events are enabled for specified event class based on {@link DatabaseDescriptor#diagnosticEventsEnabled()}
+     * and {@link #hasSubscribers(Class, Enum)}.
+     * @param event DiagnosticEvent class implementation
+     * @param eventType Subscribed event type matched against {@link DiagnosticEvent#getType()}
+     */
+public <E extends DiagnosticEvent, T extends Enum<T>> boolean isEnabled(Class<E> event, T eventType)
+    {
+        return DatabaseDescriptor.diagnosticEventsEnabled() && hasSubscribers(event, eventType);
+    }
+
+    "
+M:org.apache.cassandra.diag.DiagnosticEventService:isDiagnosticsEnabled(),(S)org.apache.cassandra.config.DatabaseDescriptor:diagnosticEventsEnabled(),org.apache.cassandra.config.DatabaseDescriptor:diagnosticEventsEnabled(),diagnostic_events_enabled,isDiagnosticsEnabled,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/diag/DiagnosticEventService.java,DiagnosticEventService,../data/xml/cassandra/DiagnosticEventService.xml,"public boolean isDiagnosticsEnabled()
+    {
+        return DatabaseDescriptor.diagnosticEventsEnabled();
+    }
+
+    "

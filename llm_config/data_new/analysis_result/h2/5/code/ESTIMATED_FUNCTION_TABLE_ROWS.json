@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "ESTIMATED_FUNCTION_TABLE_ROWS",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n    public double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder,\n            AllColumnsForPlan allColumnsSet) {\n        if (masks != null) {\n            throw DbException.getUnsupportedException(\"Virtual table\");\n        }\n        long expectedRows;\n        if (table.canGetRowCount(session)) {\n            expectedRows = table.getRowCountApproximation(session);\n        } else {\n            expectedRows = database.getSettings().estimatedFunctionTableRows;\n        }\n        return expectedRows * 10;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the use of `estimatedFunctionTableRows` is a fallback mechanism when the actual row count cannot be obtained. It does not directly influence performance in a significant way, as it is only used to provide an approximation for cost calculation. The multiplication by 10 does not imply a heavy computational load, and the overall impact on performance is likely to be minor."
+        }
+    ]
+}

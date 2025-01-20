@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "ALTERNATE_STYLESHEET",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n         * Returns this user agent's alternate style-sheet title.\n         */\npublic String getAlternateStyleSheet() {\n            String s = (String)hints.get(KEY_ALTERNATE_STYLESHEET);\n            if (s != null)\n                return s;\n\n            return super.getAlternateStyleSheet();\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method retrieves a value from a map and checks for null, which are both lightweight operations. The performance impact of this configuration is minimal as it does not involve time-intensive or memory-intensive operations. The method's execution time is primarily dependent on the map's implementation, which is typically efficient for such lookups."
+        }
+    ]
+}

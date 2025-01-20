@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'row_cache_size_in_mb' configuration in Cassandra is performance-sensitive because it directly influences the amount of data that can be cached in memory for quick access. A larger row cache size can significantly reduce the number of disk I/O operations required, leading to faster read times and improved overall system performance. Conversely, setting this value too low can result in increased latency and higher resource consumption due to frequent cache misses, which forces the system to read from disk more often. Therefore, changes to this configuration can lead to notable variations in execution time and memory consumption, classifying it as performance-sensitive."
+}

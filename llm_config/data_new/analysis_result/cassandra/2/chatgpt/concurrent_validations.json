@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'concurrent_validations' configuration in Cassandra directly impacts the number of concurrent validation operations that can be performed on the data. A higher value allows more validations to occur simultaneously, which can significantly reduce the time taken for data consistency checks and improve overall system throughput. Conversely, setting this value too low can lead to bottlenecks, increased execution time for validation processes, and higher memory consumption due to queuing of validation tasks. Therefore, changes to this configuration can lead to notable variations in both execution time and resource utilization, classifying it as performance-sensitive."
+}

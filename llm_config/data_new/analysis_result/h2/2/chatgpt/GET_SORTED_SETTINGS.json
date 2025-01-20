@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'GET_SORTED_SETTINGS' in the H2 database can significantly impact performance because it determines how the database retrieves and sorts data. If this setting is altered, it can lead to variations in execution time due to changes in the sorting algorithm or the way data is accessed. For instance, enabling or disabling sorted settings can affect the efficiency of queries, especially in large datasets, leading to increased memory consumption and longer response times. Therefore, changes to this configuration can have a notable effect on overall system performance."
+}

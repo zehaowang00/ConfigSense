@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "LANGUAGE",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n         * Returns the user language specified in the\n         * <code>TranscodingHints</code> or \"en\" (english) if any.\n         */\npublic String getLanguages() {\n            if (SVGAbstractTranscoder.this.hints.containsKey(KEY_LANGUAGE)) {\n                return (String)SVGAbstractTranscoder.this.hints.get\n                    (KEY_LANGUAGE);\n            }\n\n            return super.getLanguages();\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method `getLanguages()` retrieves a user language from a map of hints or defaults to a superclass implementation if not found. This operation involves a simple key lookup and string retrieval, which are not time-intensive or memory-intensive operations. Therefore, it does not cause significant performance variations."
+        }
+    ]
+}

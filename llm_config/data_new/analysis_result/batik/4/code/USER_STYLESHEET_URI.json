@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "USER_STYLESHEET_URI",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n         * Returns the user stylesheet specified in the\n         * <code>TranscodingHints</code> or null if any.\n         */\npublic String getUserStyleSheetURI() {\n            String s = (String)SVGAbstractTranscoder.this.hints.get\n                (KEY_USER_STYLESHEET_URI);\n            if (s != null)\n                return s;\n\n            return super.getUserStyleSheetURI();\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The retrieval of the user stylesheet URI from the `TranscodingHints` is a straightforward operation involving a hash map lookup, which is generally O(1) in complexity. This operation does not involve time-intensive or memory-intensive processes that would significantly impact system performance. The fallback to the superclass method also does not indicate any substantial performance implications. Thus, it does not qualify as performance-sensitive."
+        }
+    ]
+}

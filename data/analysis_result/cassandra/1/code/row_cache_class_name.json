@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "row_cache_class_name",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * @return initialized row cache\n     */\nprivate AutoSavingCache<RowCacheKey, IRowCacheEntry> initRowCache()\n    {\n        logger.info(\"Initializing row cache with capacity of {} MBs\", DatabaseDescriptor.getRowCacheSizeInMB());\n\n        CacheProvider<RowCacheKey, IRowCacheEntry> cacheProvider;\n        String cacheProviderClassName = DatabaseDescriptor.getRowCacheSizeInMB() > 0\n                                        ? DatabaseDescriptor.getRowCacheClassName() : \"org.apache.cassandra.cache.NopCacheProvider\";\n        try\n        {\n            Class<CacheProvider<RowCacheKey, IRowCacheEntry>> cacheProviderClass =\n                (Class<CacheProvider<RowCacheKey, IRowCacheEntry>>) Class.forName(cacheProviderClassName);\n            cacheProvider = cacheProviderClass.newInstance();\n        }\n        catch (Exception e)\n        {\n            throw new RuntimeException(\"Cannot find configured row cache provider class \" + DatabaseDescriptor.getRowCacheClassName());\n        }\n\n        // cache object\n        ICache<RowCacheKey, IRowCacheEntry> rc = cacheProvider.create();\n        AutoSavingCache<RowCacheKey, IRowCacheEntry> rowCache = new AutoSavingCache<>(rc, CacheType.ROW_CACHE, new RowCacheSerializer());\n\n        int rowCacheKeysToSave = DatabaseDescriptor.getRowCacheKeysToSave();\n\n        rowCache.scheduleSaving(DatabaseDescriptor.getRowCacheSavePeriod(), rowCacheKeysToSave);\n\n        return rowCache;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The row cache class name directly influences the instantiation of the cache provider, which can significantly affect the performance of the system. The choice of cache provider impacts memory usage and the efficiency of cache operations, especially in high-load scenarios where caching behavior can lead to substantial variations in response times and resource consumption. If the configured cache provider is inefficient or improperly sized, it could lead to severe performance degradation, making this configuration critical for overall system performance."
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "rpc_keepalive",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private Server (Builder builder)\n    {\n        this.socket = builder.getSocket();\n        this.tlsEncryptionPolicy = builder.tlsEncryptionPolicy;\n        if (builder.workerGroup != null)\n        {\n            workerGroup = builder.workerGroup;\n        }\n        else\n        {\n            if (useEpoll)\n                workerGroup = new EpollEventLoopGroup();\n            else\n                workerGroup = new NioEventLoopGroup();\n        }\n\n        pipelineConfigurator = builder.pipelineConfigurator != null\n                               ? builder.pipelineConfigurator\n                               : new PipelineConfigurator(useEpoll,\n                                                          DatabaseDescriptor.getRpcKeepAlive(),\n                                                          DatabaseDescriptor.useNativeTransportLegacyFlusher(),\n                                                          builder.tlsEncryptionPolicy);\n\n        EventNotifier notifier = builder.eventNotifier != null ? builder.eventNotifier : new EventNotifier();\n        notifier.registerConnectionTracker(connectionTracker);\n        StorageService.instance.register(notifier);\n        Schema.instance.registerListener(notifier);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `rpc_keepalive` configuration is used in the context of creating a `PipelineConfigurator`, but it does not directly influence any time-intensive or memory-intensive operations within the provided code. The impact of keep-alive settings typically relates to maintaining connections rather than affecting the performance of core operations significantly. Therefore, it does not qualify as performance-sensitive."
+        }
+    ]
+}

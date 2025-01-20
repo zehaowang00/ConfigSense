@@ -1,0 +1,92 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.table.TableBase:getCreateSQL(boolean),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"private String getCreateSQL(boolean forMeta) {
+        Database db = getDatabase();
+        if (db == null) {
+            // closed
+            return null;
+        }
+        StringBuilder buff = new StringBuilder(""CREATE "");
+        if (isTemporary()) {
+            if (isGlobalTemporary()) {
+                buff.append(""GLOBAL "");
+            } else {
+                buff.append(""LOCAL "");
+            }
+            buff.append(""TEMPORARY "");
+        } else if (isPersistIndexes()) {
+            buff.append(""CACHED "");
+        } else {
+            buff.append(""MEMORY "");
+        }
+        buff.append(""TABLE "");
+        if (isHidden) {
+            buff.append(""IF NOT EXISTS "");
+        }
+        getSQL(buff, DEFAULT_SQL_FLAGS);
+        if (comment != null) {
+            buff.append("" COMMENT "");
+            StringUtils.quoteStringSQL(buff, comment);
+        }
+        buff.append(""(\n    "");
+        for (int i = 0, l = columns.length; i < l; i++) {
+            if (i > 0) {
+                buff.append("",\n    "");
+            }
+            buff.append(columns[i].getCreateSQL(forMeta));
+        }
+        buff.append(""\n)"");
+        if (tableEngine != null) {
+            String d = db.getSettings().defaultTableEngine;
+            if (d == null || !tableEngine.endsWith(d)) {
+                buff.append(""\nENGINE "");
+                StringUtils.quoteIdentifier(buff, tableEngine);
+            }
+        }
+        if (!tableEngineParams.isEmpty()) {
+            buff.append(""\nWITH "");
+            for (int i = 0, l = tableEngineParams.size(); i < l; i++) {
+                if (i > 0) {
+                    buff.append("", "");
+                }
+                StringUtils.quoteIdentifier(buff, tableEngineParams.get(i));
+            }
+        }
+        if (!isPersistIndexes() && !isPersistData()) {
+            buff.append(""\nNOT PERSISTENT"");
+        }
+        if (isHidden) {
+            buff.append(""\nHIDDEN"");
+        }
+        return buff.toString();
+    }
+
+    ",DEFAULT_TABLE_ENGINE,getCreateSQL,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/table/TableBase.java,TableBase,../data/xml/h2/TableBase.xml
+M:org.h2.schema.Schema:createTable(org.h2.command.ddl.CreateTableData),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"/**
+     * Add a table to the schema.
+     *
+     * @param data the create table information
+     * @return the created {@link Table} object
+     */
+public Table createTable(CreateTableData data) {
+        synchronized (database) {
+            if (!data.temporary || data.globalTemporary) {
+                database.lockMeta(data.session);
+            }
+            data.schema = this;
+            String tableEngine = data.tableEngine;
+            if (tableEngine == null) {
+                DbSettings s = database.getSettings();
+                tableEngine = s.defaultTableEngine;
+                if (tableEngine == null) {
+                    return database.getStore().createTable(data);
+                }
+                data.tableEngine = tableEngine;
+            }
+            if (data.tableEngineParams == null) {
+                data.tableEngineParams = this.tableEngineParams;
+            }
+            return database.getTableEngine(tableEngine).createTable(data);
+        }
+    }
+
+    ",DEFAULT_TABLE_ENGINE,createTable,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/schema/Schema.java,Schema,../data/xml/h2/Schema.xml

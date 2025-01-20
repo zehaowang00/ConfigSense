@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'key_cache_size_in_mb' configuration in Cassandra directly affects the amount of memory allocated for caching keys. A larger cache size can significantly reduce the number of disk reads required for key lookups, thereby improving read performance and reducing latency. Conversely, a smaller cache size may lead to increased disk I/O, resulting in higher execution times and memory consumption due to more frequent cache misses. Therefore, changes to this configuration can lead to notable variations in system performance, classifying it as performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'depths.refraction' configuration in the Sunflow project directly influences the rendering process, particularly in how light interacts with materials. Changes to this setting can significantly alter the complexity of the rendering calculations, leading to variations in execution time and memory consumption. For instance, increasing the refraction depth may require more computational resources to accurately simulate light behavior, resulting in longer rendering times and higher memory usage. Therefore, this configuration is classified as performance-sensitive due to its substantial impact on overall system performance."
+}

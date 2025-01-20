@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'endpoint_snitch' configuration in Cassandra determines how nodes in the cluster are grouped and how data is routed based on network topology. Changes to this configuration can significantly impact the performance of data replication, read, and write operations. If the endpoint snitch is misconfigured, it can lead to suboptimal data distribution and increased latency, as requests may be routed to distant nodes instead of local ones. This can cause notable variations in execution time and overall system performance, making it a performance-sensitive configuration."
+}

@@ -1,0 +1,39 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+"M:org.h2.command.ddl.DropView:<init>(org.h2.engine.SessionLocal,org.h2.schema.Schema)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public DropView(SessionLocal session, Schema schema) {
+        super(session, schema);
+        dropAction = session.getDatabase().getSettings().dropRestrict ?
+                ConstraintActionType.RESTRICT :
+                ConstraintActionType.CASCADE;
+    }
+
+    ",DROP_RESTRICT,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/ddl/DropView.java,DropView,../data/xml/h2/DropView.xml
+M:org.h2.command.ddl.DropTable:<init>(org.h2.engine.SessionLocal),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public DropTable(SessionLocal session) {
+        super(session);
+        dropAction = session.getDatabase().getSettings().dropRestrict ?
+                ConstraintActionType.RESTRICT :
+                    ConstraintActionType.CASCADE;
+    }
+
+    ",DROP_RESTRICT,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/ddl/DropTable.java,DropTable,../data/xml/h2/DropTable.xml
+"M:org.h2.command.ddl.DropDomain:<init>(org.h2.engine.SessionLocal,org.h2.schema.Schema)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public DropDomain(SessionLocal session, Schema schema) {
+        super(session, schema);
+        dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintActionType.RESTRICT
+                : ConstraintActionType.CASCADE;
+    }
+
+    ",DROP_RESTRICT,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/ddl/DropDomain.java,DropDomain,../data/xml/h2/DropDomain.xml
+M:org.h2.command.ddl.DropSchema:<init>(org.h2.engine.SessionLocal),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public DropSchema(SessionLocal session) {
+        super(session);
+        dropAction = session.getDatabase().getSettings().dropRestrict ?
+                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
+    }
+
+    ",DROP_RESTRICT,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/ddl/DropSchema.java,DropSchema,../data/xml/h2/DropSchema.xml
+"M:org.h2.command.ddl.AlterTableDropConstraint:<init>(org.h2.engine.SessionLocal,org.h2.schema.Schema,boolean)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public AlterTableDropConstraint(SessionLocal session, Schema schema, boolean ifExists) {
+        super(session, schema);
+        this.ifExists = ifExists;
+        dropAction = session.getDatabase().getSettings().dropRestrict ?
+                ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
+    }
+
+    ",DROP_RESTRICT,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/ddl/AlterTableDropConstraint.java,AlterTableDropConstraint,../data/xml/h2/AlterTableDropConstraint.xml

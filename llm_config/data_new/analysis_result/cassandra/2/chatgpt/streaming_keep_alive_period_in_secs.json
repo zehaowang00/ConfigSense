@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'streaming_keep_alive_period_in_secs' configuration in Cassandra determines how long the system maintains connections during streaming operations. A change in this value can significantly affect resource utilization and performance. If the keep-alive period is too short, connections may be dropped prematurely, leading to increased latency and overhead as new connections are established. Conversely, a longer keep-alive period can lead to resource exhaustion, especially under high load, as idle connections consume memory and other resources. Therefore, variations in this configuration can lead to notable changes in execution time and memory consumption, classifying it as performance-sensitive."
+}

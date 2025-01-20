@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "full_query_logging_options",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public FullQueryLoggerOptions getFullQueryLoggerOptions()\n    {\n        if (isEnabled())\n        {\n            final FullQueryLoggerOptions options = new FullQueryLoggerOptions();\n            final BinLogOptions binLogOptions = binLog.getBinLogOptions();\n\n            options.archive_command = binLogOptions.archive_command;\n            options.roll_cycle = binLogOptions.roll_cycle;\n            options.block = binLogOptions.block;\n            options.max_archive_retries = binLogOptions.max_archive_retries;\n            options.max_queue_weight = binLogOptions.max_queue_weight;\n            options.max_log_size = binLogOptions.max_log_size;\n            options.log_dir = binLog.path.toString();\n\n            return options;\n        }\n        else\n        {\n            // otherwise get what database is configured with from cassandra.yaml\n            return DatabaseDescriptor.getFullQueryLogOptions();\n        }\n    }\n\n    \n@Override\n    public void enableFullQueryLogger(String path, String rollCycle, Boolean blocking, int maxQueueWeight, long maxLogSize, String archiveCommand, int maxArchiveRetries)\n    {\n        FullQueryLoggerOptions fqlOptions = DatabaseDescriptor.getFullQueryLogOptions();\n        path = path != null ? path : fqlOptions.log_dir;\n        rollCycle = rollCycle != null ? rollCycle : fqlOptions.roll_cycle;\n        blocking = blocking != null ? blocking : fqlOptions.block;\n        maxQueueWeight = maxQueueWeight != Integer.MIN_VALUE ? maxQueueWeight : fqlOptions.max_queue_weight;\n        maxLogSize = maxLogSize != Long.MIN_VALUE ? maxLogSize : fqlOptions.max_log_size;\n        archiveCommand = archiveCommand != null ? archiveCommand : fqlOptions.archive_command;\n        maxArchiveRetries = maxArchiveRetries != Integer.MIN_VALUE ? maxArchiveRetries : fqlOptions.max_archive_retries;\n\n        Preconditions.checkNotNull(path, \"cassandra.yaml did not set log_dir and not set as parameter\");\n        FullQueryLogger.instance.enableWithoutClean(Paths.get(path), rollCycle, blocking, maxQueueWeight, maxLogSize, archiveCommand, maxArchiveRetries);\n    }\n\n    \n@Override\n    public void resetFullQueryLogger()\n    {\n        FullQueryLogger.instance.reset(DatabaseDescriptor.getFullQueryLogOptions().log_dir);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `full_query_logging_options` configuration directly impacts the performance of the system due to its potential influence on logging behavior, which can be time-consuming and memory-intensive. Specifically, parameters such as `maxLogSize`, `maxQueueWeight`, and `archiveCommand` can lead to significant variations in performance based on how much data is being logged and how that data is managed. If these configurations are not optimized, they can lead to excessive resource consumption, impacting overall system performance."
+        }
+    ]
+}

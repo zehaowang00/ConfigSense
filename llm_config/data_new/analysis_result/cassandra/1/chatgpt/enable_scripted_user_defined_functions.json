@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'enable_scripted_user_defined_functions' in Cassandra allows users to define custom functions that can be executed within the database. Enabling this feature can significantly impact system performance because scripted functions may introduce additional computational overhead, increase execution time, and affect memory consumption. The performance sensitivity arises from the fact that poorly optimized scripts can lead to increased latency in query execution and can also consume more resources, potentially leading to contention and reduced throughput. Therefore, changes to this configuration can have a notable effect on overall system performance."
+}

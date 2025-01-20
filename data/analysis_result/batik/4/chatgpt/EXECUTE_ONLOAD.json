@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The EXECUTE_ONLOAD configuration in the Batik software project directly influences when certain processes are executed during the loading phase. If set to 'true', it can lead to immediate execution of resource-intensive tasks, which may significantly increase the initial loading time and memory consumption. Conversely, setting it to 'false' may defer these tasks, potentially improving initial performance but delaying their execution until later. This toggle can thus cause notable variations in both execution time and resource usage, classifying it as performance-sensitive."
+}

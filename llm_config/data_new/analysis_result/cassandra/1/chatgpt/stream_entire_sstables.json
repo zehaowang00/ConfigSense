@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'stream_entire_sstables' in Cassandra determines whether the entire SSTable files are streamed during data transfer operations. Changing this configuration can significantly impact system performance, particularly in scenarios involving large data sets. If set to true, it can lead to increased memory consumption and longer execution times due to the overhead of transferring large files, especially in a distributed environment. Conversely, setting it to false may reduce memory usage and improve performance during streaming operations, but could also lead to more frequent disk I/O operations. Therefore, the value of this configuration can notably affect the overall performance of the system."
+}

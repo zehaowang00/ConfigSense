@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'tracetype_query_ttl' configuration in Cassandra determines the time-to-live (TTL) for tracing queries. A change in this value can significantly impact the performance of the system by affecting how long tracing data is retained and how frequently it is purged. If the TTL is set too high, it can lead to increased memory consumption due to the accumulation of tracing data, which may slow down query performance and increase latency. Conversely, if set too low, it may lead to insufficient tracing data for performance analysis, making it harder to diagnose performance issues. Thus, variations in this configuration can lead to notable changes in execution time and resource utilization, classifying it as performance-sensitive."
+}

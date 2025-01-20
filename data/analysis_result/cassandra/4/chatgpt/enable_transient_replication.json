@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enable_transient_replication' configuration in Cassandra is performance-sensitive because it directly influences how data is replicated across nodes in a cluster. When enabled, transient replication can lead to increased write latencies and higher resource consumption, as the system must manage additional replication tasks. This can significantly affect overall system performance, particularly in scenarios with high write loads or when the cluster is under stress. Variations in this configuration can lead to notable differences in execution time and memory usage, making it critical for performance tuning."
+}

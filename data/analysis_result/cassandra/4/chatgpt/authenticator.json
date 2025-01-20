@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'authenticator' configuration in Cassandra is performance-sensitive because it directly influences the authentication process for users and applications accessing the database. Changes in this configuration can lead to variations in execution time during authentication, which can affect overall system performance, especially under high load. For instance, switching from a simple authentication mechanism to a more complex one may increase the time taken for each authentication request, thereby impacting throughput and response times across the system. Additionally, different authentication methods may have varying memory consumption profiles, further affecting the performance of the Cassandra instance."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_tcp_connect_timeout_in_ms' in Cassandra is performance-sensitive because it directly influences the time taken for nodes in the cluster to establish TCP connections with each other. A lower timeout value may lead to quicker failure detection and retries in case of network issues, which can significantly impact overall system performance, especially in scenarios with high latency or unreliable network conditions. Conversely, a higher timeout value may cause delays in node communication, leading to increased execution times for operations that depend on inter-node communication. Therefore, changes to this configuration can notably affect execution time and system responsiveness."
+}

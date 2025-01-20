@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'ideal_consistency_level' configuration in Cassandra directly impacts the consistency and availability of data across distributed nodes. Changing this level can lead to significant variations in execution time, as it affects how many replicas must acknowledge a read or write operation before it is considered successful. A higher consistency level may lead to increased latency due to the need for more nodes to respond, while a lower level can improve performance but at the risk of data inconsistency. Therefore, adjustments to this configuration can notably influence both execution time and resource utilization, making it performance-sensitive."
+}

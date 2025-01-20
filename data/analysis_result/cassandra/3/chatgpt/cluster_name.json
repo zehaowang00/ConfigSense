@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'cluster_name' configuration in Cassandra can significantly affect system performance because it determines the logical grouping of nodes in a Cassandra cluster. Changes to this configuration can impact data distribution, replication strategies, and load balancing across nodes. If the cluster name is altered, it may lead to inefficient data access patterns, increased latency, and potential hotspots in data storage, which can notably affect execution time and resource utilization. Therefore, this configuration is considered performance-sensitive."
+}

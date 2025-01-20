@@ -1,0 +1,58 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.config.DatabaseDescriptor:getMinRpcTimeout(java.util.concurrent.TimeUnit),(S)org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),range_request_timeout_in_ms,getMinRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/config/DatabaseDescriptor.java,DatabaseDescriptor,../data/xml/cassandra/DatabaseDescriptor.xml,"/**
+     * @return the minimum configured {read, write, range, truncate, misc} timeout
+     */
+public static long getMinRpcTimeout(TimeUnit unit)
+    {
+        return Longs.min(getRpcTimeout(unit),
+                         getReadRpcTimeout(unit),
+                         getRangeRpcTimeout(unit),
+                         getWriteRpcTimeout(unit),
+                         getCounterWriteRpcTimeout(unit),
+                         getTruncateRpcTimeout(unit));
+    }
+
+    "
+M:org.apache.cassandra.db.PartitionRangeReadCommand:getTimeout(java.util.concurrent.TimeUnit),(S)org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),range_request_timeout_in_ms,getTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/PartitionRangeReadCommand.java,PartitionRangeReadCommand,../data/xml/cassandra/PartitionRangeReadCommand.xml,"public long getTimeout(TimeUnit unit)
+    {
+        return DatabaseDescriptor.getRangeRpcTimeout(unit);
+    }
+
+    "
+"M:org.apache.cassandra.index.sasi.SASIIndex:lambda$searcherFor$2(org.apache.cassandra.db.ColumnFamilyStore,org.apache.cassandra.db.ReadCommand,org.apache.cassandra.db.ReadExecutionController)",(S)org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),range_request_timeout_in_ms,lambda$searcherFor$2,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/index/sasi/SASIIndex.java,SASIIndex,../data/xml/cassandra/SASIIndex.xml,"public class SASIIndex implements Index, INotificationConsumer
+{
+    public final static String USAGE_WARNING = ""SASI indexes are experimental and are not recommended for production use."";
+
+    private static class SASIIndexBuildingSupport implements IndexBuildingSupport
+    {
+        public SecondaryIndexBuilder getIndexBuildTask(ColumnFamilyStore cfs,
+                                                       Set<Index> indexes,
+                                                       Collection<SSTableReader> sstablesToRebuild)
+        {
+            NavigableMap<SSTableReader, Map<ColumnMetadata, ColumnIndex>> sstables = new TreeMap<>((a, b) -> {
+                return Integer.compare(a.descriptor.generation, b.descriptor.generation);
+            });
+
+            indexes.stream()
+                   .filter((i) -> i instanceof SASIIndex)
+                   .forEach((i) -> {
+                       SASIIndex sasi = (SASIIndex) i;
+                       sasi.index.dropData(sstablesToRebuild);
+                       sstablesToRebuild.stream()
+                                        .filter((sstable) -> !sasi.index.hasSSTable(sstable))
+                                        .forEach((sstable) -> {
+                                            Map<ColumnMetadata, ColumnIndex> toBuild = sstables.get(sstable);
+                                            if (toBuild == null)
+                                                sstables.put(sstable, (toBuild = new HashMap<>()));
+
+                                            toBuild.put(sasi.index.getDefinition(), sasi.index);
+                                        });
+                   })"
+M:org.apache.cassandra.service.StorageProxy:getRangeRpcTimeout(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),range_request_timeout_in_ms,getRangeRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public Long getRangeRpcTimeout() { return DatabaseDescriptor.getRangeRpcTimeout(MILLISECONDS); }
+    "
+M:org.apache.cassandra.service.StorageService:getRangeRpcTimeout(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getRangeRpcTimeout(java.util.concurrent.TimeUnit),range_request_timeout_in_ms,getRangeRpcTimeout,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public long getRangeRpcTimeout()
+    {
+        return DatabaseDescriptor.getRangeRpcTimeout(MILLISECONDS);
+    }
+
+    "

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'iosCreateImagesetFolders' directly influences how image assets are organized and accessed within the application. If this configuration is set to create separate folders for image sets, it can lead to improved file management and potentially faster access times when loading images, especially in scenarios with a large number of assets. Conversely, if it is disabled, all images may be stored in a single folder, leading to increased overhead in file retrieval and potentially longer execution times due to the need for the system to search through a larger set of files. Therefore, changes to this configuration can significantly impact execution time and memory consumption, classifying it as performance-sensitive."
+}

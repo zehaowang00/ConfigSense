@@ -1,0 +1,33 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.cql3.statements.BatchStatement:verifyBatchType(java.util.Collection),(S)org.apache.cassandra.config.DatabaseDescriptor:getUnloggedBatchAcrossPartitionsWarnThreshold(),org.apache.cassandra.config.DatabaseDescriptor:getUnloggedBatchAcrossPartitionsWarnThreshold(),unlogged_batch_across_partitions_warn_threshold,verifyBatchType,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/BatchStatement.java,BatchStatement,../data/xml/cassandra/BatchStatement.xml,"private void verifyBatchType(Collection<? extends IMutation> mutations)
+    {
+        if (!isLogged() && mutations.size() > 1)
+        {
+            Set<DecoratedKey> keySet = new HashSet<>();
+            Set<String> tableNames = new HashSet<>();
+
+            for (IMutation mutation : mutations)
+            {
+                for (PartitionUpdate update : mutation.getPartitionUpdates())
+                {
+                    keySet.add(update.partitionKey());
+
+                    tableNames.add(update.metadata().toString());
+                }
+            }
+
+            // CASSANDRA-11529: log only if we have more than a threshold of keys, this was also suggested in the
+            // original ticket that introduced this warning, CASSANDRA-9282
+            if (keySet.size() > DatabaseDescriptor.getUnloggedBatchAcrossPartitionsWarnThreshold())
+            {
+                NoSpamLogger.log(logger, NoSpamLogger.Level.WARN, 1, TimeUnit.MINUTES, UNLOGGED_BATCH_WARNING,
+                                 keySet.size(), tableNames.size() == 1 ? """" : ""s"", tableNames);
+
+                ClientWarn.instance.warn(MessageFormatter.arrayFormat(UNLOGGED_BATCH_WARNING, new Object[]{keySet.size(),
+                                                    tableNames.size() == 1 ? """" : ""s"", tableNames}).getMessage());
+            }
+        }
+    }
+
+
+    "

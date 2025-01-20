@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'createMipMapInsteadOfDrawableDir' directly influences how graphical assets are managed and rendered in the dconverter software project. When this option is enabled, the system generates mipmaps for images, which can significantly reduce texture sampling times and improve rendering performance, especially in graphics-intensive applications. Conversely, if this option is disabled, the system may experience increased memory consumption and longer execution times due to the lack of optimized texture handling. Therefore, changes to this configuration can lead to notable variations in execution time and memory usage, classifying it as performance-sensitive."
+}

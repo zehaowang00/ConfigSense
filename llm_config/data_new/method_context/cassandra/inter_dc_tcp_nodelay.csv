@@ -1,0 +1,13 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.net.OutboundConnectionSettings:tcpNoDelay(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInterDCTcpNoDelay(),org.apache.cassandra.config.DatabaseDescriptor:getInterDCTcpNoDelay(),inter_dc_tcp_nodelay,tcpNoDelay,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/OutboundConnectionSettings.java,OutboundConnectionSettings,../data/xml/cassandra/OutboundConnectionSettings.xml,"public boolean tcpNoDelay()
+    {
+        if (tcpNoDelay != null)
+            return tcpNoDelay;
+
+        if (isInLocalDC(getEndpointSnitch(), getBroadcastAddressAndPort(), to))
+            return INTRADC_TCP_NODELAY;
+
+        return DatabaseDescriptor.getInterDCTcpNoDelay();
+    }
+
+    "

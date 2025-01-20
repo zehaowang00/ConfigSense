@@ -1,0 +1,72 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:at.favre.tools.dconvert.converters.scaling.ImageHandler:scale(at.favre.tools.dconvert.converters.scaling.ScaleAlgorithm,java.awt.image.BufferedImage,int,int,at.favre.tools.dconvert.arg.ImageType$ECompression,java.awt.Color)",(M)at.favre.tools.dconvert.arg.Arguments:isEnableAntiAliasing(),at.favre.tools.dconvert.arg.Arguments:isEnableAntiAliasing(),enableAntiAliasing,scale,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/scaling/ImageHandler.java,ImageHandler,../data/xml/dconverter/ImageHandler.xml,"private BufferedImage scale(ScaleAlgorithm scaleAlgorithm, BufferedImage imageToScale, int dWidth, int dHeight, ImageType.ECompression compression, Color background) {
+
+        BufferedImage scaledImage;
+
+        if (dWidth == imageToScale.getWidth() && dHeight == imageToScale.getHeight()) {
+            scaledImage = imageToScale;
+        } else {
+            scaledImage = scaleAlgorithm.scale(imageToScale, dWidth, dHeight);
+        }
+
+        if (!compression.hasTransparency) {
+            BufferedImage convertedImg = new BufferedImage(scaledImage.getWidth(), scaledImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+            convertedImg.getGraphics().drawImage(scaledImage, 0, 0, background, null);
+            scaledImage = convertedImg;
+        }
+
+        if (args.enableAntiAliasing) {
+            scaledImage = OP_ANTIALIAS.filter(scaledImage, null);
+        }
+
+        return scaledImage;
+    }
+
+    "
+M:at.favre.tools.dconvert.ui.GUIController:loadPrefs(),(M)at.favre.tools.dconvert.arg.Arguments:isEnableAntiAliasing(),at.favre.tools.dconvert.arg.Arguments:isEnableAntiAliasing(),enableAntiAliasing,loadPrefs,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/ui/GUIController.java,GUIController,../data/xml/dconverter/GUIController.xml,"private void loadPrefs() {
+        Arguments args = preferenceStore.get();
+        if (args != null) {
+            textFieldSrcPath.setText(args.src != null ? args.src.getAbsolutePath() : """");
+            textFieldDstPath.setText(args.dst != null ? args.dst.getAbsolutePath() : """");
+
+            scaleSlider.setValue(Arguments.DEFAULT_SCALE);
+            textFieldDp.setText(String.valueOf((int) args.scale));
+
+            if (args.scaleMode == EScaleMode.FACTOR) {
+                rbFactor.setSelected(true);
+                scaleSlider.setValue(args.scale);
+                textFieldDp.setText("""");
+            } else if (args.scaleMode == EScaleMode.DP_WIDTH) {
+                rbDpWidth.setSelected(true);
+            } else if (args.scaleMode == EScaleMode.DP_HEIGHT) {
+                rbDpHeight.setSelected(true);
+            }
+
+            setPlatformToogles(args.platform);
+            choiceCompression.getSelectionModel().select(args.outputCompressionMode);
+            choiceCompressionQuality.getSelectionModel().select(toJpgQ(args.compressionQuality));
+            choiceRounding.getSelectionModel().select(args.roundingHandler);
+            choiceThreads.getSelectionModel().select(Integer.valueOf(args.threadCount));
+            choiceDownScale.getSelectionModel().select(args.downScalingAlgorithm);
+            choiceUpScale.getSelectionModel().select(args.upScalingAlgorithm);
+
+            cbSkipExisting.setSelected(args.skipExistingFiles);
+            cbSkipUpscaling.setSelected(args.skipUpscaling);
+            cbAndroidIncludeLdpiTvdpi.setSelected(args.includeAndroidLdpiTvdpi);
+            cbAntiAliasing.setSelected(args.enableAntiAliasing);
+            cbMipmapInsteadDrawable.setSelected(args.createMipMapInsteadOfDrawableDir);
+            cbHaltOnError.setSelected(args.haltOnError);
+            cbDryRun.setSelected(args.dryRun);
+            cbEnablePngCrush.setSelected(args.enablePngCrush);
+            cbPostConvertWebp.setSelected(args.postConvertWebp);
+            cbEnableMozJpeg.setSelected(args.enableMozJpeg);
+            cbKeepUnoptimized.setSelected(args.keepUnoptimizedFilesPostProcessor);
+            cbIosCreateImageset.setSelected(args.iosCreateImagesetFolders);
+            cbCleanBeforeConvert.setSelected(args.clearDirBeforeConvert);
+            rbOptAdvanced.setSelected(args.guiAdvancedOptions);
+            rbOptSimple.setSelected(!args.guiAdvancedOptions);
+
+        }
+    }
+
+    "

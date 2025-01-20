@@ -1,0 +1,34 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.StorageProxy:getMaxHintWindow(),(S)org.apache.cassandra.config.DatabaseDescriptor:getMaxHintWindow(),org.apache.cassandra.config.DatabaseDescriptor:getMaxHintWindow(),max_hint_window_in_ms,getMaxHintWindow,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public int getMaxHintWindow()
+    {
+        return DatabaseDescriptor.getMaxHintWindow();
+    }
+
+    "
+M:org.apache.cassandra.service.StorageProxy:shouldHint(org.apache.cassandra.locator.Replica),(S)org.apache.cassandra.config.DatabaseDescriptor:getMaxHintWindow(),org.apache.cassandra.config.DatabaseDescriptor:getMaxHintWindow(),max_hint_window_in_ms,shouldHint,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public static boolean shouldHint(Replica replica)
+    {
+        if (!DatabaseDescriptor.hintedHandoffEnabled())
+            return false;
+        if (replica.isTransient() || replica.isSelf())
+            return false;
+
+        Set<String> disabledDCs = DatabaseDescriptor.hintedHandoffDisabledDCs();
+        if (!disabledDCs.isEmpty())
+        {
+            final String dc = DatabaseDescriptor.getEndpointSnitch().getDatacenter(replica);
+            if (disabledDCs.contains(dc))
+            {
+                Tracing.trace(""Not hinting {} since its data center {} has been disabled {}"", replica, dc, disabledDCs);
+                return false;
+            }
+        }
+        boolean hintWindowExpired = Gossiper.instance.getEndpointDowntime(replica.endpoint()) > DatabaseDescriptor.getMaxHintWindow();
+        if (hintWindowExpired)
+        {
+            HintsService.instance.metrics.incrPastWindow(replica.endpoint());
+            Tracing.trace(""Not hinting {} which has been down {} ms"", replica, Gossiper.instance.getEndpointDowntime(replica.endpoint()));
+        }
+        return !hintWindowExpired;
+    }
+
+    "

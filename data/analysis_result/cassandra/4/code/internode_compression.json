@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "internode_compression",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@VisibleForTesting\n    static boolean shouldCompressConnection(IEndpointSnitch snitch, InetAddressAndPort localHost, InetAddressAndPort remoteHost)\n    {\n        return (DatabaseDescriptor.internodeCompression() == Config.InternodeCompression.all)\n               || ((DatabaseDescriptor.internodeCompression() == Config.InternodeCompression.dc) && !isInLocalDC(snitch, localHost, remoteHost));\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the `internode_compression` setting primarily determines whether to compress connections based on the data center context and does not directly involve time-intensive or memory-intensive operations. The decision-making process here is a simple conditional check that does not lead to significant performance variations, as it does not involve heavy computations or resource allocations."
+        }
+    ]
+}

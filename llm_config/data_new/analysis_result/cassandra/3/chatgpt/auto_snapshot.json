@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'auto_snapshot' configuration in Cassandra is performance-sensitive because it directly affects how frequently snapshots of the data are taken. When enabled, the system periodically creates snapshots of the data, which can lead to increased disk I/O and CPU usage during the snapshot creation process. If the frequency of snapshots is too high, it can significantly impact overall system performance by causing increased latency for read and write operations, as well as higher memory consumption due to the additional metadata that needs to be managed. Conversely, if snapshots are taken too infrequently, it can affect data recovery options and increase the risk of data loss. Therefore, changes to this configuration can lead to notable variations in execution time and resource utilization, classifying it as performance-sensitive."
+}

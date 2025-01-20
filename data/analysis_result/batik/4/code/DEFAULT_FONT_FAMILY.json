@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "DEFAULT_FONT_FAMILY",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n         * Returns the default font family.\n         */\npublic String getDefaultFontFamily() {\n            String s = (String)hints.get(KEY_DEFAULT_FONT_FAMILY);\n            if (s != null) return s;\n\n            return super.getDefaultFontFamily();\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method `getDefaultFontFamily` retrieves a string value from a map and checks for null, which are lightweight operations. The fallback to `super.getDefaultFontFamily()` is also unlikely to be performance-sensitive unless the superclass method is known to perform time-intensive or memory-intensive operations, which is not indicated here. Overall, the operations involved do not lead to significant performance variations."
+        }
+    ]
+}

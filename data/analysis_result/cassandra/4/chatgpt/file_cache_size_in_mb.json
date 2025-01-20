@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'file_cache_size_in_mb' configuration in Cassandra directly influences the amount of memory allocated for caching file data. A larger cache size can significantly reduce disk I/O operations by allowing more data to be stored in memory, leading to faster read and write operations. Conversely, a smaller cache size may result in increased disk access, which can degrade performance due to higher latency and increased execution time. Therefore, changes in this configuration can notably impact system performance, making it performance-sensitive."
+}

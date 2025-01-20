@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "verboseLog",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n            public void onFinished(int finishedJobs, List<Exception> exceptions, long time, boolean haltedDuringProcess, String log) {\n                System.out.print(MiscUtil.getCmdProgressBar(1f));\n\n                System.out.println(\"\");\n\n                if (args.verboseLog) {\n                    System.out.println(\"Log:\");\n                    System.out.println(log);\n                }\n\n                if (haltedDuringProcess) {\n                    System.err.println(\"abort due to error\");\n                }\n                if (exceptions.size() > 0) {\n                    System.err.println(\"found \" + exceptions.size() + \" errors during execution\");\n                    if (args.verboseLog) {\n                        for (Exception exception : exceptions) {\n                            System.err.println(\"\\terror: \" + exception.getMessage());\n                            exception.printStackTrace();\n                        }\n                    }\n                }\n                System.out.println(\"execution finished (\" + time + \"ms) with \" + finishedJobs + \" finsihed jobs and \" + exceptions.size() + \" errors\");\n            }\n        }"
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the `verboseLog` configuration primarily controls the logging output and does not directly impact time-intensive or memory-intensive operations. While enabling verbose logging may increase the amount of data processed and printed, it does not significantly alter the performance characteristics of the overall execution, as it is not a core processing task but rather an auxiliary feature for debugging and monitoring."
+        }
+    ]
+}

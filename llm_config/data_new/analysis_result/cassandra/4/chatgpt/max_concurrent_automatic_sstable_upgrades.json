@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'max_concurrent_automatic_sstable_upgrades' in Cassandra directly influences the number of simultaneous SSTable upgrades that can occur. A higher value allows more upgrades to run concurrently, which can lead to increased CPU and I/O utilization, potentially improving throughput and reducing the time taken for upgrades. Conversely, setting this value too low can cause bottlenecks, leading to longer upgrade times and increased latency for read and write operations. Therefore, changes to this configuration can significantly impact overall system performance, making it performance-sensitive."
+}

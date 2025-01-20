@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'gc_warn_threshold_in_ms' in Cassandra is performance-sensitive because it directly influences the garbage collection (GC) behavior of the system. If this threshold is set too low, it may lead to frequent GC warnings, indicating that the application is spending excessive time in garbage collection, which can significantly degrade performance by increasing latency and reducing throughput. Conversely, if set too high, it may mask underlying memory issues, leading to potential out-of-memory errors and application crashes. Therefore, changes to this configuration can have a substantial impact on execution time and memory consumption, making it critical for performance tuning."
+}

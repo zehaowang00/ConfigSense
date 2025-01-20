@@ -1,0 +1,9 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.net.Message$Serializer:getExpiresAtNanos(long,long,long)",(S)org.apache.cassandra.config.DatabaseDescriptor:hasCrossNodeTimeout(),org.apache.cassandra.config.DatabaseDescriptor:hasCrossNodeTimeout(),cross_node_timeout,getExpiresAtNanos,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/Message.java,Message$Serializer,../data/xml/cassandra/Message.xml,"private static long getExpiresAtNanos(long createdAtNanos, long currentTimeNanos, long expirationPeriodNanos)
+        {
+            if (!DatabaseDescriptor.hasCrossNodeTimeout() || createdAtNanos > currentTimeNanos)
+                createdAtNanos = currentTimeNanos;
+            return createdAtNanos + expirationPeriodNanos;
+        }
+
+        "

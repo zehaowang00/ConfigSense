@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "QUALITY",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * Writes the specified image to the specified output.\n     * @param img the image to write\n     * @param output the output where to store the image\n     * @throws TranscoderException if an error occured while storing the image\n     */\npublic void writeImage(BufferedImage img, TranscoderOutput output)\n            throws TranscoderException {\n        OutputStream ostream = output.getOutputStream();\n        // The outputstream wrapper protects the JPEG encoder from\n        // exceptions due to stream closings.  If it gets an exception\n        // it nulls out the stream and just ignores any future calls.\n        ostream = new OutputStreamWrapper(ostream);\n\n        try {\n            float quality;\n            if (hints.containsKey(KEY_QUALITY)) {\n                quality = (Float) hints.get(KEY_QUALITY);\n            } else {\n                TranscoderException te;\n                te = new TranscoderException\n                    (Messages.formatMessage(\"jpeg.unspecifiedQuality\", null));\n                handler.error(te);\n                quality = 0.75f;\n            }\n\n            ImageWriter writer = ImageWriterRegistry.getInstance()\n                .getWriterFor(\"image/jpeg\");\n            ImageWriterParams params = new ImageWriterParams();\n            params.setJPEGQuality(quality, true);\n            float PixSzMM = userAgent.getPixelUnitToMillimeter();\n            int PixSzInch = (int)(25.4 / PixSzMM + 0.5);\n            params.setResolution(PixSzInch);\n            writer.writeImage(img, ostream, params);\n            ostream.flush();\n        } catch (IOException ex) {\n            throw new TranscoderException(ex);\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The quality setting directly influences the JPEG encoding process, which can be time-intensive depending on the quality level specified. Higher quality settings typically result in more complex processing and larger memory usage during image encoding, potentially leading to significant performance variations in terms of processing time and memory consumption."
+        }
+    ]
+}

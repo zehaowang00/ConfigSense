@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'rpc_keepalive' configuration in Cassandra is performance-sensitive because it directly influences the behavior of network connections between nodes. A change in its value can significantly affect the frequency of keepalive messages sent over the network, which in turn impacts resource utilization and latency. If keepalive is set too low, it can lead to increased network traffic and potential congestion, while a value that is too high may result in stale connections and delayed failure detection. Both scenarios can cause notable variations in execution time and overall system performance, especially in distributed environments where timely communication is critical."
+}

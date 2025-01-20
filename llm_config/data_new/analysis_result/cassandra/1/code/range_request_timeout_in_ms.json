@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "range_request_timeout_in_ms",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * @return the minimum configured {read, write, range, truncate, misc} timeout\n     */\npublic static long getMinRpcTimeout(TimeUnit unit)\n    {\n        return Longs.min(getRpcTimeout(unit),\n                         getReadRpcTimeout(unit),\n                         getRangeRpcTimeout(unit),\n                         getWriteRpcTimeout(unit),\n                         getCounterWriteRpcTimeout(unit),\n                         getTruncateRpcTimeout(unit));\n    }\n\n    \npublic long getTimeout(TimeUnit unit)\n    {\n        return DatabaseDescriptor.getRangeRpcTimeout(unit);\n    }\n\n    \npublic class SASIIndex implements Index, INotificationConsumer\n{\n    public final static String USAGE_WARNING = \"SASI indexes are experimental and are not recommended for production use.\";\n\n    private static class SASIIndexBuildingSupport implements IndexBuildingSupport\n    {\n        public SecondaryIndexBuilder getIndexBuildTask(ColumnFamilyStore cfs,\n                                                       Set<Index> indexes,\n                                                       Collection<SSTableReader> sstablesToRebuild)\n        {\n            NavigableMap<SSTableReader, Map<ColumnMetadata, ColumnIndex>> sstables = new TreeMap<>((a, b) -> {\n                return Integer.compare(a.descriptor.generation, b.descriptor.generation);\n            });\n\n            indexes.stream()\n                   .filter((i) -> i instanceof SASIIndex)\n                   .forEach((i) -> {\n                       SASIIndex sasi = (SASIIndex) i;\n                       sasi.index.dropData(sstablesToRebuild);\n                       sstablesToRebuild.stream()\n                                        .filter((sstable) -> !sasi.index.hasSSTable(sstable))\n                                        .forEach((sstable) -> {\n                                            Map<ColumnMetadata, ColumnIndex> toBuild = sstables.get(sstable);\n                                            if (toBuild == null)\n                                                sstables.put(sstable, (toBuild = new HashMap<>()));\n\n                                            toBuild.put(sasi.index.getDefinition(), sasi.index);\n                                        });\n                   })\npublic Long getRangeRpcTimeout() { return DatabaseDescriptor.getRangeRpcTimeout(MILLISECONDS); }\n    \npublic long getRangeRpcTimeout()\n    {\n        return DatabaseDescriptor.getRangeRpcTimeout(MILLISECONDS);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `range_request_timeout_in_ms` configuration directly influences the timeout settings for range requests in the database. Given that timeouts can lead to significant delays in processing if set improperly, they can cause performance degradation during high-load scenarios or when handling large datasets. The method `getMinRpcTimeout` aggregates multiple timeout values, including the range timeout, which indicates that variations in this configuration can substantially affect overall system performance, especially in time-intensive operations."
+        }
+    ]
+}

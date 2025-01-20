@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'native_transport_max_concurrent_connections_per_ip' in Cassandra directly influences the number of concurrent connections that can be established from a single IP address. If this value is set too low, it can lead to connection throttling, causing increased latency and reduced throughput for applications that require multiple connections. Conversely, setting it too high may lead to resource exhaustion, such as increased memory usage and potential degradation of performance due to context switching and connection management overhead. Therefore, changes to this configuration can significantly impact system performance, making it performance-sensitive."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'native_transport_flush_in_batches_legacy' in Cassandra is performance-sensitive because it directly impacts how data is flushed to the disk in batches. A change in its value can lead to significant variations in execution time and memory consumption, particularly under high load scenarios. If the flushing is too aggressive, it may result in increased I/O operations, leading to higher latency and reduced throughput. Conversely, if the flushing is too conservative, it could lead to increased memory usage and delayed data visibility. Therefore, tuning this configuration can have a substantial effect on overall system performance."
+}

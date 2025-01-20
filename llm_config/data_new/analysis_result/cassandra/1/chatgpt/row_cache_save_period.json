@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'row_cache_save_period' configuration in Cassandra determines how often the row cache is saved to disk. A shorter save period can lead to more frequent disk writes, which may impact I/O performance, while a longer save period can result in increased memory consumption as more data is held in memory. Changes to this configuration can significantly affect the execution time of read operations and overall system performance, especially under heavy load, making it performance-sensitive."
+}

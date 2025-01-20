@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option '_transactionDeepCopyMode' in the Prevayler software project directly influences how transactions are handled in memory. If set to deep copy mode, each transaction is duplicated in memory, which can significantly increase memory consumption and impact garbage collection performance. This can lead to notable variations in execution time, especially under high transaction loads. Conversely, if set to shallow copy mode, memory usage is reduced, potentially improving performance. Therefore, changes to this configuration can have a substantial effect on overall system performance."
+}

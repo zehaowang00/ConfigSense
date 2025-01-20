@@ -1,0 +1,20 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.compaction.CompactionManager:getRateLimiter(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCompactionThroughputMbPerSec(),org.apache.cassandra.config.DatabaseDescriptor:getCompactionThroughputMbPerSec(),compaction_throughput_mb_per_sec,getRateLimiter,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/compaction/CompactionManager.java,CompactionManager,../data/xml/cassandra/CompactionManager.xml,"/**
+     * Gets compaction rate limiter.
+     * Rate unit is bytes per sec.
+     *
+     * @return RateLimiter with rate limit set
+     */
+public RateLimiter getRateLimiter()
+    {
+        setRate(DatabaseDescriptor.getCompactionThroughputMbPerSec());
+        return compactionRateLimiter;
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getCompactionThroughputMbPerSec(),(S)org.apache.cassandra.config.DatabaseDescriptor:getCompactionThroughputMbPerSec(),org.apache.cassandra.config.DatabaseDescriptor:getCompactionThroughputMbPerSec(),compaction_throughput_mb_per_sec,getCompactionThroughputMbPerSec,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getCompactionThroughputMbPerSec()
+    {
+        return DatabaseDescriptor.getCompactionThroughputMbPerSec();
+    }
+
+    "

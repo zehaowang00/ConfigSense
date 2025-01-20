@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'hinted_handoff_enabled' configuration in Cassandra is performance-sensitive because it directly impacts how the system handles write operations during node outages. When enabled, if a node is temporarily unavailable, the system can store hints for the missed writes and deliver them once the node is back online. This mechanism can significantly affect system performance by influencing write latency and throughput. If the configuration is disabled, the system may experience increased write failures and reduced overall performance, especially in scenarios with high write loads or transient node failures. Therefore, changes to this configuration can lead to notable variations in execution time and system resource utilization."
+}

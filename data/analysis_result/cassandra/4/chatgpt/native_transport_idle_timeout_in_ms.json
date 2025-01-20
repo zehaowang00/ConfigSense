@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'native_transport_idle_timeout_in_ms' configuration in Cassandra determines how long a connection can remain idle before it is closed. A shorter timeout can lead to more frequent connection closures and re-establishments, which can significantly increase latency and resource consumption, particularly under high load scenarios. Conversely, a longer timeout may lead to resource exhaustion if too many idle connections are maintained. This balance directly impacts system performance, making this configuration performance-sensitive."
+}

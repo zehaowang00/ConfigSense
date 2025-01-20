@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'native_transport_max_concurrent_connections' in Cassandra directly influences the number of simultaneous connections that the system can handle. A higher value allows more concurrent client connections, which can lead to increased throughput and reduced latency for client requests. Conversely, setting this value too low can create bottlenecks, resulting in increased execution time for queries and higher memory consumption due to connection management overhead. Therefore, changes to this configuration can significantly affect overall system performance, making it performance-sensitive."
+}

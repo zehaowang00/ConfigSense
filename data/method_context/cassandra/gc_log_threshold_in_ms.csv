@@ -1,0 +1,24 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.GCInspector:<init>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getGCLogThreshold(),org.apache.cassandra.config.DatabaseDescriptor:getGCLogThreshold(),gc_log_threshold_in_ms,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/GCInspector.java,GCInspector,../data/xml/cassandra/GCInspector.xml,"public GCInspector()
+    {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+
+        try
+        {
+            ObjectName gcName = new ObjectName(ManagementFactory.GARBAGE_COLLECTOR_MXBEAN_DOMAIN_TYPE + "",*"");
+            for (ObjectName name : mbs.queryNames(gcName, null))
+            {
+                GarbageCollectorMXBean gc = ManagementFactory.newPlatformMXBeanProxy(mbs, name.getCanonicalName(), GarbageCollectorMXBean.class);
+                gcStates.put(gc.getName(), new GCState(gc, assumeGCIsPartiallyConcurrent(gc), assumeGCIsOldGen(gc)));
+            }
+            ObjectName me = new ObjectName(MBEAN_NAME);
+            if (!mbs.isRegistered(me))
+                MBeanWrapper.instance.registerMBean(this, new ObjectName(MBEAN_NAME));
+        }
+        catch (MalformedObjectNameException | IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    "

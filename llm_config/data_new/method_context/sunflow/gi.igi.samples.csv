@@ -1,0 +1,10 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.sunflow.core.gi.InstantGI:<init>(org.sunflow.core.Options),"(M)org.sunflow.core.Options:getInt(java.lang.String,int)","org.sunflow.core.Options:getInt(java.lang.String,int)",gi.igi.samples,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/sunflow/src/org/sunflow/core/gi/InstantGI.java,InstantGI,../data/xml/sunflow/InstantGI.xml,"public InstantGI(Options options) {
+        numPhotons = options.getInt(""gi.igi.samples"", 64);
+        numSets = options.getInt(""gi.igi.sets"", 1);
+        c = options.getFloat(""gi.igi.c"", 0.00003f);
+        numBias = options.getInt(""gi.igi.bias_samples"", 0);
+        virtualLights = null;
+    }
+
+    "

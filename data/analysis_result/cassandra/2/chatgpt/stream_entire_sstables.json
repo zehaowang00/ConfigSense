@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'stream_entire_sstables' configuration in Cassandra affects how data is streamed during repairs and compactions. When set to true, it can lead to increased memory consumption and longer execution times due to the need to load entire SSTables into memory for processing. This can significantly impact system performance, especially in environments with large datasets or under heavy load, as it may lead to increased garbage collection activity and slower response times for read and write operations."
+}

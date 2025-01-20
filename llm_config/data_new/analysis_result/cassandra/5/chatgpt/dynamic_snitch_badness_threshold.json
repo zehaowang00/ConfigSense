@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'dynamic_snitch_badness_threshold' configuration in Cassandra directly influences how the dynamic snitching mechanism evaluates the performance of nodes in the cluster. A change in this threshold can lead to significant variations in how requests are routed to different nodes based on their perceived performance. If the threshold is set too high or too low, it can result in suboptimal request routing, leading to increased latency or uneven load distribution across nodes. This can ultimately affect overall system performance, making it a performance-sensitive configuration."
+}

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "_transactionDeepCopyMode",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n   * Returns a Prevayler created according to what was defined by calls to the\n   * configuration methods above.\n   *\n   * @throws IOException            If there is trouble creating the Prevalence\n   *                                Base directory or reading a .journal or\n   *                                .snapshot file.\n   * @throws ClassNotFoundException If a class of a serialized Object is not found\n   *                                when reading a .journal or .snapshot file.\n   */\npublic Prevayler<P> create() throws Exception {\n    GenericSnapshotManager<P> snapshotManager = snapshotManager();\n    TransactionPublisher<P> publisher = publisher(snapshotManager);\n    if (_serverPort != -1)\n      new ServerListener<P>(publisher, new OldNetworkImpl(), _serverPort);\n    return new PrevaylerImpl<P>(snapshotManager, publisher, journalSerializer(), _transactionDeepCopyMode);\n  }\n\n  "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `_transactionDeepCopyMode` configuration directly influences how transactions are handled, potentially affecting the performance of operations that involve deep copying of transaction objects. If this mode leads to extensive memory usage or time-consuming operations during transaction processing, it can significantly impact system performance, especially in scenarios with high transaction volumes or complex object structures."
+        }
+    ]
+}

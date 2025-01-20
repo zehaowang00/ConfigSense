@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'diagnostic_events_enabled' in Cassandra controls the logging of diagnostic events, which can significantly impact system performance. When enabled, it can lead to increased I/O operations due to the additional logging, potentially causing higher latency and increased resource consumption. This can notably affect execution time and memory usage, especially under heavy load, making it a performance-sensitive configuration."
+}

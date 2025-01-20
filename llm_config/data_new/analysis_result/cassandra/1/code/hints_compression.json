@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "hints_compression",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private static ImmutableMap<String, Object> createDescriptorParams()\n    {\n        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();\n\n        ParameterizedClass compressionConfig = DatabaseDescriptor.getHintsCompression();\n        if (compressionConfig != null)\n        {\n            ImmutableMap.Builder<String, Object> compressorParams = ImmutableMap.builder();\n\n            compressorParams.put(ParameterizedClass.CLASS_NAME, compressionConfig.class_name);\n            if (compressionConfig.parameters != null)\n            {\n                compressorParams.put(ParameterizedClass.PARAMETERS, compressionConfig.parameters);\n            }\n            builder.put(HintsDescriptor.COMPRESSION, compressorParams.build());\n        }\n\n        return builder.build();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The code primarily focuses on building a map of parameters for compression configuration without executing any time-intensive or memory-intensive operations. The operations involved, such as checking for null values and putting parameters into an immutable map, are lightweight and do not significantly impact system performance. There are no indications that the compression configuration itself leads to substantial performance variations in the context provided."
+        }
+    ]
+}

@@ -1,0 +1,315 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.db.commitlog.CommitLog:<init>(org.apache.cassandra.db.commitlog.CommitLogArchiver,java.util.function.Function)",(S)org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),transparent_data_encryption_options,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLog.java,CommitLog,../data/xml/cassandra/CommitLog.xml,"@VisibleForTesting
+    CommitLog(CommitLogArchiver archiver, Function<CommitLog, AbstractCommitLogSegmentManager> segmentManagerProvider)
+    {
+        this.configuration = new Configuration(DatabaseDescriptor.getCommitLogCompression(),
+                                               DatabaseDescriptor.getEncryptionContext());
+        DatabaseDescriptor.createAllDirectories();
+
+        this.archiver = archiver;
+        metrics = new CommitLogMetrics();
+
+        switch (DatabaseDescriptor.getCommitLogSync())
+        {
+            case periodic:
+                executor = new PeriodicCommitLogService(this);
+                break;
+            case batch:
+                executor = new BatchCommitLogService(this);
+                break;
+            case group:
+                executor = new GroupCommitLogService(this);
+                break;
+            default:
+                throw new IllegalArgumentException(""Unknown commitlog service type: "" + DatabaseDescriptor.getCommitLogSync());
+        }
+
+        segmentManager = segmentManagerProvider.apply(this);
+
+        // register metrics
+        metrics.attach(executor, segmentManager);
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.CommitLog:resetConfiguration(),(S)org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),transparent_data_encryption_options,resetConfiguration,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLog.java,CommitLog,../data/xml/cassandra/CommitLog.xml,"/**
+     * FOR TESTING PURPOSES.
+     */
+@VisibleForTesting
+    synchronized public void resetConfiguration()
+    {
+        configuration = new Configuration(DatabaseDescriptor.getCommitLogCompression(),
+                                          DatabaseDescriptor.getEncryptionContext());
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.CommitLogArchiver:maybeRestoreArchive(),(S)org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),transparent_data_encryption_options,maybeRestoreArchive,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLogArchiver.java,CommitLogArchiver,../data/xml/cassandra/CommitLogArchiver.xml,"public void maybeRestoreArchive()
+    {
+        if (Strings.isNullOrEmpty(restoreDirectories))
+            return;
+
+        for (String dir : restoreDirectories.split(DELIMITER))
+        {
+            File[] files = new File(dir).listFiles();
+            if (files == null)
+            {
+                throw new RuntimeException(""Unable to list directory "" + dir);
+            }
+            for (File fromFile : files)
+            {
+                CommitLogDescriptor fromHeader = CommitLogDescriptor.fromHeader(fromFile, DatabaseDescriptor.getEncryptionContext());
+                CommitLogDescriptor fromName = CommitLogDescriptor.isValid(fromFile.getName()) ? CommitLogDescriptor.fromFileName(fromFile.getName()) : null;
+                CommitLogDescriptor descriptor;
+                if (fromHeader == null && fromName == null)
+                    throw new IllegalStateException(""Cannot safely construct descriptor for segment, either from its name or its header: "" + fromFile.getPath());
+                else if (fromHeader != null && fromName != null && !fromHeader.equalsIgnoringCompression(fromName))
+                    throw new IllegalStateException(String.format(""Cannot safely construct descriptor for segment, as name and header descriptors do not match (%s vs %s): %s"", fromHeader, fromName, fromFile.getPath()));
+                else if (fromName != null && fromHeader == null)
+                    throw new IllegalStateException(""Cannot safely construct descriptor for segment, as name descriptor implies a version that should contain a header descriptor, but that descriptor could not be read: "" + fromFile.getPath());
+                else if (fromHeader != null)
+                    descriptor = fromHeader;
+                else descriptor = fromName;
+
+                if (descriptor.version > CommitLogDescriptor.current_version)
+                    throw new IllegalStateException(""Unsupported commit log version: "" + descriptor.version);
+
+                if (descriptor.compression != null)
+                {
+                    try
+                    {
+                        CompressionParams.createCompressor(descriptor.compression);
+                    }
+                    catch (ConfigurationException e)
+                    {
+                        throw new IllegalStateException(""Unknown compression"", e);
+                    }
+                }
+
+                File toFile = new File(DatabaseDescriptor.getCommitLogLocation(), descriptor.fileName());
+                if (toFile.exists())
+                {
+                    logger.trace(""Skipping restore of archive {} as the segment already exists in the restore location {}"",
+                                 fromFile.getPath(), toFile.getPath());
+                    continue;
+                }
+
+                String command = FROM.matcher(restoreCommand).replaceAll(Matcher.quoteReplacement(fromFile.getPath()));
+                command = TO.matcher(command).replaceAll(Matcher.quoteReplacement(toFile.getPath()));
+                try
+                {
+                    exec(command);
+                }
+                catch (IOException e)
+                {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.CommitLogReader:shouldSkip(java.io.File),(S)org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),transparent_data_encryption_options,shouldSkip,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLogReader.java,CommitLogReader,../data/xml/cassandra/CommitLogReader.xml,"private static boolean shouldSkip(File file) throws IOException, ConfigurationException
+    {
+        try(RandomAccessReader reader = RandomAccessReader.open(file))
+        {
+            CommitLogDescriptor.readHeader(reader, DatabaseDescriptor.getEncryptionContext());
+            int end = reader.readInt();
+            long filecrc = reader.readInt() & 0xffffffffL;
+            return end == 0 && filecrc == 0;
+        }
+    }
+
+    "
+"M:org.apache.cassandra.db.commitlog.CommitLogReader:readCommitLogSegment(org.apache.cassandra.db.commitlog.CommitLogReadHandler,java.io.File,org.apache.cassandra.db.commitlog.CommitLogPosition,int,boolean)",(S)org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),transparent_data_encryption_options,readCommitLogSegment,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLogReader.java,CommitLogReader,../data/xml/cassandra/CommitLogReader.xml,"/**
+     * Reads passed in file fully, up to mutationLimit count
+     */
+@VisibleForTesting
+    public void readCommitLogSegment(CommitLogReadHandler handler, File file, int mutationLimit, boolean tolerateTruncation) throws IOException
+    {
+        readCommitLogSegment(handler, file, CommitLogPosition.NONE, mutationLimit, tolerateTruncation);
+    }
+
+    
+/**
+     * Reads mutations from file, handing them off to handler
+     * @param handler Handler that will take action based on deserialized Mutations
+     * @param file CommitLogSegment file to read
+     * @param minPosition Optional minimum CommitLogPosition - all segments with id larger or matching w/greater position will be read
+     * @param mutationLimit Optional limit on # of mutations to replay. Local ALL_MUTATIONS serves as marker to play all.
+     * @param tolerateTruncation Whether or not we should allow truncation of this file or throw if EOF found
+     *
+     * @throws IOException
+     */
+public void readCommitLogSegment(CommitLogReadHandler handler,
+                                     File file,
+                                     CommitLogPosition minPosition,
+                                     int mutationLimit,
+                                     boolean tolerateTruncation) throws IOException
+    {
+        // just transform from the file name (no reading of headers) to determine version
+        CommitLogDescriptor desc = CommitLogDescriptor.fromFileName(file.getName());
+
+        try(RandomAccessReader reader = RandomAccessReader.open(file))
+        {
+            final long segmentIdFromFilename = desc.id;
+            try
+            {
+                // The following call can either throw or legitimately return null. For either case, we need to check
+                // desc outside this block and set it to null in the exception case.
+                desc = CommitLogDescriptor.readHeader(reader, DatabaseDescriptor.getEncryptionContext());
+            }
+            catch (Exception e)
+            {
+                desc = null;
+            }
+            if (desc == null)
+            {
+                // don't care about whether or not the handler thinks we can continue. We can't w/out descriptor.
+                // whether or not we can continue depends on whether this is the last segment
+                handler.handleUnrecoverableError(new CommitLogReadException(
+                    String.format(""Could not read commit log descriptor in file %s"", file),
+                    CommitLogReadErrorReason.UNRECOVERABLE_DESCRIPTOR_ERROR,
+                    tolerateTruncation));
+                return;
+            }
+
+            if (segmentIdFromFilename != desc.id)
+            {
+                if (handler.shouldSkipSegmentOnError(new CommitLogReadException(String.format(
+                    ""Segment id mismatch (filename %d, descriptor %d) in file %s"", segmentIdFromFilename, desc.id, file),
+                                                                                CommitLogReadErrorReason.RECOVERABLE_DESCRIPTOR_ERROR,
+                                                                                false)))
+                {
+                    return;
+                }
+            }
+
+            if (shouldSkipSegmentId(file, desc, minPosition))
+                return;
+
+            CommitLogSegmentReader segmentReader;
+            try
+            {
+                segmentReader = new CommitLogSegmentReader(handler, desc, reader, tolerateTruncation);
+            }
+            catch(Exception e)
+            {
+                handler.handleUnrecoverableError(new CommitLogReadException(
+                    String.format(""Unable to create segment reader for commit log file: %s"", e),
+                    CommitLogReadErrorReason.UNRECOVERABLE_UNKNOWN_ERROR,
+                    tolerateTruncation));
+                return;
+            }
+
+            try
+            {
+                ReadStatusTracker statusTracker = new ReadStatusTracker(mutationLimit, tolerateTruncation);
+                for (CommitLogSegmentReader.SyncSegment syncSegment : segmentReader)
+                {
+                    // Only tolerate truncation if we allow in both global and segment
+                    statusTracker.tolerateErrorsInSection = tolerateTruncation & syncSegment.toleratesErrorsInSection;
+
+                    // Skip segments that are completely behind the desired minPosition
+                    if (desc.id == minPosition.segmentId && syncSegment.endPosition < minPosition.position)
+                        continue;
+
+                    statusTracker.errorContext = String.format(""Next section at %d in %s"", syncSegment.fileStartPosition, desc.fileName());
+
+                    readSection(handler, syncSegment.input, minPosition, syncSegment.endPosition, statusTracker, desc);
+                    if (!statusTracker.shouldContinue())
+                        break;
+                }
+            }
+            // Unfortunately AbstractIterator cannot throw a checked exception, so we check to see if a RuntimeException
+            // is wrapping an IOException.
+            catch (RuntimeException re)
+            {
+                if (re.getCause() instanceof IOException)
+                    throw (IOException) re.getCause();
+                throw re;
+            }
+            logger.info(""Finished reading {}"", file);
+        }
+    }
+
+    "
+M:org.apache.cassandra.db.commitlog.CommitLogReplayer:handleCDCReplayCompletion(java.io.File),(S)org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),transparent_data_encryption_options,handleCDCReplayCompletion,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLogReplayer.java,CommitLogReplayer,../data/xml/cassandra/CommitLogReplayer.xml,"/**
+     * Upon replay completion, CDC needs to hard-link files in the CDC folder and calculate index files so consumers can
+     * begin their work.
+     */
+private void handleCDCReplayCompletion(File f) throws IOException
+    {
+        // Can only reach this point if CDC is enabled, thus we have a CDCSegmentManager
+        ((CommitLogSegmentManagerCDC)CommitLog.instance.segmentManager).addCDCSize(f.length());
+
+        File dest = new File(DatabaseDescriptor.getCDCLogLocation(), f.getName());
+
+        // If hard link already exists, assume it's from a previous node run. If people are mucking around in the cdc_raw
+        // directory that's on them.
+        if (!dest.exists())
+            FileUtils.createHardLink(f, dest);
+
+        // The reader has already verified we can deserialize the descriptor.
+        CommitLogDescriptor desc;
+        try(RandomAccessReader reader = RandomAccessReader.open(f))
+        {
+            desc = CommitLogDescriptor.readHeader(reader, DatabaseDescriptor.getEncryptionContext());
+            assert desc != null;
+            assert f.length() < Integer.MAX_VALUE;
+            CommitLogSegment.writeCDCIndexFile(desc, (int)f.length(), true);
+        }
+    }
+
+
+    "
+M:org.apache.cassandra.hints.HintsDescriptor:createEncryption(com.google.common.collect.ImmutableMap),(S)org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),org.apache.cassandra.config.DatabaseDescriptor:getEncryptionContext(),transparent_data_encryption_options,createEncryption,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/hints/HintsDescriptor.java,HintsDescriptor,../data/xml/cassandra/HintsDescriptor.xml,"/**
+     * Create, if necessary, the required encryption components (for either decrpyt or encrypt operations).
+     * Note that in the case of encyption (this is, when writing out a new hints file), we need to write
+     * the cipher's IV out to the header so it can be used when decrypting. Thus, we need to add an additional
+     * entry to the {@code params} map.
+     *
+     * @param params the base parameters into the descriptor.
+     * @return null if not using encryption; else, the initialized {@link Cipher} and a possibly updated version
+     * of the {@code params} map.
+     */
+@SuppressWarnings(""unchecked"")
+    static EncryptionData createEncryption(ImmutableMap<String, Object> params)
+    {
+        if (params.containsKey(ENCRYPTION))
+        {
+            Map<?, ?> encryptionConfig = (Map<?, ?>) params.get(ENCRYPTION);
+            EncryptionContext encryptionContext = EncryptionContext.createFromMap(encryptionConfig, DatabaseDescriptor.getEncryptionContext());
+
+            try
+            {
+                Cipher cipher;
+                if (encryptionConfig.containsKey(EncryptionContext.ENCRYPTION_IV))
+                {
+                    cipher = encryptionContext.getDecryptor();
+                }
+                else
+                {
+                    cipher = encryptionContext.getEncryptor();
+                    ImmutableMap<String, Object> encParams = ImmutableMap.<String, Object>builder()
+                                                                 .putAll(encryptionContext.toHeaderParameters())
+                                                                 .put(EncryptionContext.ENCRYPTION_IV, Hex.bytesToHex(cipher.getIV()))
+                                                                 .build();
+
+                    Map<String, Object> map = new HashMap<>(params);
+                    map.put(ENCRYPTION, encParams);
+                    params = ImmutableMap.<String, Object>builder().putAll(map).build();
+                }
+                return new EncryptionData(cipher, encryptionContext.getCompressor(), params);
+            }
+            catch (IOException ioe)
+            {
+                logger.warn(""failed to create encyption context for hints file. ignoring encryption for hints."", ioe);
+                return null;
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    "

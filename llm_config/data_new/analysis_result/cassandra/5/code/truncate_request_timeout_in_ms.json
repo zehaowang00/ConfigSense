@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "truncate_request_timeout_in_ms",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * @return the minimum configured {read, write, range, truncate, misc} timeout\n     */\npublic static long getMinRpcTimeout(TimeUnit unit)\n    {\n        return Longs.min(getRpcTimeout(unit),\n                         getReadRpcTimeout(unit),\n                         getRangeRpcTimeout(unit),\n                         getWriteRpcTimeout(unit),\n                         getCounterWriteRpcTimeout(unit),\n                         getTruncateRpcTimeout(unit));\n    }\n\n    \npublic Long getTruncateRpcTimeout() { return DatabaseDescriptor.getTruncateRpcTimeout(MILLISECONDS); }\n    \npublic long getTruncateRpcTimeout()\n    {\n        return DatabaseDescriptor.getTruncateRpcTimeout(MILLISECONDS);\n    }\n\n    \npublic void get() throws TimeoutException\n    {\n        long timeoutNanos = DatabaseDescriptor.getTruncateRpcTimeout(NANOSECONDS) - (System.nanoTime() - start);\n        boolean completedInTime;\n        try\n        {\n            completedInTime = condition.await(timeoutNanos, NANOSECONDS); // TODO truncate needs a much longer timeout\n        }\n        catch (InterruptedException ex)\n        {\n            throw new AssertionError(ex);\n        }\n\n        if (!completedInTime)\n        {\n            throw new TimeoutException(\"Truncate timed out - received only \" + responses.get() + \" responses\");\n        }\n\n        if (truncateFailingReplica != null)\n        {\n            throw new TruncateException(\"Truncate failed on replica \" + truncateFailingReplica);\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The truncate request timeout directly affects the duration of operations that can be time-intensive, especially in scenarios where data truncation is involved. The code indicates that if the operation does not complete within the specified timeout, a TimeoutException is thrown, which can lead to significant delays in processing and impact overall system performance. Additionally, the comment in the code suggests that the truncate operation may require a much longer timeout, indicating that the current configuration can lead to performance variations due to its time-sensitive nature."
+        }
+    ]
+}

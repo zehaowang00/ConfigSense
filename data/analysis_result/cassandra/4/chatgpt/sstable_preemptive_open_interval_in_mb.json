@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'sstable_preemptive_open_interval_in_mb' in Cassandra determines the size of the preemptive open interval for SSTables. A larger interval can lead to increased memory consumption as more SSTables are kept open, which can significantly affect garbage collection times and overall memory usage. Conversely, a smaller interval may reduce memory usage but could lead to increased disk I/O and longer read latencies if SSTables are frequently closed and reopened. Therefore, changes to this configuration can lead to notable variations in execution time and memory consumption, classifying it as performance-sensitive."
+}

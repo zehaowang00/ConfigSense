@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'scaleMode' configuration in the dconverter software project directly influences how resources are allocated and utilized during processing. Changing this setting can lead to significant variations in execution time and memory consumption, especially under different load conditions. For instance, if 'scaleMode' is set to a mode that optimizes for high throughput, it may increase memory usage due to caching mechanisms, while a mode that prioritizes low latency may reduce memory usage but increase execution time. Thus, the sensitivity of this configuration to performance metrics makes it critical for overall system performance."
+}

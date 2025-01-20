@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'OPTIMIZE_INSERT_FROM_SELECT' directly influences how the database engine handles insert operations that are derived from select queries. When enabled, this optimization can significantly reduce execution time and resource usage by streamlining the data insertion process, especially in scenarios involving large datasets. Conversely, disabling this option may lead to increased execution time and higher memory consumption due to the additional overhead of handling inserts without optimization. Therefore, changes to this configuration can lead to notable variations in system performance, classifying it as performance-sensitive."
+}

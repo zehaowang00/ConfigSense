@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'ANALYZE_SAMPLE' in the h2 software project is performance-sensitive because it directly influences the frequency and granularity of database analysis operations. A change in its value can lead to significant variations in execution time, especially during query processing and data retrieval. For instance, increasing the sample size may enhance the accuracy of query optimization but could also lead to increased memory consumption and longer execution times due to the overhead of processing more data. Conversely, reducing the sample size may speed up operations but could result in suboptimal query plans, negatively impacting performance. Therefore, the impact of this configuration on system performance is notable, classifying it as performance-sensitive."
+}

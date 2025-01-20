@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'ANALYZE_SAMPLE' in the H2 database can significantly influence query execution times and memory usage. Changing its value can lead to variations in how the database optimizes queries, affecting the overall performance of data retrieval and processing. If set too low, it may result in suboptimal execution plans, leading to increased execution time. Conversely, setting it too high may consume excessive memory resources, impacting the performance of other operations within the system. Therefore, its sensitivity to performance is critical."
+}

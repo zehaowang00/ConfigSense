@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "key_cache_save_period",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * @return auto saving cache object\n     */\nprivate AutoSavingCache<KeyCacheKey, RowIndexEntry> initKeyCache()\n    {\n        logger.info(\"Initializing key cache with capacity of {} MBs.\", DatabaseDescriptor.getKeyCacheSizeInMB());\n\n        long keyCacheInMemoryCapacity = DatabaseDescriptor.getKeyCacheSizeInMB() * 1024 * 1024;\n\n        // as values are constant size we can use singleton weigher\n        // where 48 = 40 bytes (average size of the key) + 8 bytes (size of value)\n        ICache<KeyCacheKey, RowIndexEntry> kc;\n        kc = CaffeineCache.create(keyCacheInMemoryCapacity);\n        AutoSavingCache<KeyCacheKey, RowIndexEntry> keyCache = new AutoSavingCache<>(kc, CacheType.KEY_CACHE, new KeyCacheSerializer());\n\n        int keyCacheKeysToSave = DatabaseDescriptor.getKeyCacheKeysToSave();\n\n        keyCache.scheduleSaving(DatabaseDescriptor.getKeyCacheSavePeriod(), keyCacheKeysToSave);\n\n        return keyCache;\n    }\n\n    \npublic int getKeyCacheSavePeriodInSeconds()\n    {\n        return DatabaseDescriptor.getKeyCacheSavePeriod();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `key_cache_save_period` directly influences the frequency at which the cache saves its state, which can lead to significant performance variations. If the save period is too short, it may result in frequent I/O operations, consuming CPU and memory resources, and potentially degrading overall system performance. Conversely, if it is too long, it may lead to excessive memory usage as stale data accumulates. Therefore, this configuration has a substantial impact on system-level performance due to its influence on time-intensive and memory-intensive operations."
+        }
+    ]
+}

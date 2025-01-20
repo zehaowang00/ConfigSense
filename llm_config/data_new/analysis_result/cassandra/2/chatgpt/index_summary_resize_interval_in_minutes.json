@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'index_summary_resize_interval_in_minutes' configuration in Cassandra controls how frequently the index summary is resized. A change in this interval can significantly impact the performance of read operations, as it affects the memory usage and the efficiency of index lookups. If the interval is set too short, it may lead to excessive memory consumption and increased garbage collection overhead, while a longer interval might cause stale index summaries, resulting in slower read times. Thus, variations in this configuration can lead to notable changes in execution time and resource utilization, making it performance-sensitive."
+}

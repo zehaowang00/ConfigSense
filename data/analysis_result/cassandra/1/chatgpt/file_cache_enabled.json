@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'file_cache_enabled' configuration in Cassandra directly impacts how data is cached on disk. Enabling file caching can significantly reduce disk I/O operations, leading to faster read and write times, especially under heavy load. Conversely, disabling it may result in increased latency and higher memory consumption due to more frequent data retrieval from disk rather than from cache. This variation in execution time and resource utilization makes this configuration performance-sensitive."
+}

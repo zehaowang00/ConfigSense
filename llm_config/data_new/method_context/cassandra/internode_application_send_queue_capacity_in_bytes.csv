@@ -1,0 +1,8 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.net.OutboundConnectionSettings:applicationSendQueueCapacityInBytes(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeApplicationSendQueueCapacityInBytes(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeApplicationSendQueueCapacityInBytes(),internode_application_send_queue_capacity_in_bytes,applicationSendQueueCapacityInBytes,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/OutboundConnectionSettings.java,OutboundConnectionSettings,../data/xml/cassandra/OutboundConnectionSettings.xml,"public int applicationSendQueueCapacityInBytes()
+    {
+        return applicationSendQueueCapacityInBytes != null ? applicationSendQueueCapacityInBytes
+                                                           : DatabaseDescriptor.getInternodeApplicationSendQueueCapacityInBytes();
+    }
+
+    "

@@ -1,0 +1,24 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.StorageService:setStreamThroughputMbPerSec(int),(S)org.apache.cassandra.config.DatabaseDescriptor:getStreamThroughputOutboundMegabitsPerSec(),org.apache.cassandra.config.DatabaseDescriptor:getStreamThroughputOutboundMegabitsPerSec(),stream_throughput_outbound_megabits_per_sec,setStreamThroughputMbPerSec,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public void setStreamThroughputMbPerSec(int value)
+    {
+        int oldValue = DatabaseDescriptor.getStreamThroughputOutboundMegabitsPerSec();
+        DatabaseDescriptor.setStreamThroughputOutboundMegabitsPerSec(value);
+        StreamManager.StreamRateLimiter.updateThroughput();
+        logger.info(""setstreamthroughput: throttle set to {} Mb/s (was {} Mb/s)"", value, oldValue);
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getStreamThroughputMbPerSec(),(S)org.apache.cassandra.config.DatabaseDescriptor:getStreamThroughputOutboundMegabitsPerSec(),org.apache.cassandra.config.DatabaseDescriptor:getStreamThroughputOutboundMegabitsPerSec(),stream_throughput_outbound_megabits_per_sec,getStreamThroughputMbPerSec,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getStreamThroughputMbPerSec()
+    {
+        return DatabaseDescriptor.getStreamThroughputOutboundMegabitsPerSec();
+    }
+
+    "
+M:org.apache.cassandra.streaming.StreamManager$StreamRateLimiter:calculateRateInBytes(),(S)org.apache.cassandra.config.DatabaseDescriptor:getStreamThroughputOutboundMegabitsPerSec(),org.apache.cassandra.config.DatabaseDescriptor:getStreamThroughputOutboundMegabitsPerSec(),stream_throughput_outbound_megabits_per_sec,calculateRateInBytes,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/streaming/StreamManager.java,StreamManager$StreamRateLimiter,../data/xml/cassandra/StreamManager.xml,"private static double calculateRateInBytes()
+        {
+            return DatabaseDescriptor.getStreamThroughputOutboundMegabitsPerSec() > 0
+                   ? DatabaseDescriptor.getStreamThroughputOutboundMegabitsPerSec() * BYTES_PER_MEGABIT
+                   : Double.MAX_VALUE; // if throughput is set to 0 or negative value, throttling is disabled
+        }
+
+        "

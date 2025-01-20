@@ -1,0 +1,96 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.StorageProxy:getNativeTransportMaxConcurrentConnections(),(S)org.apache.cassandra.config.DatabaseDescriptor:getNativeTransportMaxConcurrentConnections(),org.apache.cassandra.config.DatabaseDescriptor:getNativeTransportMaxConcurrentConnections(),native_transport_max_concurrent_connections,getNativeTransportMaxConcurrentConnections,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public Long getNativeTransportMaxConcurrentConnections() { return DatabaseDescriptor.getNativeTransportMaxConcurrentConnections(); }
+    "
+M:org.apache.cassandra.transport.ConnectionLimitHandler:channelActive(io.netty.channel.ChannelHandlerContext),(S)org.apache.cassandra.config.DatabaseDescriptor:getNativeTransportMaxConcurrentConnections(),org.apache.cassandra.config.DatabaseDescriptor:getNativeTransportMaxConcurrentConnections(),native_transport_max_concurrent_connections,channelActive,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/transport/ConnectionLimitHandler.java,ConnectionLimitHandler,../data/xml/cassandra/ConnectionLimitHandler.xml,"@Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception
+    {
+        final long count = counter.incrementAndGet();
+        long limit = DatabaseDescriptor.getNativeTransportMaxConcurrentConnections();
+        // Setting the limit to -1 disables it.
+        if(limit < 0)
+        {
+            limit = Long.MAX_VALUE;
+        }
+        if (count > limit)
+        {
+            // The decrement will be done in channelClosed(...)
+            noSpamLogger.error(""Exceeded maximum native connection limit of {} by using {} connections (see native_transport_max_concurrent_connections in cassandra.yaml)"", limit, count);
+            ctx.close();
+        }
+        else
+        {
+            long perIpLimit = DatabaseDescriptor.getNativeTransportMaxConcurrentConnectionsPerIp();
+            if (perIpLimit > 0)
+            {
+                InetAddress address = setRemoteAddressAttribute(ctx.channel());
+                if (address == null)
+                {
+                    ctx.close();
+                    return;
+                }
+                AtomicLong perIpCount = connectionsPerClient.get(address);
+                if (perIpCount == null)
+                {
+                    perIpCount = new AtomicLong(0);
+
+                    AtomicLong old = connectionsPerClient.putIfAbsent(address, perIpCount);
+                    if (old != null)
+                    {
+                        perIpCount = old;
+                    }
+                }
+                if (perIpCount.incrementAndGet() > perIpLimit)
+                {
+                    // The decrement will be done in channelClosed(...)
+                    noSpamLogger.error(""Exceeded maximum native connection limit per ip of {} by using {} connections (see native_transport_max_concurrent_connections_per_ip)"", perIpLimit, perIpCount);
+                    ctx.close();
+                    return;
+                }
+            }
+            ctx.fireChannelActive();
+        }
+    }
+
+    "
+"M:org.apache.cassandra.transport.PipelineConfigurator:configureInitialPipeline(io.netty.channel.Channel,org.apache.cassandra.transport.Connection$Factory)",(S)org.apache.cassandra.config.DatabaseDescriptor:getNativeTransportMaxConcurrentConnections(),org.apache.cassandra.config.DatabaseDescriptor:getNativeTransportMaxConcurrentConnections(),native_transport_max_concurrent_connections,configureInitialPipeline,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/transport/PipelineConfigurator.java,PipelineConfigurator,../data/xml/cassandra/PipelineConfigurator.xml,"public void configureInitialPipeline(Channel channel, Connection.Factory connectionFactory)
+    {
+        ChannelPipeline pipeline = channel.pipeline();
+
+        // Add the ConnectionLimitHandler to the pipeline if configured to do so.
+        if (DatabaseDescriptor.getNativeTransportMaxConcurrentConnections() > 0
+            || DatabaseDescriptor.getNativeTransportMaxConcurrentConnectionsPerIp() > 0)
+        {
+            // Add as first to the pipeline so the limit is enforced as first action.
+            pipeline.addFirst(CONNECTION_LIMIT_HANDLER, connectionLimitHandler);
+        }
+
+        long idleTimeout = DatabaseDescriptor.nativeTransportIdleTimeout();
+        if (idleTimeout > 0)
+        {
+            pipeline.addLast(IDLE_STATE_HANDLER, new IdleStateHandler(false, 0, 0, idleTimeout, TimeUnit.MILLISECONDS)
+            {
+                @Override
+                protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt)
+                {
+                    logger.info(""Closing client connection {} after timeout of {}ms"", channel.remoteAddress(), idleTimeout);
+                    ctx.close();
+                }
+            });
+        }
+
+        if (DEBUG)
+            pipeline.addLast(DEBUG_HANDLER, new LoggingHandler(LogLevel.INFO));
+
+        pipeline.addLast(ENVELOPE_ENCODER, Envelope.Encoder.instance);
+        pipeline.addLast(INITIAL_HANDLER, new InitialConnectionHandler(new Envelope.Decoder(), connectionFactory, this));
+        // The exceptionHandler will take care of handling exceptionCaught(...) events while still running
+        // on the same EventLoop as all previous added handlers in the pipeline. This is important as the used
+        // eventExecutorGroup may not enforce strict ordering for channel events.
+        // As the exceptionHandler runs in the EventLoop as the previous handlers we are sure all exceptions are
+        // correctly handled before the handler itself is removed.
+        // See https://issues.apache.org/jira/browse/CASSANDRA-13649
+        pipeline.addLast(EXCEPTION_HANDLER, PreV5Handlers.ExceptionHandler.instance);
+        onInitialPipelineReady(pipeline);
+    }
+
+    "

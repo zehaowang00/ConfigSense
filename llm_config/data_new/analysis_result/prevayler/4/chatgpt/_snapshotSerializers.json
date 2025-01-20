@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The '_snapshotSerializers' configuration in the Prevayler project is performance-sensitive because it directly influences how snapshots of the system state are serialized and deserialized. Changing the serializer can lead to significant variations in execution time during these operations, especially if the new serializer is less efficient or has a higher memory overhead. This can impact overall system performance, particularly in scenarios where frequent state snapshots are taken, as it affects both the latency of operations and the memory consumption during serialization processes."
+}

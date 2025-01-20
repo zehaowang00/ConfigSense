@@ -1,0 +1,107 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.batik.apps.rasterizer.SVGConverter:isFile(java.io.File),(M)org.apache.batik.apps.rasterizer.SVGConverter:getDestinationType(),batik-all-1.14,org.apache.batik.apps.rasterizer.SVGConverter:getDestinationType(),DESTINATION_TYPE,isFile,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-svgrasterizer/src/main/java/org/apache/batik/apps/rasterizer/SVGConverter.java,SVGConverter,../data/xml/batik/SVGConverter.xml,"/**
+     * Returns true if f is a File. <code>f</code> is found to be a file if
+     * it exists and is a file. If it does not exist, it is declared
+     * to be a file if it has the same extension as the DestinationType.
+     */
+protected boolean isFile(File f){
+        if (f.exists()){
+            return f.isFile();
+        } else {
+            if (f.toString().toLowerCase().endsWith(destinationType.getExtension())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    "
+M:org.apache.batik.apps.rasterizer.SVGConverter:execute(),(M)org.apache.batik.apps.rasterizer.SVGConverter:getDestinationType(),batik-all-1.14,org.apache.batik.apps.rasterizer.SVGConverter:getDestinationType(),DESTINATION_TYPE,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-svgrasterizer/src/main/java/org/apache/batik/apps/rasterizer/SVGConverter.java,SVGConverter,../data/xml/batik/SVGConverter.xml,"/**
+     * Starts the conversion process.
+     * @throws SVGConverterException thrown if parameters are not set correctly.
+     */
+public void execute() throws SVGConverterException {
+        // Compute the set of SVGConverterSource from the source properties
+        // (srcDir and srcFile);
+        // This throws an exception if there is not at least one src file.
+        List sources = computeSources();
+
+        // Compute the destination files from dest
+        List dstFiles = null;
+        if(sources.size() == 1 && dst != null && isFile(dst)){
+            dstFiles = new ArrayList();
+            dstFiles.add(dst);
+        }
+        else{
+            dstFiles = computeDstFiles(sources);
+        }
+
+        // Now, get the transcoder to use for the operation
+        Transcoder transcoder = destinationType.getTranscoder();
+        if(transcoder == null) {
+            throw new SVGConverterException(ERROR_CANNOT_ACCESS_TRANSCODER,
+                                             new Object[]{destinationType.toString()},
+                                             true /* fatal error */);
+        }
+
+        // Now, compute the set of transcoding hints to use
+        Map hints = computeTranscodingHints();
+        transcoder.setTranscodingHints(hints);
+
+        // Notify listener that task has been computed
+        if(!controller.proceedWithComputedTask(transcoder,
+                                               hints,
+                                               sources,
+                                               dstFiles)){
+            return;
+        }
+
+        // Convert files one by one
+        for(int i = 0 ; i < sources.size() ; i++) {
+            // Get the file from the vector.
+            SVGConverterSource currentFile
+                = (SVGConverterSource)sources.get(i);
+            File outputFile  = (File)dstFiles.get(i);
+
+            createOutputDir(outputFile);
+            transcode(currentFile, outputFile, transcoder);
+        }
+    }
+
+    "
+M:org.apache.batik.apps.rasterizer.SVGConverter:getDestinationFile(java.lang.String),(M)org.apache.batik.apps.rasterizer.SVGConverter:getDestinationType(),batik-all-1.14,org.apache.batik.apps.rasterizer.SVGConverter:getDestinationType(),DESTINATION_TYPE,getDestinationFile,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-svgrasterizer/src/main/java/org/apache/batik/apps/rasterizer/SVGConverter.java,SVGConverter,../data/xml/batik/SVGConverter.xml,"/**
+     * Get the name of the result image file.
+     *
+     * <P>This method modifies the result filename, it changes the existing
+     * suffix to correspong the result file type. It also adds the suffix
+     * if the file doesn't have one.</P>
+     *
+     * @param file Result file name as a String object.
+     *
+     * @return Name of the file. The directory of the file is not returned.
+     *         The returned string is empty if the parameter is not a file.
+     */
+protected String getDestinationFile(String file) {
+        int suffixStart;            // Location of the first char of
+                                    // the suffix in a String.
+        String oldName;             // Existing filename.
+        String newSuffix = destinationType.getExtension();
+                                    // New suffix.
+
+        oldName = file;
+        // Find the first char of the suffix.
+        suffixStart = oldName.lastIndexOf( '.' );
+        String dest = null;
+        if (suffixStart != -1) {
+            // Replace existing suffix.
+            dest = oldName.substring(0, suffixStart) + newSuffix;
+        } else {
+            // Add new suffix.
+            dest = oldName + newSuffix;
+        }
+
+        return dest;
+    }
+
+    "

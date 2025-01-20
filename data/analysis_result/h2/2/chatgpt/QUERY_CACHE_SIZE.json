@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The QUERY_CACHE_SIZE configuration in the H2 database significantly impacts system performance because it directly affects how many query results can be cached in memory. A larger cache size can reduce the number of times the database needs to execute the same query, thereby decreasing execution time and improving overall throughput. Conversely, a smaller cache size may lead to increased query execution times and higher memory consumption due to more frequent cache misses, resulting in additional disk I/O operations. Therefore, changes to this configuration can lead to notable variations in both execution time and memory consumption, classifying it as performance-sensitive."
+}

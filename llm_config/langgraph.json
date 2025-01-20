@@ -1,0 +1,13 @@
+{
+  "dockerfile_lines": [
+    "COPY data_new /path/in/container/data_new"
+  ],
+  "graphs": {
+    "main_graph": "./main.py:graph"
+  },
+  "env": "./.env",
+  "python_version": "3.11",
+  "dependencies": [
+    "."
+  ]
+}

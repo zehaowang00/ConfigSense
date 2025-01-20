@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The MAX_QUERY_TIMEOUT configuration in the H2 database directly influences how long a query is allowed to run before it is terminated. A lower timeout value can lead to more frequent query terminations, which can significantly affect application performance, especially for long-running queries. Conversely, a higher timeout can lead to increased resource consumption if queries run longer than necessary, potentially causing delays in processing other queries. Therefore, changes to this configuration can lead to notable variations in execution time and resource utilization, making it performance-sensitive."
+}

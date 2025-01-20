@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'memtable_offheap_space_in_mb' in Cassandra determines the amount of memory allocated for memtables outside of the Java heap. Changes to this value can significantly impact system performance, as insufficient off-heap memory can lead to increased garbage collection pressure and slower write operations, while excessive allocation may waste memory resources and affect overall system throughput. Therefore, variations in this configuration can lead to notable changes in execution time and memory consumption, classifying it as performance-sensitive."
+}

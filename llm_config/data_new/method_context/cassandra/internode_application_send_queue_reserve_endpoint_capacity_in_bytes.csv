@@ -1,0 +1,15 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.net.OutboundConnectionSettings:withDefaultReserveLimits(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeApplicationSendQueueReserveEndpointCapacityInBytes(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeApplicationSendQueueReserveEndpointCapacityInBytes(),internode_application_send_queue_reserve_endpoint_capacity_in_bytes,withDefaultReserveLimits,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/OutboundConnectionSettings.java,OutboundConnectionSettings,../data/xml/cassandra/OutboundConnectionSettings.xml,"public OutboundConnectionSettings withDefaultReserveLimits()
+    {
+        Integer applicationReserveSendQueueEndpointCapacityInBytes = this.applicationSendQueueReserveEndpointCapacityInBytes;
+        ResourceLimits.Limit applicationReserveSendQueueGlobalCapacityInBytes = this.applicationSendQueueReserveGlobalCapacityInBytes;
+
+        if (applicationReserveSendQueueEndpointCapacityInBytes == null)
+            applicationReserveSendQueueEndpointCapacityInBytes = DatabaseDescriptor.getInternodeApplicationSendQueueReserveEndpointCapacityInBytes();
+        if (applicationReserveSendQueueGlobalCapacityInBytes == null)
+            applicationReserveSendQueueGlobalCapacityInBytes = MessagingService.instance().outboundGlobalReserveLimit;
+
+        return withApplicationReserveSendQueueCapacityInBytes(applicationReserveSendQueueEndpointCapacityInBytes, applicationReserveSendQueueGlobalCapacityInBytes);
+    }
+
+    "

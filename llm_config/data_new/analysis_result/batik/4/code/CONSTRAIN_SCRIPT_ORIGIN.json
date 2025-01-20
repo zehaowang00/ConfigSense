@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "CONSTRAIN_SCRIPT_ORIGIN",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n         * Returns the security settings for the given script\n         * type, script url and document url\n         *\n         * @param scriptType type of script, as found in the\n         *        type attribute of the &lt;script&gt; element.\n         * @param scriptPURL url for the script, as defined in\n         *        the script's xlink:href attribute. If that\n         *        attribute was empty, then this parameter should\n         *        be null\n         * @param docPURL url for the document into which the\n         *        script was found.\n         */\npublic ScriptSecurity getScriptSecurity(String scriptType,\n                                                ParsedURL scriptPURL,\n                                                ParsedURL docPURL){\n            if (scripts == null){\n                computeAllowedScripts();\n            }\n\n            if (!scripts.contains(scriptType)) {\n                return new NoLoadScriptSecurity(scriptType);\n            }\n\n\n            boolean constrainOrigin = true;\n\n            if (SVGAbstractTranscoder.this.hints.containsKey\n                (KEY_CONSTRAIN_SCRIPT_ORIGIN)) {\n                constrainOrigin =\n                        (Boolean) SVGAbstractTranscoder.this.hints.get\n                                (KEY_CONSTRAIN_SCRIPT_ORIGIN);\n            }\n\n            if (constrainOrigin) {\n                return new DefaultScriptSecurity\n                    (scriptType,scriptPURL,docPURL);\n            } else {\n                return new RelaxedScriptSecurity\n                    (scriptType,scriptPURL,docPURL);\n            }\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `CONSTRAIN_SCRIPT_ORIGIN` configuration primarily influences the choice between two different security implementations (`DefaultScriptSecurity` and `RelaxedScriptSecurity`). While it does determine the security model applied, it does not involve any time-intensive or memory-intensive operations that would significantly impact system performance. The operations performed in the method are primarily conditional checks and object instantiations, which are not substantial enough to classify this configuration as performance-sensitive."
+        }
+    ]
+}

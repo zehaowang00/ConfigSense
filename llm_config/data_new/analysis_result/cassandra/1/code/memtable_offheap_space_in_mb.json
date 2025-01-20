@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "memtable_offheap_space_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private static MemtablePool createMemtableAllocatorPool()\n    {\n        long heapLimit = DatabaseDescriptor.getMemtableHeapSpaceInMb() << 20;\n        long offHeapLimit = DatabaseDescriptor.getMemtableOffheapSpaceInMb() << 20;\n        final float cleaningThreshold = DatabaseDescriptor.getMemtableCleanupThreshold();\n        final MemtableCleaner cleaner = ColumnFamilyStore::flushLargestMemtable;\n        switch (DatabaseDescriptor.getMemtableAllocationType())\n        {\n            case unslabbed_heap_buffers:\n                return new HeapPool(heapLimit, cleaningThreshold, cleaner);\n            case heap_buffers:\n                return new SlabPool(heapLimit, 0, cleaningThreshold, cleaner);\n            case offheap_buffers:\n                return new SlabPool(heapLimit, offHeapLimit, cleaningThreshold, cleaner);\n            case offheap_objects:\n                return new NativePool(heapLimit, offHeapLimit, cleaningThreshold, cleaner);\n            default:\n                throw new AssertionError();\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `memtable_offheap_space_in_mb` directly influences the allocation of off-heap memory for memtables, which can significantly affect memory usage and garbage collection behavior. Given that off-heap memory management can lead to substantial performance variations due to the potential for increased memory consumption and the impact on system-level performance during memory-intensive operations, this configuration is critical for optimizing performance in scenarios with large datasets or high throughput requirements."
+        }
+    ]
+}

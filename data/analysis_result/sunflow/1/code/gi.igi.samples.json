@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "gi.igi.samples",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public InstantGI(Options options) {\n        numPhotons = options.getInt(\"gi.igi.samples\", 64);\n        numSets = options.getInt(\"gi.igi.sets\", 1);\n        c = options.getFloat(\"gi.igi.c\", 0.00003f);\n        numBias = options.getInt(\"gi.igi.bias_samples\", 0);\n        virtualLights = null;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The parameter \"gi.igi.samples\" (numPhotons) directly influences the number of samples taken during global illumination calculations, which can be computationally intensive. A higher number of samples typically leads to more accurate rendering but also significantly increases processing time and memory usage, especially in complex scenes. Therefore, variations in this configuration can lead to substantial performance differences."
+        }
+    ]
+}

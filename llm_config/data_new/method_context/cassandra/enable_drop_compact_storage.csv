@@ -1,0 +1,101 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.cql3.statements.schema.AlterTableStatement$DropCompactStorage:apply(org.apache.cassandra.schema.KeyspaceMetadata,org.apache.cassandra.schema.TableMetadata)",(S)org.apache.cassandra.config.DatabaseDescriptor:enableDropCompactStorage(),org.apache.cassandra.config.DatabaseDescriptor:enableDropCompactStorage(),enable_drop_compact_storage,apply,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/schema/AlterTableStatement.java,AlterTableStatement$DropCompactStorage,../data/xml/cassandra/AlterTableStatement.xml,"public Keyspaces apply(Keyspaces schema) throws UnknownHostException
+    {
+        KeyspaceMetadata keyspace = schema.getNullable(keyspaceName);
+
+        TableMetadata table = null == keyspace
+                            ? null
+                            : keyspace.getTableOrViewNullable(tableName);
+
+        if (null == table)
+            throw ire(""Table '%s.%s' doesn't exist"", keyspaceName, tableName);
+
+        if (table.isView())
+            throw ire(""Cannot use ALTER TABLE on a materialized view; use ALTER MATERIALIZED VIEW instead"");
+
+        return schema.withAddedOrUpdated(apply(keyspace, table));
+    }
+
+    
+public KeyspaceMetadata apply(KeyspaceMetadata keyspace, TableMetadata table)
+        {
+            throw ire(""Altering column types is no longer supported"");
+        }
+    }
+public KeyspaceMetadata apply(KeyspaceMetadata keyspace, TableMetadata table)
+        {
+            TableMetadata.Builder tableBuilder = table.unbuild();
+            Views.Builder viewsBuilder = keyspace.views.unbuild();
+            newColumns.forEach(c -> addColumn(keyspace, table, c, tableBuilder, viewsBuilder));
+            TableMetadata tableMetadata = tableBuilder.build();
+            tableMetadata.validate();
+
+            return keyspace.withSwapped(keyspace.tables.withSwapped(tableMetadata))
+                           .withSwapped(viewsBuilder.build());
+        }
+
+        
+public KeyspaceMetadata apply(KeyspaceMetadata keyspace, TableMetadata table)
+        {
+            TableMetadata.Builder builder = table.unbuild();
+            removedColumns.forEach(c -> dropColumn(keyspace, table, c, builder));
+            return keyspace.withSwapped(keyspace.tables.withSwapped(builder.build()));
+        }
+
+        
+public KeyspaceMetadata apply(KeyspaceMetadata keyspace, TableMetadata table)
+        {
+            TableMetadata.Builder tableBuilder = table.unbuild();
+            Views.Builder viewsBuilder = keyspace.views.unbuild();
+            renamedColumns.forEach((o, n) -> renameColumn(keyspace, table, o, n, tableBuilder, viewsBuilder));
+
+            return keyspace.withSwapped(keyspace.tables.withSwapped(tableBuilder.build()))
+                           .withSwapped(viewsBuilder.build());
+        }
+
+        
+public KeyspaceMetadata apply(KeyspaceMetadata keyspace, TableMetadata table)
+        {
+            attrs.validate();
+
+            TableParams params = attrs.asAlteredTableParams(table.params);
+
+            if (table.isCounter() && params.defaultTimeToLive > 0)
+                throw ire(""Cannot set default_time_to_live on a table with counters"");
+
+            if (!isEmpty(keyspace.views.forTable(table.id)) && params.gcGraceSeconds == 0)
+            {
+                throw ire(""Cannot alter gc_grace_seconds of the base table of a "" +
+                          ""materialized view to 0, since this value is used to TTL "" +
+                          ""undelivered updates. Setting gc_grace_seconds too low might "" +
+                          ""cause undelivered updates to expire "" +
+                          ""before being replayed."");
+            }
+
+            if (keyspace.createReplicationStrategy().hasTransientReplicas()
+                && params.readRepair != ReadRepairStrategy.NONE)
+            {
+                throw ire(""read_repair must be set to 'NONE' for transiently replicated keyspaces"");
+            }
+
+            return keyspace.withSwapped(keyspace.tables.withSwapped(table.withSwapped(params)));
+        }
+    }
+public KeyspaceMetadata apply(KeyspaceMetadata keyspace, TableMetadata table)
+        {
+            if (!DatabaseDescriptor.enableDropCompactStorage())
+                throw new InvalidRequestException(""DROP COMPACT STORAGE is disabled. Enable in cassandra.yaml to use."");
+
+            if (!table.isCompactTable())
+                throw AlterTableStatement.ire(""Cannot DROP COMPACT STORAGE on table without COMPACT STORAGE"");
+
+            validateCanDropCompactStorage();
+
+            Set<Flag> flags = table.isCounter()
+                            ? ImmutableSet.of(Flag.COMPOUND, Flag.COUNTER)
+                            : ImmutableSet.of(Flag.COMPOUND);
+
+            return keyspace.withSwapped(keyspace.tables.withSwapped(table.withSwapped(flags)));
+        }
+
+        "

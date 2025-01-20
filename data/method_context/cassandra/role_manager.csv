@@ -1,0 +1,1032 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.auth.CassandraAuthorizer:list(org.apache.cassandra.auth.AuthenticatedUser,java.util.Set,org.apache.cassandra.auth.IResource,org.apache.cassandra.auth.RoleResource)",(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,list,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/CassandraAuthorizer.java,CassandraAuthorizer,../data/xml/cassandra/CassandraAuthorizer.xml,"// 'grantee' can be null - in that case everyone's permissions have been requested. Otherwise, only single user's.
+// If the 'performer' requesting 'LIST PERMISSIONS' is not a superuser OR their username doesn't match 'grantee' OR
+// they have no permission to describe all roles OR they have no permission to describe 'grantee', then we throw
+// UnauthorizedException.
+public Set<PermissionDetails> list(AuthenticatedUser performer,
+                                       Set<Permission> permissions,
+                                       IResource resource,
+                                       RoleResource grantee)
+    throws RequestValidationException, RequestExecutionException
+    {
+        if (!performer.isSuper()
+            && !performer.isSystem()
+            && !performer.getRoles().contains(grantee)
+            && !performer.getPermissions(RoleResource.root()).contains(Permission.DESCRIBE)
+            && (grantee == null || !performer.getPermissions(grantee).contains(Permission.DESCRIBE)))
+            throw new UnauthorizedException(String.format(""You are not authorized to view %s's permissions"",
+                                                          grantee == null ? ""everyone"" : grantee.getRoleName()));
+
+        if (null == grantee)
+            return listPermissionsForRole(permissions, resource, null);
+
+        Set<RoleResource> roles = DatabaseDescriptor.getRoleManager().getRoles(grantee, true);
+        Set<PermissionDetails> details = new HashSet<>();
+        for (RoleResource role : roles)
+            details.addAll(listPermissionsForRole(permissions, resource, role));
+
+        return details;
+    }
+
+    "
+M:org.apache.cassandra.auth.CassandraLoginModule:authenticate(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,authenticate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/CassandraLoginModule.java,CassandraLoginModule,../data/xml/cassandra/CassandraLoginModule.xml,"private void authenticate()
+    {
+        if (!StorageService.instance.isAuthSetupComplete())
+            throw new AuthenticationException(""Cannot login as server authentication setup is not yet completed"");
+
+        IAuthenticator authenticator = DatabaseDescriptor.getAuthenticator();
+        Map<String, String> credentials = new HashMap<>();
+        credentials.put(PasswordAuthenticator.USERNAME_KEY, username);
+        credentials.put(PasswordAuthenticator.PASSWORD_KEY, String.valueOf(password));
+        AuthenticatedUser user = authenticator.legacyAuthenticate(credentials);
+        // Only actual users should be allowed to authenticate for JMX
+        if (user.isAnonymous() || user.isSystem())
+            throw new AuthenticationException(String.format(""Invalid user %s"", user.getName()));
+
+        // The LOGIN privilege is required to authenticate - c.f. ClientState::login
+        if (!DatabaseDescriptor.getRoleManager().canLogin(user.getPrimaryRole()))
+            throw new AuthenticationException(user.getName() + "" is not permitted to log in"");
+    }
+
+    "
+M:org.apache.cassandra.auth.RoleOptions:validate(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/RoleOptions.java,RoleOptions,../data/xml/cassandra/RoleOptions.xml,"/**
+     * Validate the contents of the options in two ways:
+     * - Ensure that only a subset of the options supported by the configured IRoleManager are set
+     * - Validate the type of any option values present.
+     * Should either condition fail, then InvalidRequestException is thrown. This method is called
+     * during validation of CQL statements, so the IRE results in a error response to the client.
+     *
+     * @throws InvalidRequestException if any options which are not supported by the configured IRoleManager
+     *     are set or if any option value is of an incorrect type.
+     */
+public void validate()
+    {
+        for (Map.Entry<IRoleManager.Option, Object> option : options.entrySet())
+        {
+            if (!DatabaseDescriptor.getRoleManager().supportedOptions().contains(option.getKey()))
+                throw new InvalidRequestException(String.format(""%s doesn't support %s"",
+                                                                DatabaseDescriptor.getRoleManager().getClass().getName(),
+                                                                option.getKey()));
+            switch (option.getKey())
+            {
+                case LOGIN:
+                case SUPERUSER:
+                    if (!(option.getValue() instanceof Boolean))
+                        throw new InvalidRequestException(String.format(""Invalid value for property '%s'. "" +
+                                                                        ""It must be a boolean"",
+                                                                        option.getKey()));
+                    break;
+                case PASSWORD:
+                    if (!(option.getValue() instanceof String))
+                        throw new InvalidRequestException(String.format(""Invalid value for property '%s'. "" +
+                                                                        ""It must be a string"",
+                                                                        option.getKey()));
+                    break;
+                case OPTIONS:
+                    if (!(option.getValue() instanceof Map))
+                        throw new InvalidRequestException(String.format(""Invalid value for property '%s'. "" +
+                                                                        ""It must be a map"",
+                                                                        option.getKey()));
+                    break;
+
+            }
+        }
+    }
+
+    "
+M:org.apache.cassandra.auth.RoleResource:exists(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,exists,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/RoleResource.java,RoleResource,../data/xml/cassandra/RoleResource.xml,"public boolean exists()
+    {
+        return level == Level.ROOT || DatabaseDescriptor.getRoleManager().isExistingRole(this);
+    }
+
+    "
+M:org.apache.cassandra.auth.Roles:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/auth/Roles.java,Roles,../data/xml/cassandra/Roles.xml,"public class Roles
+{
+    private static final Logger logger = LoggerFactory.getLogger(Roles.class);
+
+    private static final Role NO_ROLE = new Role("""", false, false, Collections.emptyMap(), Collections.emptySet());
+
+    private static RolesCache cache;
+    static
+    {
+        initRolesCache(DatabaseDescriptor.getRoleManager(),
+                       () -> DatabaseDescriptor.getAuthenticator().requireAuthentication());
+    }
+
+    @VisibleForTesting
+    public static void initRolesCache(IRoleManager roleManager, BooleanSupplier enableCache)
+    {
+        if (cache != null)
+            cache.unregisterMBean();
+        cache = new RolesCache(roleManager, enableCache);
+    }
+
+    @VisibleForTesting
+    public static void clearCache()
+    {
+        cache.invalidate();
+    }
+
+    /**
+     * Identify all roles granted to the supplied Role, including both directly granted
+     * and inherited roles.
+     * This method is used where we mainly just care about *which* roles are granted to a given role,
+     * including when looking up or listing permissions for a role on a given resource.
+     *
+     * @param primaryRole the Role
+     * @return set of all granted Roles for the primary Role
+     */
+    public static Set<RoleResource> getRoles(RoleResource primaryRole)
+    {
+        return cache.getRoleResources(primaryRole);
+    }
+
+    /**
+     * Get detailed info on all the roles granted to the role identified by the supplied RoleResource.
+     * This includes superuser status and login privileges for the primary role and all roles granted directly
+     * to it or inherited.
+     * The returnred roles may be cached if roles_validity_in_ms > 0
+     * This method is used where we need to know specific attributes of the collection of granted roles, i.e.
+     * when checking for superuser status which may be inherited from *any* granted role.
+     *
+     * @param primaryRole identifies the role
+     * @return set of detailed info for all of the roles granted to the primary
+     */
+    public static Set<Role> getRoleDetails(RoleResource primaryRole)
+    {
+        return cache.getRoles(primaryRole);
+    }
+
+    /**
+     * Returns true if the supplied role or any other role granted to it
+     * (directly or indirectly) has superuser status.
+     *
+     * @param role the primary role
+     * @return true if the role has superuser status, false otherwise
+     */
+    public static boolean hasSuperuserStatus(RoleResource role)
+    {
+        try
+        {
+            for (Role r : getRoleDetails(role))
+                if (r.isSuper)
+                    return true;
+
+            return false;
+        }
+        catch (RequestExecutionException e)
+        {
+            logger.debug(""Failed to authorize {} for super-user permission"", role.getRoleName());
+            throw new UnauthorizedException(""Unable to perform authorization of super-user permission: "" + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Returns true if the supplied role has the login privilege. This cannot be inherited, so
+     * returns true iff the named role has that bit set.
+     * @param role the role identifier
+     * @return true if the role has the canLogin privilege, false otherwise
+     */
+    public static boolean canLogin(final RoleResource role)
+    {
+        try
+        {
+            for (Role r : getRoleDetails(role))
+                if (r.resource.equals(role))
+                    return r.canLogin;
+
+            return false;
+        }
+        catch (RequestExecutionException e)
+        {
+            logger.debug(""Failed to authorize {} for login permission"", role.getRoleName());
+            throw new UnauthorizedException(""Unable to perform authorization of login permission: "" + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Returns the map of custom options for the named role. These options are not inherited from granted roles, but
+     * are set directly.
+     * @param role the role identifier
+     * @return map of option_name -> value. If no options are set for the named role, the map will be empty
+     * but never null.
+     */
+    public static Map<String, String> getOptions(RoleResource role)
+    {
+        for (Role r : getRoleDetails(role))
+            if (r.resource.equals(role))
+                return r.options;
+
+        return NO_ROLE.options;
+    }
+
+   /**
+    * Return the NullObject Role instance which can be safely used to indicate no information is available
+    * when querying for a specific named role.
+    * @return singleton null role object
+    */
+   public static Role nullRole()
+   {
+       return NO_ROLE;
+   }
+
+   /**
+    * Just a convenience method which compares a role instance with the null object version, indicating if the
+    * return from some query/lookup method was a valid Role or indicates that the role does not exist.
+    * @param role
+    * @return true if the supplied role is the null role instance, false otherwise.
+    */
+   public static boolean isNullRole(Role role)
+   {
+       return NO_ROLE.equals(role);
+   }
+
+
+   /**
+    * Constructs a Role object from a RoleResource, using the methods of the supplied IRoleManager.
+    * This is used by the default implementation of IRoleManager#getRoleDetails so that IRoleManager impls
+    * which don't implement an optimized getRoleDetails remain compatible. Depending on the IRoleManager
+    * implementation this could be quite heavyweight, so should not be used on any hot path.
+    *
+    * @param resource identifies the role
+    * @param roleManager provides lookup functions to retrieve role info
+    * @return Role object including superuser status, login privilege, custom options and the set of roles
+    * granted to identified role.
+    */
+   public static Role fromRoleResource(RoleResource resource, IRoleManager roleManager)
+   {
+       return new Role(resource.getName(),
+                       roleManager.isSuper(resource),
+                       roleManager.canLogin(resource),
+                       roleManager.getCustomOptions(resource),
+                       roleManager.getRoles(resource, false)
+                                  .stream()
+                                  .map(RoleResource::getRoleName)
+                                  .collect(Collectors.toSet()));
+   }
+}
+"
+M:org.apache.cassandra.cql3.statements.AlterRoleStatement:validate(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/AlterRoleStatement.java,AlterRoleStatement,../data/xml/cassandra/AlterRoleStatement.xml,"public void validate(ClientState state) throws RequestValidationException
+    {
+        opts.validate();
+
+        if (dcPermissions != null)
+        {
+            dcPermissions.validate();
+        }
+
+        if (opts.isEmpty() && dcPermissions == null)
+            throw new InvalidRequestException(""ALTER [ROLE|USER] can't be empty"");
+
+        // validate login here before authorize to avoid leaking user existence to anonymous users.
+        state.ensureNotAnonymous();
+        if (!DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            throw new InvalidRequestException(String.format(""%s doesn't exist"", role.getRoleName()));
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.AlterRoleStatement:authorize(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,authorize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/AlterRoleStatement.java,AlterRoleStatement,../data/xml/cassandra/AlterRoleStatement.xml,"public void authorize(ClientState state) throws UnauthorizedException
+    {
+        AuthenticatedUser user = state.getUser();
+        boolean isSuper = user.isSuper();
+
+        if (opts.getSuperuser().isPresent() && user.getRoles().contains(role))
+            throw new UnauthorizedException(""You aren't allowed to alter your own superuser "" +
+                                            ""status or that of a role granted to you"");
+
+        if (opts.getSuperuser().isPresent() && !isSuper)
+            throw new UnauthorizedException(""Only superusers are allowed to alter superuser status"");
+
+        // superusers can do whatever else they like
+        if (isSuper)
+            return;
+
+        // a role may only modify the subset of its own attributes as determined by IRoleManager#alterableOptions
+        if (user.getName().equals(role.getRoleName()))
+        {
+            for (Option option : opts.getOptions().keySet())
+            {
+                if (!DatabaseDescriptor.getRoleManager().alterableOptions().contains(option))
+                    throw new UnauthorizedException(String.format(""You aren't allowed to alter %s"", option));
+            }
+        }
+        else
+        {
+            // if not attempting to alter another role, ensure we have ALTER permissions on it
+            super.checkPermission(state, Permission.ALTER, role);
+        }
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.AlterRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/AlterRoleStatement.java,AlterRoleStatement,../data/xml/cassandra/AlterRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        if (!opts.isEmpty())
+            DatabaseDescriptor.getRoleManager().alterRole(state.getUser(), role, opts);
+        if (dcPermissions != null)
+            DatabaseDescriptor.getNetworkAuthorizer().setRoleDatacenters(role, dcPermissions);
+        return null;
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.CreateRoleStatement:validate(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/CreateRoleStatement.java,CreateRoleStatement,../data/xml/cassandra/CreateRoleStatement.xml,"public void validate(ClientState state) throws RequestValidationException
+    {
+        opts.validate();
+
+        if (dcPermissions != null)
+        {
+            dcPermissions.validate();
+        }
+
+        if (role.getRoleName().isEmpty())
+            throw new InvalidRequestException(""Role name can't be an empty string"");
+
+        // validate login here before authorize to avoid leaking role existence to anonymous users.
+        state.ensureNotAnonymous();
+
+        if (!ifNotExists && DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            throw new InvalidRequestException(String.format(""%s already exists"", role.getRoleName()));
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.CreateRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/CreateRoleStatement.java,CreateRoleStatement,../data/xml/cassandra/CreateRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestExecutionException, RequestValidationException
+    {
+        // not rejected in validate()
+        if (ifNotExists && DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            return null;
+
+        DatabaseDescriptor.getRoleManager().createRole(state.getUser(), role, opts);
+        if (DatabaseDescriptor.getNetworkAuthorizer().requireAuthorization())
+        {
+            DatabaseDescriptor.getNetworkAuthorizer().setRoleDatacenters(role, dcPermissions);
+        }
+        grantPermissionsToCreator(state);
+        return null;
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.DropRoleStatement:authorize(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,authorize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/DropRoleStatement.java,DropRoleStatement,../data/xml/cassandra/DropRoleStatement.xml,"public void authorize(ClientState state) throws UnauthorizedException
+    {
+        super.checkPermission(state, Permission.DROP, role);
+
+        // We only check superuser status for existing roles to avoid
+        // caching info about roles which don't exist (CASSANDRA-9189)
+        if (DatabaseDescriptor.getRoleManager().isExistingRole(role)
+            && Roles.hasSuperuserStatus(role)
+            && !state.getUser().isSuper())
+            throw new UnauthorizedException(""Only superusers can drop a role with superuser status"");
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.DropRoleStatement:validate(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/DropRoleStatement.java,DropRoleStatement,../data/xml/cassandra/DropRoleStatement.xml,"public void validate(ClientState state) throws RequestValidationException
+    {
+        // validate login here before authorize to avoid leaking user existence to anonymous users.
+        state.ensureNotAnonymous();
+
+        if (!ifExists && !DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            throw new InvalidRequestException(String.format(""%s doesn't exist"", role.getRoleName()));
+
+        AuthenticatedUser user = state.getUser();
+        if (user != null && user.getName().equals(role.getRoleName()))
+            throw new InvalidRequestException(""Cannot DROP primary role for current login"");
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.DropRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/DropRoleStatement.java,DropRoleStatement,../data/xml/cassandra/DropRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        // not rejected in validate()
+        if (ifExists && !DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            return null;
+
+        // clean up grants and permissions of/on the dropped role.
+        DatabaseDescriptor.getRoleManager().dropRole(state.getUser(), role);
+        DatabaseDescriptor.getAuthorizer().revokeAllFrom(role);
+        DatabaseDescriptor.getAuthorizer().revokeAllOn(role);
+        DatabaseDescriptor.getNetworkAuthorizer().drop(role);
+        return null;
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.GrantRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/GrantRoleStatement.java,GrantRoleStatement,../data/xml/cassandra/GrantRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        DatabaseDescriptor.getRoleManager().grantRole(state.getUser(), role, grantee);
+        return null;
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.ListPermissionsStatement:validate(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListPermissionsStatement.java,ListPermissionsStatement,../data/xml/cassandra/ListPermissionsStatement.xml,"public void validate(ClientState state) throws RequestValidationException
+    {
+        // a check to ensure the existence of the user isn't being leaked by user existence check.
+        state.ensureNotAnonymous();
+
+        if (resource != null)
+        {
+            resource = maybeCorrectResource(resource, state);
+            if (!resource.exists())
+                throw new InvalidRequestException(String.format(""%s doesn't exist"", resource));
+        }
+
+        if ((grantee != null) && !DatabaseDescriptor.getRoleManager().isExistingRole(grantee))
+            throw new InvalidRequestException(String.format(""%s doesn't exist"", grantee));
+   }
+
+    "
+M:org.apache.cassandra.cql3.statements.ListRolesStatement:validate(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListRolesStatement.java,ListRolesStatement,../data/xml/cassandra/ListRolesStatement.xml,"public void validate(ClientState state) throws UnauthorizedException, InvalidRequestException
+    {
+        state.ensureNotAnonymous();
+
+        if ((grantee != null) && !DatabaseDescriptor.getRoleManager().isExistingRole(grantee))
+            throw new InvalidRequestException(String.format(""%s doesn't exist"", grantee));
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.ListRolesStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListRolesStatement.java,ListRolesStatement,../data/xml/cassandra/ListRolesStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        // If the executing user has DESCRIBE permission on the root roles resource, let them list any and all roles
+        boolean hasRootLevelSelect = DatabaseDescriptor.getAuthorizer()
+                                                       .authorize(state.getUser(), RoleResource.root())
+                                                       .contains(Permission.DESCRIBE);
+        if (hasRootLevelSelect)
+        {
+            if (grantee == null)
+                return resultMessage(DatabaseDescriptor.getRoleManager().getAllRoles());
+            else
+                return resultMessage(DatabaseDescriptor.getRoleManager().getRoles(grantee, recursive));
+        }
+        else
+        {
+            RoleResource currentUser = RoleResource.role(state.getUser().getName());
+            if (grantee == null)
+                return resultMessage(DatabaseDescriptor.getRoleManager().getRoles(currentUser, recursive));
+            if (DatabaseDescriptor.getRoleManager().getRoles(currentUser, true).contains(grantee))
+                return resultMessage(DatabaseDescriptor.getRoleManager().getRoles(grantee, recursive));
+            else
+                throw new UnauthorizedException(String.format(""You are not authorized to view roles granted to %s "", grantee.getRoleName()));
+        }
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.ListRolesStatement:formatResults(java.util.List),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,formatResults,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListRolesStatement.java,ListRolesStatement,../data/xml/cassandra/ListRolesStatement.xml,"// overridden in ListUsersStatement to include legacy metadata
+protected ResultMessage formatResults(List<RoleResource> sortedRoles)
+    {
+        ResultSet.ResultMetadata resultMetadata = new ResultSet.ResultMetadata(metadata);
+        ResultSet result = new ResultSet(resultMetadata);
+
+        IRoleManager roleManager = DatabaseDescriptor.getRoleManager();
+        INetworkAuthorizer networkAuthorizer = DatabaseDescriptor.getNetworkAuthorizer();
+        for (RoleResource role : sortedRoles)
+        {
+            result.addColumnValue(UTF8Type.instance.decompose(role.getRoleName()));
+            result.addColumnValue(BooleanType.instance.decompose(roleManager.isSuper(role)));
+            result.addColumnValue(BooleanType.instance.decompose(roleManager.canLogin(role)));
+            result.addColumnValue(optionsType.decompose(roleManager.getCustomOptions(role)));
+            result.addColumnValue(UTF8Type.instance.decompose(networkAuthorizer.authorize(role).toString()));
+        }
+        return new ResultMessage.Rows(result);
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.ListUsersStatement:formatResults(java.util.List),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,formatResults,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/ListUsersStatement.java,ListUsersStatement,../data/xml/cassandra/ListUsersStatement.xml,"@Override
+    protected ResultMessage formatResults(List<RoleResource> sortedRoles)
+    {
+        ResultSet.ResultMetadata resultMetadata = new ResultSet.ResultMetadata(metadata);
+        ResultSet result = new ResultSet(resultMetadata);
+
+        IRoleManager roleManager = DatabaseDescriptor.getRoleManager();
+        INetworkAuthorizer networkAuthorizer = DatabaseDescriptor.getNetworkAuthorizer();
+        for (RoleResource role : sortedRoles)
+        {
+            if (!roleManager.canLogin(role))
+                continue;
+            result.addColumnValue(UTF8Type.instance.decompose(role.getRoleName()));
+            result.addColumnValue(BooleanType.instance.decompose(Roles.hasSuperuserStatus(role)));
+            result.addColumnValue(UTF8Type.instance.decompose(networkAuthorizer.authorize(role).toString()));
+        }
+
+        return new ResultMessage.Rows(result);
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.PermissionsManagementStatement:validate(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/PermissionsManagementStatement.java,PermissionsManagementStatement,../data/xml/cassandra/PermissionsManagementStatement.xml,"public void validate(ClientState state) throws RequestValidationException
+    {
+        // validate login here before authorize to avoid leaking user existence to anonymous users.
+        state.ensureNotAnonymous();
+
+        if (!DatabaseDescriptor.getRoleManager().isExistingRole(grantee))
+            throw new InvalidRequestException(String.format(""Role %s doesn't exist"", grantee.getRoleName()));
+
+        // if a keyspace is omitted when GRANT/REVOKE ON TABLE <table>, we need to correct the resource.
+        // called both here and in authorize(), as in some cases we do not call the latter.
+        resource = maybeCorrectResource(resource, state);
+
+        // altering permissions on builtin functions is not supported
+        if (resource instanceof FunctionResource
+            && SchemaConstants.SYSTEM_KEYSPACE_NAME.equals(((FunctionResource)resource).getKeyspace()))
+        {
+            throw new InvalidRequestException(""Altering permissions on builtin functions is not supported"");
+        }
+
+        if (!resource.exists())
+            throw new InvalidRequestException(String.format(""Resource %s doesn't exist"", resource));
+    }
+
+    "
+M:org.apache.cassandra.cql3.statements.RevokeRoleStatement:execute(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,execute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/RevokeRoleStatement.java,RevokeRoleStatement,../data/xml/cassandra/RevokeRoleStatement.xml,"public ResultMessage execute(ClientState state) throws RequestValidationException, RequestExecutionException
+    {
+        DatabaseDescriptor.getRoleManager().revokeRole(state.getUser(), role, grantee);
+        return null;
+    }
+    
+    "
+M:org.apache.cassandra.cql3.statements.RoleManagementStatement:validate(org.apache.cassandra.service.ClientState),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,validate,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/cql3/statements/RoleManagementStatement.java,RoleManagementStatement,../data/xml/cassandra/RoleManagementStatement.xml,"public void validate(ClientState state) throws RequestValidationException
+    {
+        state.ensureNotAnonymous();
+
+        if (!DatabaseDescriptor.getRoleManager().isExistingRole(role))
+            throw new InvalidRequestException(String.format(""%s doesn't exist"", role.getRoleName()));
+
+        if (!DatabaseDescriptor.getRoleManager().isExistingRole(grantee))
+            throw new InvalidRequestException(String.format(""%s doesn't exist"", grantee.getRoleName()));
+    }
+    
+    "
+M:org.apache.cassandra.service.ClientState:<clinit>(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,<clinit>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/ClientState.java,ClientState,../data/xml/cassandra/ClientState.xml,"/**
+ * State related to a client connection.
+ */
+public class ClientState
+{
+    private static final Logger logger = LoggerFactory.getLogger(ClientState.class);
+
+    private static final Set<IResource> READABLE_SYSTEM_RESOURCES = new HashSet<>();
+    private static final Set<IResource> PROTECTED_AUTH_RESOURCES = new HashSet<>();
+
+    static
+    {
+        // We want these system cfs to be always readable to authenticated users since many tools rely on them
+        // (nodetool, cqlsh, bulkloader, etc.)
+        for (String cf : Arrays.asList(SystemKeyspace.LOCAL, SystemKeyspace.LEGACY_PEERS, SystemKeyspace.PEERS_V2))
+            READABLE_SYSTEM_RESOURCES.add(DataResource.table(SchemaConstants.SYSTEM_KEYSPACE_NAME, cf));
+
+        // make all schema tables readable by default (required by the drivers)
+        SchemaKeyspaceTables.ALL.forEach(table -> READABLE_SYSTEM_RESOURCES.add(DataResource.table(SchemaConstants.SCHEMA_KEYSPACE_NAME, table)));
+
+        // make all virtual schema tables readable by default as well
+        VirtualSchemaKeyspace.instance.tables().forEach(t -> READABLE_SYSTEM_RESOURCES.add(t.metadata().resource));
+
+        // neither clients nor tools need authentication/authorization
+        if (DatabaseDescriptor.isDaemonInitialized())
+        {
+            PROTECTED_AUTH_RESOURCES.addAll(DatabaseDescriptor.getAuthenticator().protectedResources());
+            PROTECTED_AUTH_RESOURCES.addAll(DatabaseDescriptor.getAuthorizer().protectedResources());
+            PROTECTED_AUTH_RESOURCES.addAll(DatabaseDescriptor.getRoleManager().protectedResources());
+        }
+    }
+
+    // Current user for the session
+    private volatile AuthenticatedUser user;
+    private volatile String keyspace;
+    private volatile boolean issuedPreparedStatementsUseWarning;
+
+    private static final QueryHandler cqlQueryHandler;
+    static
+    {
+        QueryHandler handler = QueryProcessor.instance;
+        String customHandlerClass = System.getProperty(""cassandra.custom_query_handler_class"");
+        if (customHandlerClass != null)
+        {
+            try
+            {
+                handler = FBUtilities.construct(customHandlerClass, ""QueryHandler"");
+                logger.info(""Using {} as query handler for native protocol queries (as requested with -Dcassandra.custom_query_handler_class)"", customHandlerClass);
+            }
+            catch (Exception e)
+            {
+                logger.error(""Cannot use class {} as query handler"", customHandlerClass, e);
+                JVMStabilityInspector.killCurrentJVM(e, true);
+            }
+        }
+        cqlQueryHandler = handler;
+    }
+
+    // isInternal is used to mark ClientState as used by some internal component
+    // that should have an ability to modify system keyspace.
+    public final boolean isInternal;
+
+    // The remote address of the client - null for internal clients.
+    private final InetSocketAddress remoteAddress;
+
+    // Driver String for the client
+    private volatile String driverName;
+    private volatile String driverVersion;
+
+    // The biggest timestamp that was returned by getTimestamp/assigned to a query. This is global to ensure that the
+    // timestamp assigned are strictly monotonic on a node, which is likely what user expect intuitively (more likely,
+    // most new user will intuitively expect timestamp to be strictly monotonic cluster-wise, but while that last part
+    // is unrealistic expectation, doing it node-wise is easy).
+    private static final AtomicLong lastTimestampMicros = new AtomicLong(0);
+
+    /**
+     * Construct a new, empty ClientState for internal calls.
+     */
+    private ClientState()
+    {
+        this.isInternal = true;
+        this.remoteAddress = null;
+    }
+
+    protected ClientState(InetSocketAddress remoteAddress)
+    {
+        this.isInternal = false;
+        this.remoteAddress = remoteAddress;
+        if (!DatabaseDescriptor.getAuthenticator().requireAuthentication())
+            this.user = AuthenticatedUser.ANONYMOUS_USER;
+    }
+
+    protected ClientState(ClientState source)
+    {
+        this.isInternal = source.isInternal;
+        this.remoteAddress = source.remoteAddress;
+        this.user = source.user;
+        this.keyspace = source.keyspace;
+        this.driverName = source.driverName;
+        this.driverVersion = source.driverVersion;
+    }
+
+    /**
+     * @return a ClientState object for internal C* calls (not limited by any kind of auth).
+     */
+    public static ClientState forInternalCalls()
+    {
+        return new ClientState();
+    }
+
+    public static ClientState forInternalCalls(String keyspace)
+    {
+        ClientState state = new ClientState();
+        state.setKeyspace(keyspace);
+        return state;
+    }
+
+    /**
+     * @return a ClientState object for external clients (native protocol users).
+     */
+    public static ClientState forExternalCalls(SocketAddress remoteAddress)
+    {
+        return new ClientState((InetSocketAddress)remoteAddress);
+    }
+
+    /**
+     * Clone this ClientState object, but use the provided keyspace instead of the
+     * keyspace in this ClientState object.
+     *
+     * @return a new ClientState object if the keyspace argument is non-null. Otherwise do not clone
+     *   and return this ClientState object.
+     */
+    public ClientState cloneWithKeyspaceIfSet(String keyspace)
+    {
+        if (keyspace == null)
+            return this;
+        ClientState clientState = new ClientState(this);
+        clientState.setKeyspace(keyspace);
+        return clientState;
+    }
+
+    /**
+     * This clock guarantees that updates for the same ClientState will be ordered
+     * in the sequence seen, even if multiple updates happen in the same millisecond.
+     */
+    public static long getTimestamp()
+    {
+        while (true)
+        {
+            long current = System.currentTimeMillis() * 1000;
+            long last = lastTimestampMicros.get();
+            long tstamp = last >= current ? last + 1 : current;
+            if (lastTimestampMicros.compareAndSet(last, tstamp))
+                return tstamp;
+        }
+    }
+
+    /**
+     * Returns a timestamp suitable for paxos given the timestamp of the last known commit (or in progress update).
+     * <p>
+     * Paxos ensures that the timestamp it uses for commits respects the serial order of those commits. It does so
+     * by having each replica reject any proposal whose timestamp is not strictly greater than the last proposal it
+     * accepted. So in practice, which timestamp we use for a given proposal doesn't affect correctness but it does
+     * affect the chance of making progress (if we pick a timestamp lower than what has been proposed before, our
+     * new proposal will just get rejected).
+     * <p>
+     * As during the prepared phase replica send us the last propose they accepted, a first option would be to take
+     * the maximum of those last accepted proposal timestamp plus 1 (and use a default value, say 0, if it's the
+     * first known proposal for the partition). This would most work (giving commits the timestamp 0, 1, 2, ...
+     * in the order they are commited) up to 2 important caveats:
+     *   1) it would give a very poor experience when Paxos and non-Paxos updates are mixed in the same partition,
+     *      since paxos operations wouldn't be using microseconds timestamps. And while you shouldn't theoretically
+     *      mix the 2 kind of operations, this would still be pretty unintuitive. And what if you started writing
+     *      normal updates and realize later you should switch to Paxos to enforce a property you want?
+     *   2) this wouldn't actually be safe due to the expiration set on the Paxos state table.
+     * <p>
+     * So instead, we initially chose to use the current time in microseconds as for normal update. Which works in
+     * general but mean that clock skew creates unavailability periods for Paxos updates (either a node has his clock
+     * in the past and he may no be able to get commit accepted until its clock catch up, or a node has his clock in
+     * the future and then once one of its commit his accepted, other nodes ones won't be until they catch up). This
+     * is ok for small clock skew (few ms) but can be pretty bad for large one.
+     * <p>
+     * Hence our current solution: we mix both approaches. That is, we compare the timestamp of the last known
+     * accepted proposal and the local time. If the local time is greater, we use it, thus keeping paxos timestamps
+     * locked to the current time in general (making mixing Paxos and non-Paxos more friendly, and behaving correctly
+     * when the paxos state expire (as long as your maximum clock skew is lower than the Paxos state expiration
+     * time)). Otherwise (the local time is lower than the last proposal, meaning that this last proposal was done
+     * with a clock in the future compared to the local one), we use the last proposal timestamp plus 1, ensuring
+     * progress.
+     *
+     * @param minTimestampToUse the max timestamp of the last proposal accepted by replica having responded
+     * to the prepare phase of the paxos round this is for. In practice, that's the minimum timestamp this method
+     * may return.
+     * @return a timestamp suitable for a Paxos proposal (using the reasoning described above). Note that
+     * contrarily to the {@link #getTimestamp()} method, the return value is not guaranteed to be unique (nor
+     * monotonic) across calls since it can return it's argument (so if the same argument is passed multiple times,
+     * it may be returned multiple times). Note that we still ensure Paxos ""ballot"" are unique (for different
+     * proposal) by (securely) randomizing the non-timestamp part of the UUID.
+     */
+    public long getTimestampForPaxos(long minTimestampToUse)
+    {
+        while (true)
+        {
+            long current = Math.max(System.currentTimeMillis() * 1000, minTimestampToUse);
+            long last = lastTimestampMicros.get();
+            long tstamp = last >= current ? last + 1 : current;
+            // Note that if we ended up picking minTimestampMicrosToUse (it was ""in the future""), we don't
+            // want to change the local clock, otherwise a single node in the future could corrupt the clock
+            // of all nodes and for all inserts (since non-paxos inserts also use lastTimestampMicros).
+            // See CASSANDRA-11991
+            if (tstamp == minTimestampToUse || lastTimestampMicros.compareAndSet(last, tstamp))
+                return tstamp;
+        }
+    }
+
+    public Optional<String> getDriverName()
+    {
+        return Optional.ofNullable(driverName);
+    }
+
+    public Optional<String> getDriverVersion()
+    {
+        return Optional.ofNullable(driverVersion);
+    }
+
+    public void setDriverName(String driverName)
+    {
+        this.driverName = driverName;
+    }
+
+    public void setDriverVersion(String driverVersion)
+    {
+        this.driverVersion = driverVersion;
+    }
+
+    public static QueryHandler getCQLQueryHandler()
+    {
+        return cqlQueryHandler;
+    }
+
+    public InetSocketAddress getRemoteAddress()
+    {
+        return remoteAddress;
+    }
+
+    InetAddress getClientAddress()
+    {
+        return isInternal ? null : remoteAddress.getAddress();
+    }
+
+    public String getRawKeyspace()
+    {
+        return keyspace;
+    }
+
+    public String getKeyspace() throws InvalidRequestException
+    {
+        if (keyspace == null)
+            throw new InvalidRequestException(""No keyspace has been specified. USE a keyspace, or explicitly specify keyspace.tablename"");
+        return keyspace;
+    }
+
+    public void setKeyspace(String ks)
+    {
+        // Skip keyspace validation for non-authenticated users. Apparently, some client libraries
+        // call set_keyspace() before calling login(), and we have to handle that.
+        if (user != null && Schema.instance.getKeyspaceMetadata(ks) == null)
+            throw new InvalidRequestException(""Keyspace '"" + ks + ""' does not exist"");
+        keyspace = ks;
+    }
+
+    /**
+     * Attempts to login the given user.
+     */
+    public void login(AuthenticatedUser user)
+    {
+        if (user.isAnonymous() || canLogin(user))
+            this.user = user;
+        else
+            throw new AuthenticationException(String.format(""%s is not permitted to log in"", user.getName()));
+    }
+
+    private boolean canLogin(AuthenticatedUser user)
+    {
+        try
+        {
+            return user.canLogin();
+        }
+        catch (RequestExecutionException | RequestValidationException e)
+        {
+            throw new AuthenticationException(""Unable to perform authentication: "" + e.getMessage(), e);
+        }
+    }
+
+    public void ensureAllKeyspacesPermission(Permission perm)
+    {
+        if (isInternal)
+            return;
+        validateLogin();
+        ensurePermission(perm, DataResource.root());
+    }
+
+    public void ensureKeyspacePermission(String keyspace, Permission perm)
+    {
+        ensurePermission(keyspace, perm, DataResource.keyspace(keyspace));
+    }
+
+    public void ensureTablePermission(String keyspace, String table, Permission perm)
+    {
+        ensurePermission(keyspace, perm, DataResource.table(keyspace, table));
+    }
+
+    public void ensureTablePermission(TableMetadataRef tableRef, Permission perm)
+    {
+        ensureTablePermission(tableRef.get(), perm);
+    }
+
+    public void ensureTablePermission(TableMetadata table, Permission perm)
+    {
+        ensurePermission(table.keyspace, perm, table.resource);
+    }
+
+    private void ensurePermission(String keyspace, Permission perm, DataResource resource)
+    {
+        validateKeyspace(keyspace);
+
+        if (isInternal)
+            return;
+
+        validateLogin();
+
+        preventSystemKSSchemaModification(keyspace, resource, perm);
+
+        if ((perm == Permission.SELECT) && READABLE_SYSTEM_RESOURCES.contains(resource))
+            return;
+
+        if (PROTECTED_AUTH_RESOURCES.contains(resource))
+            if ((perm == Permission.CREATE) || (perm == Permission.ALTER) || (perm == Permission.DROP))
+                throw new UnauthorizedException(String.format(""%s schema is protected"", resource));
+        ensurePermission(perm, resource);
+    }
+
+    public void ensurePermission(Permission perm, IResource resource)
+    {
+        if (!DatabaseDescriptor.getAuthorizer().requireAuthorization())
+            return;
+
+        // Access to built in functions is unrestricted
+        if(resource instanceof FunctionResource && resource.hasParent())
+            if (((FunctionResource)resource).getKeyspace().equals(SchemaConstants.SYSTEM_KEYSPACE_NAME))
+                return;
+
+        ensurePermissionOnResourceChain(perm, resource);
+    }
+
+    // Convenience method called from authorize method of CQLStatement
+    // Also avoids needlessly creating lots of FunctionResource objects
+    public void ensurePermission(Permission permission, Function function)
+    {
+        // Save creating a FunctionResource is we don't need to
+        if (!DatabaseDescriptor.getAuthorizer().requireAuthorization())
+            return;
+
+        // built in functions are always available to all
+        if (function.isNative())
+            return;
+
+        ensurePermissionOnResourceChain(permission, FunctionResource.function(function.name().keyspace,
+                                                                              function.name().name,
+                                                                              function.argTypes()));
+    }
+
+    private void ensurePermissionOnResourceChain(Permission perm, IResource resource)
+    {
+        for (IResource r : Resources.chain(resource))
+            if (authorize(r).contains(perm))
+                return;
+
+        throw new UnauthorizedException(String.format(""User %s has no %s permission on %s or any of its parents"",
+                                                      user.getName(),
+                                                      perm,
+                                                      resource));
+    }
+
+    private void preventSystemKSSchemaModification(String keyspace, DataResource resource, Permission perm)
+    {
+        // we only care about DDL statements
+        if (perm != Permission.ALTER && perm != Permission.DROP && perm != Permission.CREATE)
+            return;
+
+        // prevent ALL local system keyspace modification
+        if (SchemaConstants.isLocalSystemKeyspace(keyspace))
+            throw new UnauthorizedException(keyspace + "" keyspace is not user-modifiable."");
+
+        if (SchemaConstants.isReplicatedSystemKeyspace(keyspace))
+        {
+            // allow users with sufficient privileges to alter replication params of replicated system keyspaces
+            if (perm == Permission.ALTER && resource.isKeyspaceLevel())
+                return;
+
+            // prevent all other modifications of replicated system keyspaces
+            throw new UnauthorizedException(String.format(""Cannot %s %s"", perm, resource));
+        }
+    }
+
+    public void validateLogin()
+    {
+        if (user == null)
+        {
+            throw new UnauthorizedException(""You have not logged in"");
+        }
+        else if (!user.hasLocalAccess())
+        {
+            throw new UnauthorizedException(String.format(""You do not have access to this datacenter (%s)"", Datacenters.thisDatacenter()));
+        }
+    }
+
+    public void ensureNotAnonymous()
+    {
+        validateLogin();
+        if (user.isAnonymous())
+            throw new UnauthorizedException(""You have to be logged in and not anonymous to perform this request"");
+    }
+
+    public void ensureIsSuperuser(String message)
+    {
+        if (DatabaseDescriptor.getAuthenticator().requireAuthentication() && (user == null || !user.isSuper()))
+            throw new UnauthorizedException(message);
+    }
+
+    public void warnAboutUseWithPreparedStatements(MD5Digest statementId, String preparedKeyspace)
+    {
+        if (!issuedPreparedStatementsUseWarning)
+        {
+            ClientWarn.instance.warn(String.format(""`USE <keyspace>` with prepared statements is considered to be an anti-pattern due to ambiguity in non-qualified table names. "" +
+                                                   ""Please consider removing instances of `Session#setKeyspace(<keyspace>)`, `Session#execute(\""USE <keyspace>\"")` and `cluster.newSession(<keyspace>)` from your code, and "" +
+                                                   ""always use fully qualified table names (e.g. <keyspace>.<table>). "" +
+                                                   ""Keyspace used: %s, statement keyspace: %s, statement id: %s"", getRawKeyspace(), preparedKeyspace, statementId));
+            issuedPreparedStatementsUseWarning = true;
+        }
+    }
+
+    private static void validateKeyspace(String keyspace)
+    {
+        if (keyspace == null)
+            throw new InvalidRequestException(""You have not set a keyspace for this session"");
+    }
+
+    public AuthenticatedUser getUser()
+    {
+        return user;
+    }
+
+    private Set<Permission> authorize(IResource resource)
+    {
+        return user.getPermissions(resource);
+    }
+
+}
+"
+M:org.apache.cassandra.service.StorageService:doAuthSetup(boolean),(S)org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),org.apache.cassandra.config.DatabaseDescriptor:getRoleManager(),role_manager,doAuthSetup,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"@VisibleForTesting
+    public void doAuthSetup(boolean setUpSchema)
+    {
+        if (!authSetupCalled.getAndSet(true))
+        {
+            if (setUpSchema)
+            {
+                Optional<Mutation> mutation = evolveSystemKeyspace(AuthKeyspace.metadata(), AuthKeyspace.GENERATION);
+                mutation.ifPresent(value -> FBUtilities.waitOnFuture(MigrationManager.announceWithoutPush(Collections.singleton(value))));
+            }
+
+            DatabaseDescriptor.getRoleManager().setup();
+            DatabaseDescriptor.getAuthenticator().setup();
+            DatabaseDescriptor.getAuthorizer().setup();
+            DatabaseDescriptor.getNetworkAuthorizer().setup();
+            Schema.instance.registerListener(new AuthSchemaChangeListener());
+            authSetupComplete = true;
+        }
+    }
+
+    "

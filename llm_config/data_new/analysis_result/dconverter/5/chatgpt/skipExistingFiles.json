@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'skipExistingFiles' configuration in the dconverter software can significantly impact performance by altering the execution flow. When set to true, the system skips processing files that already exist, which can lead to reduced execution time and lower memory consumption, especially in scenarios with a large number of files. Conversely, if set to false, the system may need to reprocess existing files, leading to increased resource usage and longer execution times. Therefore, changes to this configuration can lead to notable variations in system performance."
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'periodic_commitlog_sync_lag_block_in_ms' in Cassandra directly impacts how frequently the commit log is synchronized to disk. A lower value means more frequent synchronization, which can lead to increased I/O operations and potentially higher latency during write operations. Conversely, a higher value can reduce I/O operations but may increase the risk of data loss in case of a crash, as more data is held in memory before being flushed to disk. Thus, changes to this configuration can significantly affect both the execution time of write operations and the overall system performance, making it performance-sensitive."
+}

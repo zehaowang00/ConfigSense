@@ -1,0 +1,20 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.lifecycle.Tracker:maybeIncrementallyBackup(java.lang.Iterable),(S)org.apache.cassandra.config.DatabaseDescriptor:isIncrementalBackupsEnabled(),org.apache.cassandra.config.DatabaseDescriptor:isIncrementalBackupsEnabled(),incremental_backups,maybeIncrementallyBackup,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/lifecycle/Tracker.java,Tracker,../data/xml/cassandra/Tracker.xml,"public void maybeIncrementallyBackup(final Iterable<SSTableReader> sstables)
+    {
+        if (!DatabaseDescriptor.isIncrementalBackupsEnabled())
+            return;
+
+        for (SSTableReader sstable : sstables)
+        {
+            File backupsDir = Directories.getBackupsDirectory(sstable.descriptor);
+            sstable.createLinks(FileUtils.getCanonicalPath(backupsDir));
+        }
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:isIncrementalBackupsEnabled(),(S)org.apache.cassandra.config.DatabaseDescriptor:isIncrementalBackupsEnabled(),org.apache.cassandra.config.DatabaseDescriptor:isIncrementalBackupsEnabled(),incremental_backups,isIncrementalBackupsEnabled,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public boolean isIncrementalBackupsEnabled()
+    {
+        return DatabaseDescriptor.isIncrementalBackupsEnabled();
+    }
+
+    "

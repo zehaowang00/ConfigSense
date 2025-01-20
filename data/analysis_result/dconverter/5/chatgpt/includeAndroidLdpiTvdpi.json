@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'includeAndroidLdpiTvdpi' directly influences the resources utilized by the application, particularly in terms of drawable resources and memory consumption. When this option is enabled, the application includes additional resources for lower-density screens (ldpi and mdpi), which can lead to increased memory usage and potentially longer loading times due to the need to manage more assets. Conversely, disabling this option could reduce the application's footprint and improve performance on devices that do not require these resources. Therefore, changes to this configuration can significantly impact execution time and memory consumption, making it performance-sensitive."
+}

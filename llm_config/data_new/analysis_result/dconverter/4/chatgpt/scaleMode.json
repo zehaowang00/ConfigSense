@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'scaleMode' configuration in the dconverter software project directly influences how data is processed and transformed. Changes in this configuration can lead to significant variations in execution time, especially when dealing with large datasets. For instance, switching from a 'normal' scale mode to a 'high' scale mode may increase memory consumption and processing time due to the additional computations required. Therefore, the impact of modifying 'scaleMode' is substantial enough to classify it as performance-sensitive."
+}

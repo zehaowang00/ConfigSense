@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'max_value_size_in_mb' in Cassandra directly impacts the maximum size of values that can be stored in the database. A change in this configuration can lead to significant variations in memory consumption, as larger values may require more memory for storage and processing. Additionally, if the value size exceeds the configured limit, it could lead to increased execution time due to additional overhead in handling large data, potentially causing performance degradation during read and write operations. Therefore, this configuration is classified as performance-sensitive."
+}

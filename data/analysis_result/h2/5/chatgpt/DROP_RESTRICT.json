@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'DROP_RESTRICT' configuration in the H2 database affects how the system handles foreign key constraints when dropping tables. Changing this setting can lead to significant variations in execution time, especially in scenarios involving complex relationships between tables. If 'DROP_RESTRICT' is enabled, the system must check for foreign key dependencies before allowing a drop operation, which can increase execution time and resource consumption. Conversely, disabling it may lead to faster drop operations but can compromise data integrity. Therefore, the impact of this configuration on system performance is notable, classifying it as performance-sensitive."
+}

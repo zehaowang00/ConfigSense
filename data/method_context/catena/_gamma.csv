@@ -1,0 +1,14 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:main.java.Catena:gamma(int,byte[][],byte[])",(M)main.java.Catena:get_gamma(),main.java.Catena:get_gamma(),_gamma,gamma,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * salt dependent update with random access
+	 * 
+	 * @param g		garlic
+	 * @param x		hash array
+	 * @param gamma	gamma
+	 * @return		hash array
+	 */
+private byte[][] gamma(int g, byte[][] x, byte[] gamma) {
+        return this.get_gamma().gamma(g, x, gamma);
+    }
+
+	"

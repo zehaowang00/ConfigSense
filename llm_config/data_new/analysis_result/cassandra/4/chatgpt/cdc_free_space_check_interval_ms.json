@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'cdc_free_space_check_interval_ms' in Cassandra determines how frequently the system checks the free space available for Change Data Capture (CDC) logs. A shorter interval may lead to more frequent checks, which can increase CPU usage and potentially impact overall system performance, especially under heavy write loads. Conversely, a longer interval may delay the detection of low disk space, leading to performance degradation or even system failures if the disk fills up. Therefore, changes to this configuration can significantly affect execution time and resource utilization, classifying it as performance-sensitive."
+}

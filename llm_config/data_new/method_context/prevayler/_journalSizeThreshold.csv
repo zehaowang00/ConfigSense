@@ -1,0 +1,12 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.prevayler.PrevaylerFactory:journal(),(O)org.prevayler.PrevaylerFactory:journalSizeThreshold(),prevayler-factory-2.7-SNAPSHOT,org.prevayler.PrevaylerFactory:journalSizeThreshold(),_journalSizeThreshold,journal,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/prevayler/factory/src/main/java/org/prevayler/PrevaylerFactory.java,PrevaylerFactory,../data/xml/prevayler/PrevaylerFactory.xml,"private Journal<P> journal() throws IOException {
+    if (_transientMode) {
+      return new TransientJournal<P>();
+    } else {
+      PrevaylerDirectory directory = new PrevaylerDirectory(prevalenceDirectory());
+      return new PersistentJournal<P>(directory, _journalSizeThreshold, _journalAgeThreshold, _journalDiskSync,
+          journalSuffix(), monitor());
+    }
+  }
+
+  "

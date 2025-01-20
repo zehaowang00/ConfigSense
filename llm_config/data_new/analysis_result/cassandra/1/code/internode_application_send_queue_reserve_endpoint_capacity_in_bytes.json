@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "internode_application_send_queue_reserve_endpoint_capacity_in_bytes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public OutboundConnectionSettings withDefaultReserveLimits()\n    {\n        Integer applicationReserveSendQueueEndpointCapacityInBytes = this.applicationSendQueueReserveEndpointCapacityInBytes;\n        ResourceLimits.Limit applicationReserveSendQueueGlobalCapacityInBytes = this.applicationSendQueueReserveGlobalCapacityInBytes;\n\n        if (applicationReserveSendQueueEndpointCapacityInBytes == null)\n            applicationReserveSendQueueEndpointCapacityInBytes = DatabaseDescriptor.getInternodeApplicationSendQueueReserveEndpointCapacityInBytes();\n        if (applicationReserveSendQueueGlobalCapacityInBytes == null)\n            applicationReserveSendQueueGlobalCapacityInBytes = MessagingService.instance().outboundGlobalReserveLimit;\n\n        return withApplicationReserveSendQueueCapacityInBytes(applicationReserveSendQueueEndpointCapacityInBytes, applicationReserveSendQueueGlobalCapacityInBytes);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `internode_application_send_queue_reserve_endpoint_capacity_in_bytes` directly influences the capacity of the send queue, which can significantly affect the throughput and latency of message processing in a distributed system. If this configuration is set improperly, it can lead to bottlenecks or excessive memory usage, resulting in substantial performance degradation during high-load scenarios. The operation of retrieving this configuration from `DatabaseDescriptor` indicates that it can have a direct impact on system performance, especially in time-intensive or memory-intensive operations related to message sending."
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "compaction_throughput_mb_per_sec",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * Gets compaction rate limiter.\n     * Rate unit is bytes per sec.\n     *\n     * @return RateLimiter with rate limit set\n     */\npublic RateLimiter getRateLimiter()\n    {\n        setRate(DatabaseDescriptor.getCompactionThroughputMbPerSec());\n        return compactionRateLimiter;\n    }\n\n    \npublic int getCompactionThroughputMbPerSec()\n    {\n        return DatabaseDescriptor.getCompactionThroughputMbPerSec();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The compaction throughput directly influences the rate at which data is compacted in the database, which can significantly affect system performance during heavy write operations. If the throughput is set too low, it may lead to increased latency and resource contention, while setting it too high could overwhelm the system's I/O capabilities, leading to performance degradation. Therefore, this configuration has a substantial impact on system-level performance due to its direct correlation with time-intensive operations during data compaction."
+        }
+    ]
+}

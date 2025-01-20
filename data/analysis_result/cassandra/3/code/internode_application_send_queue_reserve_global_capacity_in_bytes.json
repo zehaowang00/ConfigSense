@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "internode_application_send_queue_reserve_global_capacity_in_bytes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@VisibleForTesting\n    MessagingService(boolean testOnly)\n    {\n        super(testOnly);\n        OutboundConnections.scheduleUnusedConnectionMonitoring(this, ScheduledExecutors.scheduledTasks, 1L, TimeUnit.HOURS);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The provided code context does not indicate any operations that are time-intensive or memory-intensive. The constructor initializes the `MessagingService` and schedules a monitoring task, which is unlikely to have a substantial impact on system-level performance. The scheduling of a task every hour does not suggest significant resource consumption that would classify it as performance-sensitive."
+        }
+    ]
+}

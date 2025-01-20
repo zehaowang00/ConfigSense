@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'bucket.size' configuration in the Sunflow project directly influences how data is partitioned and processed during rendering tasks. A smaller bucket size can lead to increased overhead due to more frequent context switching and memory allocation, while a larger bucket size may result in inefficient memory usage and longer execution times due to larger data sets being processed at once. Therefore, changes in this configuration can significantly affect execution time and memory consumption, classifying it as performance-sensitive."
+}

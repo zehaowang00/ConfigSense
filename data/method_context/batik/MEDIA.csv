@@ -1,0 +1,12 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.batik.transcoder.SVGAbstractTranscoder$SVGAbstractTranscoderUserAgent:getMedia(),(M)org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),MEDIA,getMedia,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/SVGAbstractTranscoder.java,SVGAbstractTranscoder$SVGAbstractTranscoderUserAgent,../data/xml/batik/SVGAbstractTranscoder.xml,"/**
+         * Returns this user agent's CSS media.
+         */
+public String getMedia() {
+            String s = (String)hints.get(KEY_MEDIA);
+            if (s != null) return s;
+
+            return super.getMedia();
+        }
+
+        "

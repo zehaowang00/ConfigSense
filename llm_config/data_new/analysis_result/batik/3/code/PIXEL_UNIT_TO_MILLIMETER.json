@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "PIXEL_UNIT_TO_MILLIMETER",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n         * Returns the pixel to millimeter conversion factor specified in the\n         * <code>TranscodingHints</code> or 0.26458333 if not specified.\n         */\npublic float getPixelUnitToMillimeter() {\n            Object obj = SVGAbstractTranscoder.this.hints.get\n                (KEY_PIXEL_UNIT_TO_MILLIMETER);\n            if (obj != null) {\n                return (Float) obj;\n            }\n\n            return super.getPixelUnitToMillimeter();\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method `getPixelUnitToMillimeter()` retrieves a conversion factor from a hints map or defaults to a constant value. This operation involves a simple lookup and a potential cast, which are not time-intensive or memory-intensive operations. The performance impact of this configuration is minimal, as it does not involve complex computations or large data manipulations that would significantly affect system performance."
+        }
+    ]
+}

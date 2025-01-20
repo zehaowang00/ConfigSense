@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'inter_dc_tcp_nodelay' configuration in Cassandra controls the TCP_NODELAY option for inter-data center communication. Enabling this option can significantly reduce latency by disabling Nagle's algorithm, which can lead to smaller packets being sent immediately rather than being buffered. This can have a notable impact on the performance of read and write operations across data centers, especially in scenarios with high-frequency, low-latency requirements. Changes to this configuration can lead to variations in execution time and overall throughput, making it performance-sensitive."
+}

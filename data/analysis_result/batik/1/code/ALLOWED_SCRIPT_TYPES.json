@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "ALLOWED_SCRIPT_TYPES",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n         * Helper method. Builds a Vector containing the allowed\n         * values for the &lt;script&gt; element's type attribute.\n         */\nprotected void computeAllowedScripts(){\n            scripts = new LinkedList();\n            if (!SVGAbstractTranscoder.this.hints.containsKey\n                (KEY_ALLOWED_SCRIPT_TYPES)) {\n                return;\n            }\n\n            String allowedScripts\n                = (String)SVGAbstractTranscoder.this.hints.get\n                (KEY_ALLOWED_SCRIPT_TYPES);\n\n            StringTokenizer st = new StringTokenizer(allowedScripts, \",\");\n            while (st.hasMoreTokens()) {\n                scripts.add(st.nextToken());\n            }\n        }\n\n        "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method `computeAllowedScripts` primarily processes a string to tokenize allowed script types and store them in a list. The operations involved, such as checking for the existence of a key in a map and iterating over a string with a tokenizer, are not time-intensive or memory-intensive. The use of `LinkedList` for storage does not significantly impact performance in this context, as the method is unlikely to be called frequently enough or with sufficiently large data to cause substantial performance variations."
+        }
+    ]
+}

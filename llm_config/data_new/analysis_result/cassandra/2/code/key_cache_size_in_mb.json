@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "key_cache_size_in_mb",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * @return auto saving cache object\n     */\nprivate AutoSavingCache<KeyCacheKey, RowIndexEntry> initKeyCache()\n    {\n        logger.info(\"Initializing key cache with capacity of {} MBs.\", DatabaseDescriptor.getKeyCacheSizeInMB());\n\n        long keyCacheInMemoryCapacity = DatabaseDescriptor.getKeyCacheSizeInMB() * 1024 * 1024;\n\n        // as values are constant size we can use singleton weigher\n        // where 48 = 40 bytes (average size of the key) + 8 bytes (size of value)\n        ICache<KeyCacheKey, RowIndexEntry> kc;\n        kc = CaffeineCache.create(keyCacheInMemoryCapacity);\n        AutoSavingCache<KeyCacheKey, RowIndexEntry> keyCache = new AutoSavingCache<>(kc, CacheType.KEY_CACHE, new KeyCacheSerializer());\n\n        int keyCacheKeysToSave = DatabaseDescriptor.getKeyCacheKeysToSave();\n\n        keyCache.scheduleSaving(DatabaseDescriptor.getKeyCacheSavePeriod(), keyCacheKeysToSave);\n\n        return keyCache;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The size of the key cache in MB directly affects the memory allocation for caching operations, which can lead to significant performance variations. A larger cache size can improve read performance by reducing disk I/O, while a smaller cache size may lead to increased latency and more frequent cache misses, thus impacting overall system performance. Given that the cache size influences memory usage and the efficiency of data retrieval, it qualifies as a performance-sensitive configuration."
+        }
+    ]
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_application_send_queue_reserve_endpoint_capacity_in_bytes' directly influences the capacity of the send queue used for inter-node communication in Cassandra. Changes to this value can significantly impact the throughput and latency of data being sent between nodes. If the capacity is too low, it may lead to increased contention and delays in message processing, resulting in higher execution times and potential bottlenecks. Conversely, if the capacity is set too high, it could lead to excessive memory consumption, affecting overall system performance. Therefore, variations in this configuration can lead to notable changes in both execution time and memory usage, classifying it as performance-sensitive."
+}

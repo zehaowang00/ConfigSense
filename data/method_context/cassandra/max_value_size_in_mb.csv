@@ -1,0 +1,101 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.ClusteringPrefix$Deserializer:deserializeOne(),(S)org.apache.cassandra.config.DatabaseDescriptor:getMaxValueSize(),org.apache.cassandra.config.DatabaseDescriptor:getMaxValueSize(),max_value_size_in_mb,deserializeOne,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/ClusteringPrefix.java,ClusteringPrefix$Deserializer,../data/xml/cassandra/ClusteringPrefix.xml,"private boolean deserializeOne() throws IOException
+        {
+            if (deserializedSize == nextSize)
+                return false;
+
+            if ((deserializedSize % 32) == 0)
+                nextHeader = in.readUnsignedVInt();
+
+            int i = deserializedSize++;
+            nextValues[i] = Serializer.isNull(nextHeader, i)
+                          ? null
+                          : (Serializer.isEmpty(nextHeader, i) ? ByteArrayUtil.EMPTY_BYTE_ARRAY
+                                                               : serializationHeader.clusteringTypes().get(i).readArray(in, DatabaseDescriptor.getMaxValueSize()));
+            return true;
+        }
+
+        "
+"M:org.apache.cassandra.db.ClusteringPrefix$Serializer:deserializeValuesWithoutSize(org.apache.cassandra.io.util.DataInputPlus,int,int,java.util.List)",(S)org.apache.cassandra.config.DatabaseDescriptor:getMaxValueSize(),org.apache.cassandra.config.DatabaseDescriptor:getMaxValueSize(),max_value_size_in_mb,deserializeValuesWithoutSize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/ClusteringPrefix.java,ClusteringPrefix$Serializer,../data/xml/cassandra/ClusteringPrefix.xml,"byte[][] deserializeValuesWithoutSize(DataInputPlus in, int size, int version, List<AbstractType<?>> types) throws IOException
+        {
+            // Callers of this method should handle the case where size = 0 (in all case we want to return a special value anyway).
+            assert size > 0;
+            byte[][] values = new byte[size][];
+            int offset = 0;
+            while (offset < size)
+            {
+                long header = in.readUnsignedVInt();
+                int limit = Math.min(size, offset + 32);
+                while (offset < limit)
+                {
+                    values[offset] = isNull(header, offset)
+                                     ? null
+                                     : (isEmpty(header, offset) ? ByteArrayUtil.EMPTY_BYTE_ARRAY
+                                                                : types.get(offset).readArray(in, DatabaseDescriptor.getMaxValueSize()));
+                    offset++;
+                }
+            }
+            return values;
+        }
+
+        "
+"M:org.apache.cassandra.db.SinglePartitionReadCommand$Deserializer:deserialize(org.apache.cassandra.io.util.DataInputPlus,int,boolean,int,boolean,org.apache.cassandra.schema.TableMetadata,int,org.apache.cassandra.db.filter.ColumnFilter,org.apache.cassandra.db.filter.RowFilter,org.apache.cassandra.db.filter.DataLimits,org.apache.cassandra.schema.IndexMetadata)",(S)org.apache.cassandra.config.DatabaseDescriptor:getMaxValueSize(),org.apache.cassandra.config.DatabaseDescriptor:getMaxValueSize(),max_value_size_in_mb,deserialize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/SinglePartitionReadCommand.java,SinglePartitionReadCommand$Deserializer,../data/xml/cassandra/SinglePartitionReadCommand.xml,"public ReadCommand deserialize(DataInputPlus in,
+                                       int version,
+                                       boolean isDigest,
+                                       int digestVersion,
+                                       boolean acceptsTransient,
+                                       TableMetadata metadata,
+                                       int nowInSec,
+                                       ColumnFilter columnFilter,
+                                       RowFilter rowFilter,
+                                       DataLimits limits,
+                                       IndexMetadata index)
+        throws IOException
+        {
+            DecoratedKey key = metadata.partitioner.decorateKey(metadata.partitionKeyType.readBuffer(in, DatabaseDescriptor.getMaxValueSize()));
+            ClusteringIndexFilter filter = ClusteringIndexFilter.serializer.deserialize(in, version, metadata);
+            return new SinglePartitionReadCommand(isDigest, digestVersion, acceptsTransient, metadata, nowInSec, columnFilter, rowFilter, limits, key, filter, index);
+        }
+    }"
+"M:org.apache.cassandra.db.rows.Cell$Serializer:deserialize(org.apache.cassandra.io.util.DataInputPlus,org.apache.cassandra.db.LivenessInfo,org.apache.cassandra.schema.ColumnMetadata,org.apache.cassandra.db.SerializationHeader,org.apache.cassandra.db.rows.DeserializationHelper,org.apache.cassandra.db.marshal.ValueAccessor)",(S)org.apache.cassandra.config.DatabaseDescriptor:getMaxValueSize(),org.apache.cassandra.config.DatabaseDescriptor:getMaxValueSize(),max_value_size_in_mb,deserialize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/rows/Cell.java,Cell$Serializer,../data/xml/cassandra/Cell.xml,"public <V> Cell<V> deserialize(DataInputPlus in, LivenessInfo rowLiveness, ColumnMetadata column, SerializationHeader header, DeserializationHelper helper, ValueAccessor<V> accessor) throws IOException
+        {
+            int flags = in.readUnsignedByte();
+            boolean hasValue = (flags & HAS_EMPTY_VALUE_MASK) == 0;
+            boolean isDeleted = (flags & IS_DELETED_MASK) != 0;
+            boolean isExpiring = (flags & IS_EXPIRING_MASK) != 0;
+            boolean useRowTimestamp = (flags & USE_ROW_TIMESTAMP_MASK) != 0;
+            boolean useRowTTL = (flags & USE_ROW_TTL_MASK) != 0;
+
+            long timestamp = useRowTimestamp ? rowLiveness.timestamp() : header.readTimestamp(in);
+
+            int localDeletionTime = useRowTTL
+                                    ? rowLiveness.localExpirationTime()
+                                    : (isDeleted || isExpiring ? header.readLocalDeletionTime(in) : NO_DELETION_TIME);
+
+            int ttl = useRowTTL ? rowLiveness.ttl() : (isExpiring ? header.readTTL(in) : NO_TTL);
+
+            CellPath path = column.isComplex()
+                            ? column.cellPathSerializer().deserialize(in)
+                            : null;
+
+            V value = accessor.empty();
+            if (hasValue)
+            {
+                if (helper.canSkipValue(column) || (path != null && helper.canSkipValue(path)))
+                {
+                    header.getType(column).skipValue(in);
+                }
+                else
+                {
+                    boolean isCounter = localDeletionTime == NO_DELETION_TIME && column.type.isCounter();
+
+                    value = header.getType(column).read(accessor, in, DatabaseDescriptor.getMaxValueSize());
+                    if (isCounter)
+                        value = helper.maybeClearCounterValue(value, accessor);
+                }
+            }
+
+            return accessor.factory().cell(column, timestamp, ttl, localDeletionTime, value, path);
+        }
+
+        "

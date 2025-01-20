@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'concurrent_materialized_view_writes' in Cassandra directly influences how many concurrent writes can be processed for materialized views. If this value is set too low, it can lead to increased latency and reduced throughput during write operations, as the system may become bottlenecked by the limited number of concurrent writes allowed. Conversely, setting it too high can lead to increased contention and resource exhaustion, potentially causing significant performance degradation. Therefore, changes to this configuration can have a substantial impact on execution time and resource utilization, classifying it as performance-sensitive."
+}

@@ -1,0 +1,17 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+"M:org.h2.index.VirtualConstructedTableIndex:getCost(org.h2.engine.SessionLocal,int[],org.h2.table.TableFilter[],int,org.h2.result.SortOrder,org.h2.command.query.AllColumnsForPlan)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder,
+            AllColumnsForPlan allColumnsSet) {
+        if (masks != null) {
+            throw DbException.getUnsupportedException(""Virtual table"");
+        }
+        long expectedRows;
+        if (table.canGetRowCount(session)) {
+            expectedRows = table.getRowCountApproximation(session);
+        } else {
+            expectedRows = database.getSettings().estimatedFunctionTableRows;
+        }
+        return expectedRows * 10;
+    }
+
+    ",ESTIMATED_FUNCTION_TABLE_ROWS,getCost,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/index/VirtualConstructedTableIndex.java,VirtualConstructedTableIndex,../data/xml/h2/VirtualConstructedTableIndex.xml

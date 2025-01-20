@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_application_send_queue_capacity_in_bytes' in Cassandra directly influences the capacity of the send queue for inter-node communication. A higher capacity can lead to improved throughput and reduced latency during peak loads, as it allows for more outstanding messages to be queued for processing. Conversely, a lower capacity may result in dropped messages or increased backpressure, leading to significant delays in data replication and overall system performance degradation. Therefore, changes to this configuration can have a substantial impact on execution time and resource utilization, making it performance-sensitive."
+}

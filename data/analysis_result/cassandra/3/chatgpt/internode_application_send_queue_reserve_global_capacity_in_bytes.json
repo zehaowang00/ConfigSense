@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_application_send_queue_reserve_global_capacity_in_bytes' directly influences the capacity of the send queue for inter-node communication in Cassandra. A change in this value can significantly affect the throughput and latency of data being sent between nodes. If the capacity is too low, it can lead to increased backpressure, causing delays in message processing and potentially resulting in timeouts or dropped messages. Conversely, if the capacity is too high, it may lead to excessive memory consumption and impact garbage collection performance. Therefore, variations in this configuration can lead to notable changes in execution time and resource utilization, classifying it as performance-sensitive."
+}

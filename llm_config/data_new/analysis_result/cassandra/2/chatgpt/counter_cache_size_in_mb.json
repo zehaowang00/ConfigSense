@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'counter_cache_size_in_mb' configuration in Cassandra directly influences the amount of memory allocated for caching counter data. A larger cache size can significantly improve read performance by reducing the need to access disk storage, especially in workloads with high read frequency of counters. Conversely, a smaller cache size may lead to increased disk I/O, resulting in higher latency and slower execution times. Therefore, changes in this configuration can lead to notable variations in system performance, making it performance-sensitive."
+}

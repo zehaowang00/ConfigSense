@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_application_receive_queue_reserve_global_capacity_in_bytes' in Cassandra directly impacts the capacity of the internode communication queues. A change in this value can lead to significant variations in how much data can be buffered during high-load scenarios. If the capacity is too low, it can result in increased latency and dropped messages, severely affecting the performance of the system, especially in distributed environments where timely data exchange is critical. Conversely, setting it too high may lead to excessive memory usage, potentially causing resource contention and impacting overall system throughput. Therefore, this configuration is classified as performance-sensitive due to its direct impact on execution time and memory consumption during data processing operations."
+}

@@ -1,0 +1,64 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.net.OutboundConnectionSettings:tcpUserTimeoutInMS(org.apache.cassandra.net.ConnectionCategory),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeStreamingTcpUserTimeoutInMS(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeStreamingTcpUserTimeoutInMS(),internode_streaming_tcp_user_timeout_in_ms,tcpUserTimeoutInMS,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/OutboundConnectionSettings.java,OutboundConnectionSettings,../data/xml/cassandra/OutboundConnectionSettings.xml,"public int tcpUserTimeoutInMS(ConnectionCategory category)
+    {
+        // Reusing tcpUserTimeoutInMS for both messaging and streaming, since the connection is created for either one of them.
+        if (tcpUserTimeoutInMS != null)
+            return tcpUserTimeoutInMS;
+
+        switch (category)
+        {
+            case MESSAGING: return DatabaseDescriptor.getInternodeTcpUserTimeoutInMS();
+            case STREAMING: return DatabaseDescriptor.getInternodeStreamingTcpUserTimeoutInMS();
+            default: throw new IllegalArgumentException(""Unknown connection category: "" + category);
+        }
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getInternodeStreamingTcpUserTimeoutInMS(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeStreamingTcpUserTimeoutInMS(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeStreamingTcpUserTimeoutInMS(),internode_streaming_tcp_user_timeout_in_ms,getInternodeStreamingTcpUserTimeoutInMS,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getInternodeStreamingTcpUserTimeoutInMS()
+    {
+        return DatabaseDescriptor.getInternodeStreamingTcpUserTimeoutInMS();
+    }
+
+    "
+M:org.apache.cassandra.streaming.StreamSession:receive(org.apache.cassandra.streaming.messages.IncomingStreamMessage),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeStreamingTcpUserTimeoutInMS(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeStreamingTcpUserTimeoutInMS(),internode_streaming_tcp_user_timeout_in_ms,receive,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/streaming/StreamSession.java,StreamSession,../data/xml/cassandra/StreamSession.xml,"/**
+     * Call back after receiving a stream.
+     *
+     * @param message received stream
+     */
+public void receive(IncomingStreamMessage message)
+    {
+        if (isPreview())
+        {
+            throw new RuntimeException(String.format(""[Stream #%s] Cannot receive files for preview session"", planId()));
+        }
+
+        long headerSize = message.stream.getSize();
+        StreamingMetrics.totalIncomingBytes.inc(headerSize);
+        metrics.incomingBytes.inc(headerSize);
+        // send back file received message
+        messageSender.sendMessage(new ReceivedMessage(message.header.tableId, message.header.sequenceNumber));
+        StreamHook.instance.reportIncomingStream(message.header.tableId, message.stream, this, message.header.sequenceNumber);
+        long receivedStartNanos = System.nanoTime();
+        try
+        {
+            receivers.get(message.header.tableId).received(message.stream);
+        }
+        finally
+        {
+            long latencyNanos = System.nanoTime() - receivedStartNanos;
+            metrics.incomingProcessTime.update(latencyNanos, TimeUnit.NANOSECONDS);
+            long latencyMs = TimeUnit.NANOSECONDS.toMillis(latencyNanos);
+            int timeout = DatabaseDescriptor.getInternodeStreamingTcpUserTimeoutInMS();
+            if (timeout > 0 && latencyMs > timeout)
+                NoSpamLogger.log(logger, NoSpamLogger.Level.WARN,
+                                 1, TimeUnit.MINUTES,
+                                 ""The time taken ({} ms) for processing the incoming stream message ({})"" +
+                                 "" exceeded internode streaming TCP user timeout ({} ms).\n"" +
+                                 ""The streaming connection might be closed due to tcp user timeout.\n"" +
+                                 ""Try to increase the internode_streaming_tcp_user_timeout_in_ms"" +
+                                 "" or set it to 0 to use system defaults."",
+                                 latencyMs, message, timeout);
+        }
+    }
+
+    "

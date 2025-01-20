@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'inter_dc_stream_throughput_outbound_megabits_per_sec' directly affects the bandwidth allocated for streaming data between data centers in Cassandra. Changes to this setting can significantly impact the rate at which data is transmitted, leading to variations in execution time for data replication and consistency across nodes. If the throughput is set too low, it can result in increased latency and slower data synchronization, while a higher setting can improve performance but may lead to network congestion. Therefore, this configuration is performance-sensitive as it has a direct correlation with the system's overall performance and resource utilization."
+}

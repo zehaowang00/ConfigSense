@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "RECOMPILE_ALWAYS",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * Check if the statement needs to be re-compiled.\n     *\n     * @return true if it must\n     */\npublic boolean needRecompile() {\n        Database db = session.getDatabase();\n        if (db == null) {\n            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, \"database closed\");\n        }\n        // parser: currently, compiling every create/drop/... twice\n        // because needRecompile return true even for the first execution\n        return prepareAlways ||\n                modificationMetaId < db.getModificationMetaId() ||\n                db.getSettings().recompileAlways;\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `RECOMPILE_ALWAYS` setting directly influences whether statements need to be recompiled, which can lead to significant performance variations. If set to true, it forces recompilation on every execution, potentially resulting in time-intensive operations, especially in scenarios with frequent database interactions. This can cause substantial overhead in execution time and resource usage, making it a critical configuration for performance optimization."
+        }
+    ]
+}

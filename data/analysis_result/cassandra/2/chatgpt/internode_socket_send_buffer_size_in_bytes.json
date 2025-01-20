@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_socket_send_buffer_size_in_bytes' in Cassandra directly affects the size of the socket buffer used for sending data between nodes in the cluster. A larger buffer size can lead to improved throughput and reduced latency during data transmission, especially in high-load scenarios or when dealing with large data sets. Conversely, a smaller buffer size may result in increased packet loss and higher execution times due to frequent context switching and retransmissions. Therefore, changes to this configuration can significantly impact overall system performance, making it performance-sensitive."
+}

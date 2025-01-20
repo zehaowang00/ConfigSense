@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'dryRun' configuration in the dconverter project is performance-sensitive because it directly influences how the system processes data. When enabled, the system may perform additional checks or simulations without executing the actual operations, which can lead to significant variations in execution time and resource utilization. This can impact overall system performance, especially in scenarios where the volume of data is large or the operations are complex. Therefore, changes to this configuration can notably affect both execution time and memory consumption."
+}

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "upScalingAlgorithm",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "private EScalingAlgorithm getScalingAlgorithm(EScalingAlgorithm.Type type) {\n        return type == EScalingAlgorithm.Type.UPSCALING ? args.upScalingAlgorithm : args.downScalingAlgorithm;\n    }\n\n    \nprivate void loadPrefs() {\n        Arguments args = preferenceStore.get();\n        if (args != null) {\n            textFieldSrcPath.setText(args.src != null ? args.src.getAbsolutePath() : \"\");\n            textFieldDstPath.setText(args.dst != null ? args.dst.getAbsolutePath() : \"\");\n\n            scaleSlider.setValue(Arguments.DEFAULT_SCALE);\n            textFieldDp.setText(String.valueOf((int) args.scale));\n\n            if (args.scaleMode == EScaleMode.FACTOR) {\n                rbFactor.setSelected(true);\n                scaleSlider.setValue(args.scale);\n                textFieldDp.setText(\"\");\n            } else if (args.scaleMode == EScaleMode.DP_WIDTH) {\n                rbDpWidth.setSelected(true);\n            } else if (args.scaleMode == EScaleMode.DP_HEIGHT) {\n                rbDpHeight.setSelected(true);\n            }\n\n            setPlatformToogles(args.platform);\n            choiceCompression.getSelectionModel().select(args.outputCompressionMode);\n            choiceCompressionQuality.getSelectionModel().select(toJpgQ(args.compressionQuality));\n            choiceRounding.getSelectionModel().select(args.roundingHandler);\n            choiceThreads.getSelectionModel().select(Integer.valueOf(args.threadCount));\n            choiceDownScale.getSelectionModel().select(args.downScalingAlgorithm);\n            choiceUpScale.getSelectionModel().select(args.upScalingAlgorithm);\n\n            cbSkipExisting.setSelected(args.skipExistingFiles);\n            cbSkipUpscaling.setSelected(args.skipUpscaling);\n            cbAndroidIncludeLdpiTvdpi.setSelected(args.includeAndroidLdpiTvdpi);\n            cbAntiAliasing.setSelected(args.enableAntiAliasing);\n            cbMipmapInsteadDrawable.setSelected(args.createMipMapInsteadOfDrawableDir);\n            cbHaltOnError.setSelected(args.haltOnError);\n            cbDryRun.setSelected(args.dryRun);\n            cbEnablePngCrush.setSelected(args.enablePngCrush);\n            cbPostConvertWebp.setSelected(args.postConvertWebp);\n            cbEnableMozJpeg.setSelected(args.enableMozJpeg);\n            cbKeepUnoptimized.setSelected(args.keepUnoptimizedFilesPostProcessor);\n            cbIosCreateImageset.setSelected(args.iosCreateImagesetFolders);\n            cbCleanBeforeConvert.setSelected(args.clearDirBeforeConvert);\n            rbOptAdvanced.setSelected(args.guiAdvancedOptions);\n            rbOptSimple.setSelected(!args.guiAdvancedOptions);\n\n        }\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `upScalingAlgorithm` configuration is primarily a selection of an algorithm type and does not directly involve time-intensive or memory-intensive operations. The actual performance impact would depend on the implementation of the selected algorithm rather than the selection process itself. The code provided does not indicate any significant performance variations caused by this configuration."
+        }
+    ]
+}

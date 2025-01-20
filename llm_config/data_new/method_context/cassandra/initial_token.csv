@@ -1,0 +1,41 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.dht.BootStrapper:getBootstrapTokens(org.apache.cassandra.locator.TokenMetadata,org.apache.cassandra.locator.InetAddressAndPort,long)",(S)org.apache.cassandra.config.DatabaseDescriptor:getInitialTokens(),org.apache.cassandra.config.DatabaseDescriptor:getInitialTokens(),initial_token,getBootstrapTokens,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/dht/BootStrapper.java,BootStrapper,../data/xml/cassandra/BootStrapper.xml,"/**
+     * if initialtoken was specified, use that (split on comma).
+     * otherwise, if allocationKeyspace is specified use the token allocation algorithm to generate suitable tokens
+     * else choose num_tokens tokens at random
+     */
+public static Collection<Token> getBootstrapTokens(final TokenMetadata metadata, InetAddressAndPort address, long schemaWaitDelay) throws ConfigurationException
+    {
+        String allocationKeyspace = DatabaseDescriptor.getAllocateTokensForKeyspace();
+        Integer allocationLocalRf = DatabaseDescriptor.getAllocateTokensForLocalRf();
+        Collection<String> initialTokens = DatabaseDescriptor.getInitialTokens();
+        if (initialTokens.size() > 0 && allocationKeyspace != null)
+            logger.warn(""manually specified tokens override automatic allocation"");
+
+        // if user specified tokens, use those
+        if (initialTokens.size() > 0)
+        {
+            Collection<Token> tokens = getSpecifiedTokens(metadata, initialTokens);
+            BootstrapDiagnostics.useSpecifiedTokens(address, allocationKeyspace, tokens, DatabaseDescriptor.getNumTokens());
+            return tokens;
+        }
+
+        int numTokens = DatabaseDescriptor.getNumTokens();
+        if (numTokens < 1)
+            throw new ConfigurationException(""num_tokens must be >= 1"");
+
+        if (allocationKeyspace != null)
+            return allocateTokens(metadata, address, allocationKeyspace, numTokens, schemaWaitDelay);
+
+        if (allocationLocalRf != null)
+            return allocateTokens(metadata, address, allocationLocalRf, numTokens, schemaWaitDelay);
+
+        if (numTokens == 1)
+            logger.warn(""Picking random token for a single vnode.  You should probably add more vnodes and/or use the automatic token allocation mechanism."");
+
+        Collection<Token> tokens = getRandomTokens(metadata, numTokens);
+        BootstrapDiagnostics.useRandomTokens(address, metadata, numTokens, tokens);
+        return tokens;
+    }
+
+    "

@@ -1,0 +1,13 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+M:org.h2.jdbc.meta.DatabaseMetaLocal:getSearchStringEscape(),(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    public String getSearchStringEscape() {
+        return session.getDatabase().getSettings().defaultEscape;
+    }
+
+    ",DEFAULT_ESCAPE,getSearchStringEscape,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/jdbc/meta/DatabaseMetaLocal.java,DatabaseMetaLocal,../data/xml/h2/DatabaseMetaLocal.xml
+"M:org.h2.expression.condition.CompareLike:<init>(org.h2.engine.Database,org.h2.expression.Expression,boolean,boolean,org.h2.expression.Expression,org.h2.expression.Expression,org.h2.expression.condition.CompareLike$LikeType)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"public CompareLike(Database db, Expression left, boolean not, boolean whenOperand, Expression right,
+            Expression escape, LikeType likeType) {
+        this(db.getCompareMode(), db.getSettings().defaultEscape, left, not, whenOperand, right, escape, likeType);
+    }
+
+    ",DEFAULT_ESCAPE,<init>,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/expression/condition/CompareLike.java,CompareLike,../data/xml/h2/CompareLike.xml

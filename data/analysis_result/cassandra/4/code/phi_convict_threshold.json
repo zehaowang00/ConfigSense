@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "phi_convict_threshold",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public double getPhiConvictThreshold()\n    {\n        return DatabaseDescriptor.getPhiConvictThreshold();\n    }\n\n    \npublic void convict(InetAddressAndPort endpoint, double phi)\n    {\n        if (!commonRange.endpoints.contains(endpoint))\n            return;\n\n        // We want a higher confidence in the failure detection than usual because failing a repair wrongly has a high cost.\n        if (phi < 2 * DatabaseDescriptor.getPhiConvictThreshold())\n            return;\n\n        // Though unlikely, it is possible to arrive here multiple time and we\n        // want to avoid print an error message twice\n        if (!isFailed.compareAndSet(false, true))\n            return;\n\n        Exception exception = new IOException(String.format(\"Endpoint %s died\", endpoint));\n        logger.error(\"{} session completed with the following error\", previewKind.logPrefix(getId()), exception);\n        // If a node failed, we stop everything (though there could still be some activity in the background)\n        forceShutdown(exception);\n    }\n\n    \n/**\n     * Something has happened to a remote node - if that node is a coordinator, we mark the parent repair session id as failed.\n     *\n     * The fail marker is kept in the map for 24h to make sure that if the coordinator does not agree\n     * that the repair failed, we need to fail the entire repair session\n     *\n     * @param ep  endpoint to be convicted\n     * @param phi the value of phi with with ep was convicted\n     */\npublic void convict(InetAddressAndPort ep, double phi)\n    {\n        // We want a higher confidence in the failure detection than usual because failing a repair wrongly has a high cost.\n        if (phi < 2 * DatabaseDescriptor.getPhiConvictThreshold() || parentRepairSessions.isEmpty())\n            return;\n\n        abort((prs) -> prs.coordinator.equals(ep), \"Removing {} in parent repair sessions\");\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `phi_convict_threshold` configuration primarily influences the decision-making process regarding node failure detection and repair session management. While it plays a critical role in ensuring the reliability of the system, the operations associated with its evaluation, such as comparisons and conditional checks, do not involve substantial time-intensive or memory-intensive operations. The checks are lightweight and do not lead to significant performance variations in the system."
+        }
+    ]
+}

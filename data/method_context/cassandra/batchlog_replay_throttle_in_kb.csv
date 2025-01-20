@@ -1,0 +1,37 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.batchlog.BatchlogManager:replayFailedBatches(),(S)org.apache.cassandra.config.DatabaseDescriptor:getBatchlogReplayThrottleInKB(),org.apache.cassandra.config.DatabaseDescriptor:getBatchlogReplayThrottleInKB(),batchlog_replay_throttle_in_kb,replayFailedBatches,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/batchlog/BatchlogManager.java,BatchlogManager,../data/xml/cassandra/BatchlogManager.xml,"private void replayFailedBatches()
+    {
+        logger.trace(""Started replayFailedBatches"");
+
+        // rate limit is in bytes per second. Uses Double.MAX_VALUE if disabled (set to 0 in cassandra.yaml).
+        // max rate is scaled by the number of nodes in the cluster (same as for HHOM - see CASSANDRA-5272).
+        int endpointsCount = StorageService.instance.getTokenMetadata().getSizeOfAllEndpoints();
+        if (endpointsCount <= 0)
+        {
+            logger.trace(""Replay cancelled as there are no peers in the ring."");
+            return;
+        }
+        setRate(DatabaseDescriptor.getBatchlogReplayThrottleInKB());
+
+        UUID limitUuid = UUIDGen.maxTimeUUID(System.currentTimeMillis() - getBatchlogTimeout());
+        ColumnFamilyStore store = Keyspace.open(SchemaConstants.SYSTEM_KEYSPACE_NAME).getColumnFamilyStore(SystemKeyspace.BATCHES);
+        int pageSize = calculatePageSize(store);
+        // There cannot be any live content where token(id) <= token(lastReplayedUuid) as every processed batch is
+        // deleted, but the tombstoned content may still be present in the tables. To avoid walking over it we specify
+        // token(id) > token(lastReplayedUuid) as part of the query.
+        String query = String.format(""SELECT id, mutations, version FROM %s.%s WHERE token(id) > token(?) AND token(id) <= token(?)"",
+                                     SchemaConstants.SYSTEM_KEYSPACE_NAME,
+                                     SystemKeyspace.BATCHES);
+        UntypedResultSet batches = executeInternalWithPaging(query, pageSize, lastReplayedUuid, limitUuid);
+        processBatchlogEntries(batches, pageSize, rateLimiter);
+        lastReplayedUuid = limitUuid;
+        logger.trace(""Finished replayFailedBatches"");
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getBatchlogReplayThrottleInKB(),(S)org.apache.cassandra.config.DatabaseDescriptor:getBatchlogReplayThrottleInKB(),org.apache.cassandra.config.DatabaseDescriptor:getBatchlogReplayThrottleInKB(),batchlog_replay_throttle_in_kb,getBatchlogReplayThrottleInKB,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getBatchlogReplayThrottleInKB()
+    {
+        return DatabaseDescriptor.getBatchlogReplayThrottleInKB();
+    }
+
+    "

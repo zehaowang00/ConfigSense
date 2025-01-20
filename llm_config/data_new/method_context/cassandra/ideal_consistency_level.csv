@@ -1,0 +1,72 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.locator.AbstractReplicationStrategy:getWriteResponseHandler(org.apache.cassandra.locator.ReplicaPlan$ForTokenWrite,java.lang.Runnable,org.apache.cassandra.db.WriteType,long)",(S)org.apache.cassandra.config.DatabaseDescriptor:getIdealConsistencyLevel(),org.apache.cassandra.config.DatabaseDescriptor:getIdealConsistencyLevel(),ideal_consistency_level,getWriteResponseHandler,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/locator/AbstractReplicationStrategy.java,AbstractReplicationStrategy,../data/xml/cassandra/AbstractReplicationStrategy.xml,"public <T> AbstractWriteResponseHandler<T> getWriteResponseHandler(ReplicaPlan.ForTokenWrite replicaPlan,
+                                                                       Runnable callback,
+                                                                       WriteType writeType,
+                                                                       long queryStartNanoTime)
+    {
+        return getWriteResponseHandler(replicaPlan, callback, writeType, queryStartNanoTime, DatabaseDescriptor.getIdealConsistencyLevel());
+    }
+
+    
+public <T> AbstractWriteResponseHandler<T> getWriteResponseHandler(ReplicaPlan.ForTokenWrite replicaPlan,
+                                                                       Runnable callback,
+                                                                       WriteType writeType,
+                                                                       long queryStartNanoTime,
+                                                                       ConsistencyLevel idealConsistencyLevel)
+    {
+        AbstractWriteResponseHandler<T> resultResponseHandler;
+        if (replicaPlan.consistencyLevel().isDatacenterLocal())
+        {
+            // block for in this context will be localnodes block.
+            resultResponseHandler = new DatacenterWriteResponseHandler<T>(replicaPlan, callback, writeType, queryStartNanoTime);
+        }
+        else if (replicaPlan.consistencyLevel() == ConsistencyLevel.EACH_QUORUM && (this instanceof NetworkTopologyStrategy))
+        {
+            resultResponseHandler = new DatacenterSyncWriteResponseHandler<T>(replicaPlan, callback, writeType, queryStartNanoTime);
+        }
+        else
+        {
+            resultResponseHandler = new WriteResponseHandler<T>(replicaPlan, callback, writeType, queryStartNanoTime);
+        }
+
+        //Check if tracking the ideal consistency level is configured
+        if (idealConsistencyLevel != null)
+        {
+            //If ideal and requested are the same just use this handler to track the ideal consistency level
+            //This is also used so that the ideal consistency level handler when constructed knows it is the ideal
+            //one for tracking purposes
+            if (idealConsistencyLevel == replicaPlan.consistencyLevel())
+            {
+                resultResponseHandler.setIdealCLResponseHandler(resultResponseHandler);
+            }
+            else
+            {
+                //Construct a delegate response handler to use to track the ideal consistency level
+                AbstractWriteResponseHandler<T> idealHandler = getWriteResponseHandler(replicaPlan.withConsistencyLevel(idealConsistencyLevel),
+                                                                                       callback,
+                                                                                       writeType,
+                                                                                       queryStartNanoTime,
+                                                                                       idealConsistencyLevel);
+                resultResponseHandler.setIdealCLResponseHandler(idealHandler);
+            }
+        }
+
+        return resultResponseHandler;
+    }
+
+    "
+M:org.apache.cassandra.service.StorageProxy:getIdealConsistencyLevel(),(S)org.apache.cassandra.config.DatabaseDescriptor:getIdealConsistencyLevel(),org.apache.cassandra.config.DatabaseDescriptor:getIdealConsistencyLevel(),ideal_consistency_level,getIdealConsistencyLevel,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public String getIdealConsistencyLevel()
+    {
+        return Objects.toString(DatabaseDescriptor.getIdealConsistencyLevel(), """");
+    }
+
+    "
+M:org.apache.cassandra.service.StorageProxy:setIdealConsistencyLevel(java.lang.String),(S)org.apache.cassandra.config.DatabaseDescriptor:getIdealConsistencyLevel(),org.apache.cassandra.config.DatabaseDescriptor:getIdealConsistencyLevel(),ideal_consistency_level,setIdealConsistencyLevel,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy,../data/xml/cassandra/StorageProxy.xml,"public String setIdealConsistencyLevel(String cl)
+    {
+        ConsistencyLevel original = DatabaseDescriptor.getIdealConsistencyLevel();
+        ConsistencyLevel newCL = ConsistencyLevel.valueOf(cl.trim().toUpperCase());
+        DatabaseDescriptor.setIdealConsistencyLevel(newCL);
+        return String.format(""Updating ideal consistency level new value: %s old value %s"", newCL, original.toString());
+    }
+
+    "

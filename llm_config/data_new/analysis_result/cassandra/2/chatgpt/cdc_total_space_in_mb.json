@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'cdc_total_space_in_mb' configuration in Cassandra directly influences the amount of disk space allocated for Change Data Capture (CDC) operations. If this value is set too low, it can lead to insufficient space for storing change logs, potentially causing data loss or requiring frequent purging of old data, which can degrade performance due to increased I/O operations. Conversely, setting it too high can lead to excessive memory consumption and inefficient resource utilization. Therefore, changes to this configuration can significantly impact both execution time and memory consumption, classifying it as performance-sensitive."
+}

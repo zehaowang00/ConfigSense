@@ -1,0 +1,66 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.sunflow.core.LightServer:build(org.sunflow.core.Options),"(M)org.sunflow.core.Options:getInt(java.lang.String,int)","org.sunflow.core.Options:getInt(java.lang.String,int)",depths.reflection,build,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/sunflow/src/org/sunflow/core/LightServer.java,LightServer,../data/xml/sunflow/LightServer.xml,"boolean build(Options options) {
+        // read options
+        maxDiffuseDepth = options.getInt(""depths.diffuse"", maxDiffuseDepth);
+        maxReflectionDepth = options.getInt(""depths.reflection"", maxReflectionDepth);
+        maxRefractionDepth = options.getInt(""depths.refraction"", maxRefractionDepth);
+        giEngine = GIEngineFactory.create(options);
+        String caustics = options.getString(""caustics"", null);
+        if (caustics == null || caustics.equals(""none""))
+            causticPhotonMap = null;
+        else if (caustics != null && caustics.equals(""kd""))
+            causticPhotonMap = new CausticPhotonMap(options);
+        else {
+            UI.printWarning(Module.LIGHT, ""Unrecognized caustics photon map engine \""%s\"" - ignoring"", caustics);
+            causticPhotonMap = null;
+        }
+
+        // validate options
+        maxDiffuseDepth = Math.max(0, maxDiffuseDepth);
+        maxReflectionDepth = Math.max(0, maxReflectionDepth);
+        maxRefractionDepth = Math.max(0, maxRefractionDepth);
+
+        Timer t = new Timer();
+        t.start();
+        // count total number of light samples
+        int numLightSamples = 0;
+        for (int i = 0; i < lights.length; i++) {
+            assert lights[i].getNumSamples() >= 0;
+            numLightSamples += lights[i].getNumSamples();
+        }
+        // initialize gi engine
+        if (giEngine != null) {
+            if (!giEngine.init(scene))
+                return false;
+        }
+
+        if (!calculatePhotons(causticPhotonMap, ""caustic"", 0))
+            return false;
+        t.end();
+        cacheLookups = 0;
+        cacheHits = 0;
+        cacheEmptyEntryMisses = 0;
+        cacheWrongEntryMisses = 0;
+        cacheEntryAdditions = 0;
+        if (shadingCache != null) {
+            // clear shading cache
+            for (int i = 0; i < shadingCache.length; i++)
+                shadingCache[i] = null;
+        }
+        UI.printInfo(Module.LIGHT, ""Light Server stats:"");
+        UI.printInfo(Module.LIGHT, ""  * Light sources found: %d"", lights.length);
+        UI.printInfo(Module.LIGHT, ""  * Light samples:       %d"", numLightSamples);
+        UI.printInfo(Module.LIGHT, ""  * Max raytrace depth:"");
+        UI.printInfo(Module.LIGHT, ""      - Diffuse          %d"", maxDiffuseDepth);
+        UI.printInfo(Module.LIGHT, ""      - Reflection       %d"", maxReflectionDepth);
+        UI.printInfo(Module.LIGHT, ""      - Refraction       %d"", maxRefractionDepth);
+        UI.printInfo(Module.LIGHT, ""  * GI engine            %s"", options.getString(""gi.engine"", ""none""));
+        UI.printInfo(Module.LIGHT, ""  * Caustics:            %s"", caustics == null ? ""none"" : caustics);
+        UI.printInfo(Module.LIGHT, ""  * Shader override:     %b"", shaderOverride);
+        UI.printInfo(Module.LIGHT, ""  * Photon override:     %b"", shaderOverridePhotons);
+        UI.printInfo(Module.LIGHT, ""  * Shading cache:       %s"", shadingCache == null ? ""off"" : ""on"");
+        UI.printInfo(Module.LIGHT, ""  * Build time:          %s"", t.toString());
+        return true;
+    }
+
+    "

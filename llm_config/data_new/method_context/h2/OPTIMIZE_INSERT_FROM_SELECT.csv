@@ -1,0 +1,195 @@
+Method,Called_Method,function,Method_body,option,Method_short,path,class_name,xml_path
+"M:org.h2.command.query.SelectUnion:queryWithoutCache(long,org.h2.result.ResultTarget)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    protected ResultInterface queryWithoutCache(long maxRows, ResultTarget target) {
+        OffsetFetch offsetFetch = getOffsetFetch(maxRows);
+        long offset = offsetFetch.offset;
+        long fetch = offsetFetch.fetch;
+        boolean fetchPercent = offsetFetch.fetchPercent;
+        Database db = session.getDatabase();
+        if (db.getSettings().optimizeInsertFromSelect) {
+            if (unionType == UnionType.UNION_ALL && target != null) {
+                if (sort == null && !distinct && fetch < 0 && offset == 0) {
+                    left.query(0, target);
+                    right.query(0, target);
+                    return null;
+                }
+            }
+        }
+        int columnCount = left.getColumnCount();
+        if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
+                sort == null && !randomAccessResult && !isForUpdate &&
+                offset == 0 && !fetchPercent && !withTies && isReadOnly()) {
+            // limit 0 means no rows
+            if (fetch != 0) {
+                LazyResultUnion lazyResult = new LazyResultUnion(expressionArray, columnCount);
+                if (fetch > 0) {
+                    lazyResult.setLimit(fetch);
+                }
+                return lazyResult;
+            }
+        }
+        LocalResult result = createLocalResult(columnCount);
+        if (sort != null) {
+            result.setSortOrder(sort);
+        }
+        if (distinct) {
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
+            result.setDistinct();
+        }
+        switch (unionType) {
+        case UNION:
+        case EXCEPT:
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
+            result.setDistinct();
+            break;
+        case UNION_ALL:
+            break;
+        case INTERSECT:
+            left.setDistinctIfPossible();
+            right.setDistinctIfPossible();
+            break;
+        default:
+            throw DbException.getInternalError(""type="" + unionType);
+        }
+        ResultInterface l = left.query(0);
+        ResultInterface r = right.query(0);
+        l.reset();
+        r.reset();
+        switch (unionType) {
+        case UNION_ALL:
+        case UNION: {
+            while (l.next()) {
+                result.addRow(convert(l.currentRow(), columnCount));
+            }
+            while (r.next()) {
+                result.addRow(convert(r.currentRow(), columnCount));
+            }
+            break;
+        }
+        case EXCEPT: {
+            while (l.next()) {
+                result.addRow(convert(l.currentRow(), columnCount));
+            }
+            while (r.next()) {
+                result.removeDistinct(convert(r.currentRow(), columnCount));
+            }
+            break;
+        }
+        case INTERSECT: {
+            LocalResult temp = createLocalResult(columnCount);
+            temp.setDistinct();
+            while (l.next()) {
+                temp.addRow(convert(l.currentRow(), columnCount));
+            }
+            while (r.next()) {
+                Value[] values = convert(r.currentRow(), columnCount);
+                if (temp.containsDistinct(values)) {
+                    result.addRow(values);
+                }
+            }
+            temp.close();
+            break;
+        }
+        default:
+            throw DbException.getInternalError(""type="" + unionType);
+        }
+        l.close();
+        r.close();
+        return finishResult(result, offset, fetch, fetchPercent, target);
+    }
+
+    ",OPTIMIZE_INSERT_FROM_SELECT,queryWithoutCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/query/SelectUnion.java,SelectUnion,../data/xml/h2/SelectUnion.xml
+"M:org.h2.command.query.Select:queryWithoutCache(long,org.h2.result.ResultTarget)",(M)org.h2.engine.Database:getSettings(),org.h2.engine.Database:getSettings(),"@Override
+    protected ResultInterface queryWithoutCache(long maxRows, ResultTarget target) {
+        disableLazyForJoinSubqueries(topTableFilter);
+        OffsetFetch offsetFetch = getOffsetFetch(maxRows);
+        long offset = offsetFetch.offset;
+        long fetch = offsetFetch.fetch;
+        boolean fetchPercent = offsetFetch.fetchPercent;
+        boolean lazy = session.isLazyQueryExecution() &&
+                target == null && !isForUpdate && !isQuickAggregateQuery &&
+                fetch != 0 && !fetchPercent && !withTies && offset == 0 && isReadOnly();
+        int columnCount = expressions.size();
+        LocalResult result = null;
+        if (!lazy && (target == null ||
+                !session.getDatabase().getSettings().optimizeInsertFromSelect)) {
+            result = createLocalResult(result);
+        }
+        // Do not add rows before OFFSET to result if possible
+        boolean quickOffset = !fetchPercent;
+        if (sort != null && (!sortUsingIndex || isAnyDistinct())) {
+            result = createLocalResult(result);
+            result.setSortOrder(sort);
+            if (!sortUsingIndex) {
+                quickOffset = false;
+            }
+        }
+        if (distinct) {
+            if (!isDistinctQuery) {
+                quickOffset = false;
+                result = createLocalResult(result);
+                result.setDistinct();
+            }
+        } else if (distinctExpressions != null) {
+            quickOffset = false;
+            result = createLocalResult(result);
+            result.setDistinct(distinctIndexes);
+        }
+        if (isWindowQuery || isGroupQuery && !isGroupSortedQuery) {
+            result = createLocalResult(result);
+        }
+        if (!lazy && (fetch >= 0 || offset > 0)) {
+            result = createLocalResult(result);
+        }
+        topTableFilter.startQuery(session);
+        topTableFilter.reset();
+        topTableFilter.lock(session);
+        ResultTarget to = result != null ? result : target;
+        lazy &= to == null;
+        LazyResult lazyResult = null;
+        if (fetch != 0) {
+            // Cannot apply limit now if percent is specified
+            long limit = fetchPercent ? -1 : fetch;
+            if (isQuickAggregateQuery) {
+                queryQuick(columnCount, to, quickOffset && offset > 0);
+            } else if (isWindowQuery) {
+                if (isGroupQuery) {
+                    queryGroupWindow(columnCount, result, offset, quickOffset);
+                } else {
+                    queryWindow(columnCount, result, offset, quickOffset);
+                }
+            } else if (isGroupQuery) {
+                if (isGroupSortedQuery) {
+                    lazyResult = queryGroupSorted(columnCount, to, offset, quickOffset);
+                } else {
+                    queryGroup(columnCount, result, offset, quickOffset);
+                }
+            } else if (isDistinctQuery) {
+                queryDistinct(to, offset, limit, withTies, quickOffset);
+            } else {
+                lazyResult = queryFlat(columnCount, to, offset, limit, withTies, quickOffset);
+            }
+            if (quickOffset) {
+                offset = 0;
+            }
+        }
+        assert lazy == (lazyResult != null) : lazy;
+        if (lazyResult != null) {
+            if (fetch > 0) {
+                lazyResult.setLimit(fetch);
+            }
+            if (randomAccessResult) {
+                return convertToDistinct(lazyResult);
+            } else {
+                return lazyResult;
+            }
+        }
+        if (result != null) {
+            return finishResult(result, offset, fetch, fetchPercent, target);
+        }
+        return null;
+    }
+
+    ",OPTIMIZE_INSERT_FROM_SELECT,queryWithoutCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/h2database/h2/src/main/org/h2/command/query/Select.java,Select,../data/xml/h2/Select.xml

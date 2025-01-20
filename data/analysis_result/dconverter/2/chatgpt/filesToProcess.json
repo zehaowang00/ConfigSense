@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'filesToProcess' configuration in the dconverter project directly influences the number of files the system processes in a single execution. A higher number of files can lead to increased memory consumption and longer execution times due to the overhead of managing more data concurrently. Conversely, a lower number of files can reduce resource usage and improve performance. Therefore, changes in this configuration can significantly affect system performance, making it performance-sensitive."
+}

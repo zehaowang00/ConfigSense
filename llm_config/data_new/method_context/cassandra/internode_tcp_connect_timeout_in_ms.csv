@@ -1,0 +1,14 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.net.OutboundConnectionSettings:tcpConnectTimeoutInMS(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeTcpConnectTimeoutInMS(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeTcpConnectTimeoutInMS(),internode_tcp_connect_timeout_in_ms,tcpConnectTimeoutInMS,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/net/OutboundConnectionSettings.java,OutboundConnectionSettings,../data/xml/cassandra/OutboundConnectionSettings.xml,"public int tcpConnectTimeoutInMS()
+    {
+        return tcpConnectTimeoutInMS != null ? tcpConnectTimeoutInMS
+                                             : DatabaseDescriptor.getInternodeTcpConnectTimeoutInMS();
+    }
+
+    "
+M:org.apache.cassandra.service.StorageService:getInternodeTcpConnectTimeoutInMS(),(S)org.apache.cassandra.config.DatabaseDescriptor:getInternodeTcpConnectTimeoutInMS(),org.apache.cassandra.config.DatabaseDescriptor:getInternodeTcpConnectTimeoutInMS(),internode_tcp_connect_timeout_in_ms,getInternodeTcpConnectTimeoutInMS,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageService.java,StorageService,../data/xml/cassandra/StorageService.xml,"public int getInternodeTcpConnectTimeoutInMS()
+    {
+        return DatabaseDescriptor.getInternodeTcpConnectTimeoutInMS();
+    }
+
+    "

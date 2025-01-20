@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'report_unconfirmed_repaired_data_mismatches' in Cassandra is performance-sensitive because it directly impacts the way the system handles data consistency and repair processes. When this option is enabled, the system may incur additional overhead in tracking and reporting mismatches, which can lead to increased execution time and memory consumption during repair operations. Conversely, disabling it could lead to faster repairs but at the risk of potentially missing critical data integrity issues. Therefore, changes to this configuration can significantly affect overall system performance and resource utilization."
+}

@@ -1,0 +1,40 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.service.CacheService:initRowCache(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSavePeriod(),org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSavePeriod(),row_cache_save_period,initRowCache,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"/**
+     * @return initialized row cache
+     */
+private AutoSavingCache<RowCacheKey, IRowCacheEntry> initRowCache()
+    {
+        logger.info(""Initializing row cache with capacity of {} MBs"", DatabaseDescriptor.getRowCacheSizeInMB());
+
+        CacheProvider<RowCacheKey, IRowCacheEntry> cacheProvider;
+        String cacheProviderClassName = DatabaseDescriptor.getRowCacheSizeInMB() > 0
+                                        ? DatabaseDescriptor.getRowCacheClassName() : ""org.apache.cassandra.cache.NopCacheProvider"";
+        try
+        {
+            Class<CacheProvider<RowCacheKey, IRowCacheEntry>> cacheProviderClass =
+                (Class<CacheProvider<RowCacheKey, IRowCacheEntry>>) Class.forName(cacheProviderClassName);
+            cacheProvider = cacheProviderClass.newInstance();
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(""Cannot find configured row cache provider class "" + DatabaseDescriptor.getRowCacheClassName());
+        }
+
+        // cache object
+        ICache<RowCacheKey, IRowCacheEntry> rc = cacheProvider.create();
+        AutoSavingCache<RowCacheKey, IRowCacheEntry> rowCache = new AutoSavingCache<>(rc, CacheType.ROW_CACHE, new RowCacheSerializer());
+
+        int rowCacheKeysToSave = DatabaseDescriptor.getRowCacheKeysToSave();
+
+        rowCache.scheduleSaving(DatabaseDescriptor.getRowCacheSavePeriod(), rowCacheKeysToSave);
+
+        return rowCache;
+    }
+
+    "
+M:org.apache.cassandra.service.CacheService:getRowCacheSavePeriodInSeconds(),(S)org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSavePeriod(),org.apache.cassandra.config.DatabaseDescriptor:getRowCacheSavePeriod(),row_cache_save_period,getRowCacheSavePeriodInSeconds,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/CacheService.java,CacheService,../data/xml/cassandra/CacheService.xml,"public int getRowCacheSavePeriodInSeconds()
+    {
+        return DatabaseDescriptor.getRowCacheSavePeriod();
+    }
+
+    "

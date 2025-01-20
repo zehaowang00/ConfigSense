@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'DATABASE_TO_LOWER' in the H2 database affects how data is stored and queried. Changing this setting can lead to significant variations in execution time, especially in case-sensitive queries or when handling string comparisons. If the database is set to convert all identifiers to lowercase, it can impact the performance of queries that rely on case sensitivity, potentially leading to increased execution time and memory consumption due to the need for additional processing to handle case conversions. Therefore, this configuration is considered performance-sensitive."
+}

@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "internode_tcp_connect_timeout_in_ms",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public int tcpConnectTimeoutInMS()\n    {\n        return tcpConnectTimeoutInMS != null ? tcpConnectTimeoutInMS\n                                             : DatabaseDescriptor.getInternodeTcpConnectTimeoutInMS();\n    }\n\n    \npublic int getInternodeTcpConnectTimeoutInMS()\n    {\n        return DatabaseDescriptor.getInternodeTcpConnectTimeoutInMS();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `internode_tcp_connect_timeout_in_ms` configuration primarily affects the timeout duration for TCP connections, which is a relatively minor aspect of overall system performance. While it can influence connection establishment times, it does not involve time-intensive or memory-intensive operations that would lead to substantial performance variations. The impact of this configuration is more about responsiveness rather than significant resource consumption."
+        }
+    ]
+}

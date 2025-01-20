@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "internode_application_send_queue_capacity_in_bytes",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public int applicationSendQueueCapacityInBytes()\n    {\n        return applicationSendQueueCapacityInBytes != null ? applicationSendQueueCapacityInBytes\n                                                           : DatabaseDescriptor.getInternodeApplicationSendQueueCapacityInBytes();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The method retrieves the application send queue capacity in bytes, either from a potentially cached value or by calling a method from the DatabaseDescriptor. Since this operation involves a simple conditional check and a method call that does not appear to involve heavy computation or memory allocation, it is unlikely to have a substantial impact on system performance. The configuration does not directly cause significant performance variations through time-consuming or memory-heavy operations."
+        }
+    ]
+}

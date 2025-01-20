@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_application_receive_queue_capacity_in_bytes' in Cassandra is performance-sensitive because it directly influences the capacity of the queue that handles incoming application requests between nodes. A higher capacity can reduce the likelihood of dropped requests during peak loads, leading to improved throughput and lower latency. Conversely, a lower capacity may result in increased contention and delays, significantly affecting execution time and overall system performance. Therefore, changes to this configuration can have a notable impact on the system's ability to handle concurrent operations efficiently."
+}

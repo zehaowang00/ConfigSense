@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "key_cache_save_period",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "/**\n     * @return auto saving cache object\n     */\nprivate AutoSavingCache<KeyCacheKey, RowIndexEntry> initKeyCache()\n    {\n        logger.info(\"Initializing key cache with capacity of {} MBs.\", DatabaseDescriptor.getKeyCacheSizeInMB());\n\n        long keyCacheInMemoryCapacity = DatabaseDescriptor.getKeyCacheSizeInMB() * 1024 * 1024;\n\n        // as values are constant size we can use singleton weigher\n        // where 48 = 40 bytes (average size of the key) + 8 bytes (size of value)\n        ICache<KeyCacheKey, RowIndexEntry> kc;\n        kc = CaffeineCache.create(keyCacheInMemoryCapacity);\n        AutoSavingCache<KeyCacheKey, RowIndexEntry> keyCache = new AutoSavingCache<>(kc, CacheType.KEY_CACHE, new KeyCacheSerializer());\n\n        int keyCacheKeysToSave = DatabaseDescriptor.getKeyCacheKeysToSave();\n\n        keyCache.scheduleSaving(DatabaseDescriptor.getKeyCacheSavePeriod(), keyCacheKeysToSave);\n\n        return keyCache;\n    }\n\n    \npublic int getKeyCacheSavePeriodInSeconds()\n    {\n        return DatabaseDescriptor.getKeyCacheSavePeriod();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The `key_cache_save_period` directly influences how frequently the key cache is saved, which can significantly affect memory usage and the performance of the system during high-load scenarios. If the save period is too short, it could lead to excessive I/O operations, consuming CPU and memory resources, while a longer save period could result in stale data and increased memory consumption. Thus, the configuration has a substantial impact on system-level performance due to its potential to cause time-intensive operations related to cache management."
+        }
+    ]
+}

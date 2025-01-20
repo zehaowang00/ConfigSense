@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'row_cache_class_name' configuration in Cassandra determines the implementation of the row cache used by the database. Changing this configuration can significantly impact how data is cached and retrieved, which directly affects execution time and memory consumption. For instance, different caching strategies may optimize for read performance or memory usage differently, leading to notable variations in system performance under different workloads. Therefore, this configuration is classified as performance-sensitive."
+}

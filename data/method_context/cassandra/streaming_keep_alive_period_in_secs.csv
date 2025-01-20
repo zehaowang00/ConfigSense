@@ -1,0 +1,35 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.streaming.StreamSession:logError(java.lang.Throwable),(S)org.apache.cassandra.config.DatabaseDescriptor:getStreamingKeepAlivePeriod(),org.apache.cassandra.config.DatabaseDescriptor:getStreamingKeepAlivePeriod(),streaming_keep_alive_period_in_secs,logError,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/streaming/StreamSession.java,StreamSession,../data/xml/cassandra/StreamSession.xml,"private void logError(Throwable e)
+    {
+        if (e instanceof SocketTimeoutException)
+        {
+            logger.error(""[Stream #{}] Did not receive response from peer {}{} for {} secs. Is peer down? "" +
+                         ""If not, maybe try increasing streaming_keep_alive_period_in_secs."", planId(),
+                         peer.getHostAddressAndPort(),
+                         template.connectTo == null ? """" : "" through "" + template.connectTo.getHostAddressAndPort(),
+                         2 * DatabaseDescriptor.getStreamingKeepAlivePeriod(),
+                         e);
+        }
+        else
+        {
+            logger.error(""[Stream #{}] Streaming error occurred on session with peer {}{}"", planId(),
+                         peer.getHostAddressAndPort(),
+                         template.connectTo == null ? """" : "" through "" + template.connectTo.getHostAddressAndPort(),
+                         e);
+        }
+    }
+
+    "
+M:org.apache.cassandra.streaming.async.NettyStreamingMessageSender:scheduleKeepAliveTask(io.netty.channel.Channel),(S)org.apache.cassandra.config.DatabaseDescriptor:getStreamingKeepAlivePeriod(),org.apache.cassandra.config.DatabaseDescriptor:getStreamingKeepAlivePeriod(),streaming_keep_alive_period_in_secs,scheduleKeepAliveTask,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/streaming/async/NettyStreamingMessageSender.java,NettyStreamingMessageSender,../data/xml/cassandra/NettyStreamingMessageSender.xml,"private void scheduleKeepAliveTask(Channel channel)
+    {
+        int keepAlivePeriod = DatabaseDescriptor.getStreamingKeepAlivePeriod();
+        if (logger.isDebugEnabled())
+            logger.debug(""{} Scheduling keep-alive task with {}s period."", createLogTag(session, channel), keepAlivePeriod);
+
+        KeepAliveTask task = new KeepAliveTask(channel, session);
+        ScheduledFuture<?> scheduledFuture = channel.eventLoop().scheduleAtFixedRate(task, 0, keepAlivePeriod, TimeUnit.SECONDS);
+        channelKeepAlives.add(scheduledFuture);
+        task.future = scheduledFuture;
+    }
+    
+    "

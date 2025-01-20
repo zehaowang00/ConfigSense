@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'phi_convict_threshold' configuration in Cassandra is critical for determining how aggressively the system detects and handles unresponsive nodes. A lower threshold may lead to quicker eviction of nodes from the cluster, which can significantly impact system performance by increasing the frequency of node replacements and potential data inconsistencies. Conversely, a higher threshold may delay the detection of problematic nodes, leading to prolonged periods of degraded performance. Thus, changes to this configuration can lead to notable variations in execution time and overall system stability."
+}

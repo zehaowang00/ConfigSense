@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'max_hints_file_size_in_mb' in Cassandra directly influences the amount of data that can be stored for hints, which are used for ensuring data consistency during node outages. If this limit is set too low, it can lead to frequent purging of hints, causing increased execution time for read and write operations as the system must handle more inconsistencies. Conversely, if set too high, it can lead to excessive memory consumption and potential performance degradation due to increased garbage collection overhead. Therefore, changes to this configuration can significantly impact both execution time and memory usage, classifying it as performance-sensitive."
+}

@@ -1,0 +1,318 @@
+Method,Called_Method,Jar_name,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.batik.transcoder.SVGAbstractTranscoder:transcode(org.w3c.dom.Document,java.lang.String,org.apache.batik.transcoder.TranscoderOutput)",(M)org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:get(java.lang.Object),HEIGHT,transcode,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/SVGAbstractTranscoder.java,SVGAbstractTranscoder,../data/xml/batik/SVGAbstractTranscoder.xml,"/**
+     * Transcodes the specified Document as an image in the specified output.
+     *
+     * @param document the document to transcode
+     * @param uri the uri of the document or null if any
+     * @param output the ouput where to transcode
+     * @exception TranscoderException if an error occured while transcoding
+     */
+protected void transcode(Document document,
+                             String uri,
+                             TranscoderOutput output)
+            throws TranscoderException {
+
+        if ((document != null) &&
+            !(document.getImplementation() instanceof SVGDOMImplementation)) {
+            DOMImplementation impl;
+            impl = (DOMImplementation)hints.get(KEY_DOM_IMPLEMENTATION);
+            // impl = SVGDOMImplementation.getDOMImplementation();
+            document = DOMUtilities.deepCloneDocument(document, impl);
+            if (uri != null) {
+                ParsedURL url = new ParsedURL(uri);
+                ((SVGOMDocument)document).setParsedURL(url);
+            }
+        }
+
+        if (hints.containsKey(KEY_WIDTH))
+            width = (Float) hints.get(KEY_WIDTH);
+        if (hints.containsKey(KEY_HEIGHT))
+            height = (Float) hints.get(KEY_HEIGHT);
+
+
+        SVGOMDocument svgDoc = (SVGOMDocument)document;
+        SVGSVGElement root = svgDoc.getRootElement();
+        ctx = createBridgeContext(svgDoc);
+
+        // build the GVT tree
+        builder = new GVTBuilder();
+        // flag that indicates if the document is dynamic
+        boolean isDynamic =
+            hints.containsKey(KEY_EXECUTE_ONLOAD) &&
+                    (Boolean) hints.get(KEY_EXECUTE_ONLOAD);
+
+        GraphicsNode gvtRoot;
+        try {
+            if (isDynamic)
+                ctx.setDynamicState(BridgeContext.DYNAMIC);
+
+            gvtRoot = builder.build(ctx, svgDoc);
+
+            // dispatch an 'onload' event if needed
+            if (ctx.isDynamic()) {
+                BaseScriptingEnvironment se;
+                se = new BaseScriptingEnvironment(ctx);
+                se.loadScripts();
+                se.dispatchSVGLoadEvent();
+                if (hints.containsKey(KEY_SNAPSHOT_TIME)) {
+                    float t =
+                            (Float) hints.get(KEY_SNAPSHOT_TIME);
+                    ctx.getAnimationEngine().setCurrentTime(t);
+                } else if (ctx.isSVG12()) {
+                    float t = SVGUtilities.convertSnapshotTime(root, null);
+                    ctx.getAnimationEngine().setCurrentTime(t);
+                }
+            }
+        } catch (BridgeException ex) {
+            throw new TranscoderException(ex);
+        }
+
+        // get the 'width' and 'height' attributes of the SVG document
+        float docWidth = (float)ctx.getDocumentSize().getWidth();
+        float docHeight = (float)ctx.getDocumentSize().getHeight();
+
+        setImageSize(docWidth, docHeight);
+
+        // compute the preserveAspectRatio matrix
+        AffineTransform Px;
+
+        // take the AOI into account if any
+        if (hints.containsKey(KEY_AOI)) {
+            Rectangle2D aoi = (Rectangle2D)hints.get(KEY_AOI);
+            // transform the AOI into the image's coordinate system
+            Px = new AffineTransform();
+            double sx = width / aoi.getWidth();
+            double sy = height / aoi.getHeight();
+            double scale = Math.min(sx,sy);
+            Px.scale(scale, scale);
+            double tx = -aoi.getX() + (width/scale - aoi.getWidth())/2;
+            double ty = -aoi.getY() + (height/scale -aoi.getHeight())/2;
+            Px.translate(tx, ty);
+            // take the AOI transformation matrix into account
+            // we apply first the preserveAspectRatio matrix
+            curAOI = aoi;
+        } else {
+            String ref = new ParsedURL(uri).getRef();
+
+            // XXX Update this to use the animated value of 'viewBox' and
+            //     'preserveAspectRatio'.
+            String viewBox = root.getAttributeNS
+                (null, SVGConstants.SVG_VIEW_BOX_ATTRIBUTE);
+
+            if ((ref != null) && (ref.length() != 0)) {
+                Px = ViewBox.getViewTransform(ref, root, width, height, ctx);
+            } else if ((viewBox != null) && (viewBox.length() != 0)) {
+                String aspectRatio = root.getAttributeNS
+                    (null, SVGConstants.SVG_PRESERVE_ASPECT_RATIO_ATTRIBUTE);
+                Px = ViewBox.getPreserveAspectRatioTransform
+                    (root, viewBox, aspectRatio, width, height, ctx);
+            } else {
+                // no viewBox has been specified, create a scale transform
+                float xscale, yscale;
+                xscale = width/docWidth;
+                yscale = height/docHeight;
+                float scale = Math.min(xscale,yscale);
+                Px = AffineTransform.getScaleInstance(scale, scale);
+            }
+
+            curAOI = new Rectangle2D.Float(0, 0, width, height);
+        }
+
+        CanvasGraphicsNode cgn = getCanvasGraphicsNode(gvtRoot);
+        if (cgn != null) {
+            cgn.setViewingTransform(Px);
+            curTxf = new AffineTransform();
+        } else {
+            curTxf = Px;
+        }
+
+        this.root = gvtRoot;
+    }
+
+    "
+"M:org.apache.batik.transcoder.SVGAbstractTranscoder:transcode(org.w3c.dom.Document,java.lang.String,org.apache.batik.transcoder.TranscoderOutput)",(M)org.apache.batik.transcoder.TranscodingHints:getKey_HEIGHT(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:getKey_HEIGHT(java.lang.Object),HEIGHT,transcode,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/SVGAbstractTranscoder.java,SVGAbstractTranscoder,../data/xml/batik/SVGAbstractTranscoder.xml,"/**
+     * Transcodes the specified Document as an image in the specified output.
+     *
+     * @param document the document to transcode
+     * @param uri the uri of the document or null if any
+     * @param output the ouput where to transcode
+     * @exception TranscoderException if an error occured while transcoding
+     */
+protected void transcode(Document document,
+                             String uri,
+                             TranscoderOutput output)
+            throws TranscoderException {
+
+        if ((document != null) &&
+            !(document.getImplementation() instanceof SVGDOMImplementation)) {
+            DOMImplementation impl;
+            impl = (DOMImplementation)hints.get(KEY_DOM_IMPLEMENTATION);
+            // impl = SVGDOMImplementation.getDOMImplementation();
+            document = DOMUtilities.deepCloneDocument(document, impl);
+            if (uri != null) {
+                ParsedURL url = new ParsedURL(uri);
+                ((SVGOMDocument)document).setParsedURL(url);
+            }
+        }
+
+        if (hints.containsKey(KEY_WIDTH))
+            width = (Float) hints.get(KEY_WIDTH);
+        if (hints.containsKey(KEY_HEIGHT))
+            height = (Float) hints.get(KEY_HEIGHT);
+
+
+        SVGOMDocument svgDoc = (SVGOMDocument)document;
+        SVGSVGElement root = svgDoc.getRootElement();
+        ctx = createBridgeContext(svgDoc);
+
+        // build the GVT tree
+        builder = new GVTBuilder();
+        // flag that indicates if the document is dynamic
+        boolean isDynamic =
+            hints.containsKey(KEY_EXECUTE_ONLOAD) &&
+                    (Boolean) hints.get(KEY_EXECUTE_ONLOAD);
+
+        GraphicsNode gvtRoot;
+        try {
+            if (isDynamic)
+                ctx.setDynamicState(BridgeContext.DYNAMIC);
+
+            gvtRoot = builder.build(ctx, svgDoc);
+
+            // dispatch an 'onload' event if needed
+            if (ctx.isDynamic()) {
+                BaseScriptingEnvironment se;
+                se = new BaseScriptingEnvironment(ctx);
+                se.loadScripts();
+                se.dispatchSVGLoadEvent();
+                if (hints.containsKey(KEY_SNAPSHOT_TIME)) {
+                    float t =
+                            (Float) hints.get(KEY_SNAPSHOT_TIME);
+                    ctx.getAnimationEngine().setCurrentTime(t);
+                } else if (ctx.isSVG12()) {
+                    float t = SVGUtilities.convertSnapshotTime(root, null);
+                    ctx.getAnimationEngine().setCurrentTime(t);
+                }
+            }
+        } catch (BridgeException ex) {
+            throw new TranscoderException(ex);
+        }
+
+        // get the 'width' and 'height' attributes of the SVG document
+        float docWidth = (float)ctx.getDocumentSize().getWidth();
+        float docHeight = (float)ctx.getDocumentSize().getHeight();
+
+        setImageSize(docWidth, docHeight);
+
+        // compute the preserveAspectRatio matrix
+        AffineTransform Px;
+
+        // take the AOI into account if any
+        if (hints.containsKey(KEY_AOI)) {
+            Rectangle2D aoi = (Rectangle2D)hints.get(KEY_AOI);
+            // transform the AOI into the image's coordinate system
+            Px = new AffineTransform();
+            double sx = width / aoi.getWidth();
+            double sy = height / aoi.getHeight();
+            double scale = Math.min(sx,sy);
+            Px.scale(scale, scale);
+            double tx = -aoi.getX() + (width/scale - aoi.getWidth())/2;
+            double ty = -aoi.getY() + (height/scale -aoi.getHeight())/2;
+            Px.translate(tx, ty);
+            // take the AOI transformation matrix into account
+            // we apply first the preserveAspectRatio matrix
+            curAOI = aoi;
+        } else {
+            String ref = new ParsedURL(uri).getRef();
+
+            // XXX Update this to use the animated value of 'viewBox' and
+            //     'preserveAspectRatio'.
+            String viewBox = root.getAttributeNS
+                (null, SVGConstants.SVG_VIEW_BOX_ATTRIBUTE);
+
+            if ((ref != null) && (ref.length() != 0)) {
+                Px = ViewBox.getViewTransform(ref, root, width, height, ctx);
+            } else if ((viewBox != null) && (viewBox.length() != 0)) {
+                String aspectRatio = root.getAttributeNS
+                    (null, SVGConstants.SVG_PRESERVE_ASPECT_RATIO_ATTRIBUTE);
+                Px = ViewBox.getPreserveAspectRatioTransform
+                    (root, viewBox, aspectRatio, width, height, ctx);
+            } else {
+                // no viewBox has been specified, create a scale transform
+                float xscale, yscale;
+                xscale = width/docWidth;
+                yscale = height/docHeight;
+                float scale = Math.min(xscale,yscale);
+                Px = AffineTransform.getScaleInstance(scale, scale);
+            }
+
+            curAOI = new Rectangle2D.Float(0, 0, width, height);
+        }
+
+        CanvasGraphicsNode cgn = getCanvasGraphicsNode(gvtRoot);
+        if (cgn != null) {
+            cgn.setViewingTransform(Px);
+            curTxf = new AffineTransform();
+        } else {
+            curTxf = Px;
+        }
+
+        this.root = gvtRoot;
+    }
+
+    "
+"M:org.apache.batik.transcoder.SVGAbstractTranscoder:setImageSize(float,float)",(M)org.apache.batik.transcoder.TranscodingHints:getKey_HEIGHT(java.lang.Object),batik-all-1.14,org.apache.batik.transcoder.TranscodingHints:getKey_HEIGHT(java.lang.Object),HEIGHT,setImageSize,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/xmlgraphics-batik/batik-transcoder/src/main/java/org/apache/batik/transcoder/SVGAbstractTranscoder.java,SVGAbstractTranscoder,../data/xml/batik/SVGAbstractTranscoder.xml,"/**
+     * Sets document size according to the hints.
+     * Global variables width and height are modified.
+     *
+     * @param docWidth Width of the document.
+     * @param docHeight Height of the document.
+     */
+protected void setImageSize(float docWidth, float docHeight) {
+
+        // Compute the image's width and height according the hints
+        float imgWidth = -1;
+        if (hints.containsKey(KEY_WIDTH)) {
+            imgWidth = (Float) hints.get(KEY_WIDTH);
+        }
+        float imgHeight = -1;
+        if (hints.containsKey(KEY_HEIGHT)) {
+            imgHeight = (Float) hints.get(KEY_HEIGHT);
+        }
+
+        if (imgWidth > 0 && imgHeight > 0) {
+            width = imgWidth;
+            height = imgHeight;
+        } else if (imgHeight > 0) {
+            width = (docWidth * imgHeight) / docHeight;
+            height = imgHeight;
+        } else if (imgWidth > 0) {
+            width = imgWidth;
+            height = (docHeight * imgWidth) / docWidth;
+        } else {
+            width = docWidth;
+            height = docHeight;
+        }
+
+        // Limit image size according to the maximuxm size hints.
+        float imgMaxWidth = -1;
+        if (hints.containsKey(KEY_MAX_WIDTH)) {
+            imgMaxWidth = (Float) hints.get(KEY_MAX_WIDTH);
+        }
+        float imgMaxHeight = -1;
+        if (hints.containsKey(KEY_MAX_HEIGHT)) {
+            imgMaxHeight = (Float) hints.get(KEY_MAX_HEIGHT);
+        }
+
+        if ((imgMaxHeight > 0) && (height > imgMaxHeight)) {
+            width = (docWidth * imgMaxHeight) / docHeight;
+            height = imgMaxHeight;
+        }
+        if ((imgMaxWidth > 0) && (width > imgMaxWidth)) {
+            width = imgMaxWidth;
+            height = (docHeight * imgMaxWidth) / docWidth;
+        }
+    }
+
+
+    "

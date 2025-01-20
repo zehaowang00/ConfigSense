@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "Yes",
+    "config_name": "OPTIMIZE_IN_SELECT",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "@Override\n    public Value getValue(SessionLocal session) {\n        return getValue(session, left.getValue(session));\n    }\n\n    \nprivate Value getValue(SessionLocal session, Value left) {\n        query.setSession(session);\n        LocalResult rows = (LocalResult) query.query(0);\n        if (!rows.hasNext()) {\n            return ValueBoolean.get(not ^ all);\n        }\n        if ((compareType & ~1) == Comparison.EQUAL_NULL_SAFE) {\n            return getNullSafeValueSlow(session, rows, left);\n        }\n        if (left.containsNull()) {\n            return ValueNull.INSTANCE;\n        }\n        if (all || compareType != Comparison.EQUAL || !session.getDatabase().getSettings().optimizeInSelect) {\n            return getValueSlow(session, rows, left);\n        }\n        int columnCount = query.getColumnCount();\n        if (columnCount != 1) {\n            Value[] leftValue = left.convertToAnyRow().getList();\n            if (columnCount == leftValue.length && rows.containsDistinct(leftValue)) {\n                return ValueBoolean.get(!not);\n            }\n        } else {\n            TypeInfo colType = rows.getColumnType(0);\n            if (colType.getValueType() == Value.NULL) {\n                return ValueNull.INSTANCE;\n            }\n            if (left.getValueType() == Value.ROW) {\n                left = ((ValueRow) left).getList()[0];\n            }\n            if (rows.containsDistinct(new Value[] { left })) {\n                return ValueBoolean.get(!not);\n            }\n        }"
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Sensitive: The configuration `OPTIMIZE_IN_SELECT` directly influences the execution path of the `getValue` method, particularly in scenarios where the query results are processed. If this optimization is disabled, the code falls back to the `getValueSlow` method, which indicates a potentially more time-intensive operation. Since this can lead to significant performance variations based on the presence or absence of this optimization, it qualifies as performance-sensitive due to its impact on the execution time of queries."
+        }
+    ]
+}

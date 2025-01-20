@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'authorizer' configuration in Cassandra is performance-sensitive because it directly influences access control and authorization processes. Changes to this configuration can lead to variations in the execution time of queries, especially in environments with a high number of concurrent users or complex permission settings. If the authorizer is set to a more complex implementation, it can increase the overhead for each request, leading to higher latency and resource consumption. Conversely, a simpler authorizer may reduce this overhead, significantly impacting overall system performance."
+}

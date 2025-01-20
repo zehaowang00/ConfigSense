@@ -1,0 +1,84 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:at.favre.tools.dconvert.converters.IOSConverter:createMainSubFolder(java.io.File,java.lang.String,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isIosCreateImagesetFolders(),at.favre.tools.dconvert.arg.Arguments:isIosCreateImagesetFolders(),iosCreateImagesetFolders,createMainSubFolder,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/IOSConverter.java,IOSConverter,../data/xml/dconverter/IOSConverter.xml,"@Override
+    public File createMainSubFolder(File destinationFolder, String targetImageFileName, Arguments arguments) {
+        if (arguments.platform.size() > 1) {
+            destinationFolder = MiscUtil.createAndCheckFolder(new File(destinationFolder, IOS_FOLDER_NAME).getAbsolutePath(), arguments.dryRun);
+        }
+        if (arguments.iosCreateImagesetFolders) {
+            return MiscUtil.createAndCheckFolder(new File(destinationFolder, targetImageFileName + "".imageset"").getAbsolutePath(), arguments.dryRun);
+        } else {
+            return MiscUtil.createAndCheckFolder(new File(destinationFolder, ROOT_FOLDER).getAbsolutePath(), arguments.dryRun);
+        }
+    }
+
+    "
+"M:at.favre.tools.dconvert.converters.IOSConverter:onPreExecute(java.io.File,java.lang.String,java.util.List,at.favre.tools.dconvert.arg.ImageType,at.favre.tools.dconvert.arg.Arguments)",(M)at.favre.tools.dconvert.arg.Arguments:isIosCreateImagesetFolders(),at.favre.tools.dconvert.arg.Arguments:isIosCreateImagesetFolders(),iosCreateImagesetFolders,onPreExecute,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/IOSConverter.java,IOSConverter,../data/xml/dconverter/IOSConverter.xml,"@Override
+    public void onPreExecute(File dstFolder, String targetFileName, List<PostfixDescriptor> densityDescriptions, ImageType imageType, Arguments arguments) throws Exception {
+        if (!arguments.dryRun && arguments.iosCreateImagesetFolders) {
+            writeContentsJson(dstFolder, targetFileName, densityDescriptions, Arguments.getOutCompressionForType(arguments.outputCompressionMode, imageType));
+        }
+    }
+
+    "
+M:at.favre.tools.dconvert.converters.IOSConverter:clean(at.favre.tools.dconvert.arg.Arguments),(M)at.favre.tools.dconvert.arg.Arguments:isIosCreateImagesetFolders(),at.favre.tools.dconvert.arg.Arguments:isIosCreateImagesetFolders(),iosCreateImagesetFolders,clean,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/converters/IOSConverter.java,IOSConverter,../data/xml/dconverter/IOSConverter.xml,"@Override
+    public void clean(Arguments arguments) {
+        if (arguments.platform.size() == 1) {
+            if (arguments.iosCreateImagesetFolders) {
+                for (File filesToProcess : arguments.filesToProcess) {
+                    MiscUtil.deleteFolder(new File(arguments.dst, MiscUtil.getFileNameWithoutExtension(filesToProcess) + "".imageset""));
+                }
+            } else {
+                MiscUtil.deleteFolder(new File(arguments.dst, ROOT_FOLDER));
+            }
+        } else {
+            MiscUtil.deleteFolder(new File(arguments.dst, IOS_FOLDER_NAME));
+        }
+    }
+}"
+M:at.favre.tools.dconvert.ui.GUIController:loadPrefs(),(M)at.favre.tools.dconvert.arg.Arguments:isIosCreateImagesetFolders(),at.favre.tools.dconvert.arg.Arguments:isIosCreateImagesetFolders(),iosCreateImagesetFolders,loadPrefs,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/density-converter/src/main/java/at/favre/tools/dconvert/ui/GUIController.java,GUIController,../data/xml/dconverter/GUIController.xml,"private void loadPrefs() {
+        Arguments args = preferenceStore.get();
+        if (args != null) {
+            textFieldSrcPath.setText(args.src != null ? args.src.getAbsolutePath() : """");
+            textFieldDstPath.setText(args.dst != null ? args.dst.getAbsolutePath() : """");
+
+            scaleSlider.setValue(Arguments.DEFAULT_SCALE);
+            textFieldDp.setText(String.valueOf((int) args.scale));
+
+            if (args.scaleMode == EScaleMode.FACTOR) {
+                rbFactor.setSelected(true);
+                scaleSlider.setValue(args.scale);
+                textFieldDp.setText("""");
+            } else if (args.scaleMode == EScaleMode.DP_WIDTH) {
+                rbDpWidth.setSelected(true);
+            } else if (args.scaleMode == EScaleMode.DP_HEIGHT) {
+                rbDpHeight.setSelected(true);
+            }
+
+            setPlatformToogles(args.platform);
+            choiceCompression.getSelectionModel().select(args.outputCompressionMode);
+            choiceCompressionQuality.getSelectionModel().select(toJpgQ(args.compressionQuality));
+            choiceRounding.getSelectionModel().select(args.roundingHandler);
+            choiceThreads.getSelectionModel().select(Integer.valueOf(args.threadCount));
+            choiceDownScale.getSelectionModel().select(args.downScalingAlgorithm);
+            choiceUpScale.getSelectionModel().select(args.upScalingAlgorithm);
+
+            cbSkipExisting.setSelected(args.skipExistingFiles);
+            cbSkipUpscaling.setSelected(args.skipUpscaling);
+            cbAndroidIncludeLdpiTvdpi.setSelected(args.includeAndroidLdpiTvdpi);
+            cbAntiAliasing.setSelected(args.enableAntiAliasing);
+            cbMipmapInsteadDrawable.setSelected(args.createMipMapInsteadOfDrawableDir);
+            cbHaltOnError.setSelected(args.haltOnError);
+            cbDryRun.setSelected(args.dryRun);
+            cbEnablePngCrush.setSelected(args.enablePngCrush);
+            cbPostConvertWebp.setSelected(args.postConvertWebp);
+            cbEnableMozJpeg.setSelected(args.enableMozJpeg);
+            cbKeepUnoptimized.setSelected(args.keepUnoptimizedFilesPostProcessor);
+            cbIosCreateImageset.setSelected(args.iosCreateImagesetFolders);
+            cbCleanBeforeConvert.setSelected(args.clearDirBeforeConvert);
+            rbOptAdvanced.setSelected(args.guiAdvancedOptions);
+            rbOptSimple.setSelected(!args.guiAdvancedOptions);
+
+        }
+    }
+
+    "

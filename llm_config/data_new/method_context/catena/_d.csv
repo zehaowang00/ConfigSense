@@ -1,0 +1,36 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:main.java.Catena:catena(byte[],byte[],byte[],byte[],int)",(M)main.java.Catena:get_d(),main.java.Catena:get_d(),_d,catena,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/catena2/catena/src/main/java/Catena.java,Catena,../data/xml/catena/Catena.xml,"/**
+	 * Main function of catena to hash a password
+	 * 
+	 * @param pwd			Password to be hashed
+	 * @param salt			Salt of arbitrary length
+	 * @param publicInput	User choosen public input
+	 * @param gamma			Input for graph size
+	 * @param m				User desired output length of hash
+	 * 
+	 * @return xTrun		Hash of pwd
+	 */
+public byte[] catena(byte[] pwd, byte[] salt, byte[] publicInput, byte[] gamma, int m) {
+        byte[] t = this.compTweak(this.get_vId(), this.get_d(), this.get_lambda(), m, salt.length, publicInput);
+        this.get_h().update(this.helper.concateByteArrays(t, pwd, salt));
+        byte[] x = this.get_h().doFinal();
+        this.erasePwd(pwd);
+        x = this.flap((this.get_gLow() + 1) / 2, x, gamma);
+        this.get_h().update(x);
+        x = this.get_h().doFinal();
+        byte[] gByte = new byte[1];
+        int g = this.get_gLow();
+        while (g <= this.get_gHigh()) {
+            if (x.length < this.get_n()) {
+                x = this.helper.paddWithZero(x, this.get_n());
+            }
+            x = this.flap(g, x, gamma);
+            gByte[0] = (byte)g;
+            this.get_h().update(this.helper.concateByteArrays(gByte, x));
+            x = this.get_h().doFinal();
+            x = this.helper.truncate(x, m);
+            ++g;
+        }
+        return x;
+    }
+    "

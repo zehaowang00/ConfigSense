@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'enable_user_defined_functions' in Cassandra allows users to define custom functions that can be executed within the database. Enabling this feature can significantly impact system performance because user-defined functions can introduce additional computational overhead and affect query execution times. If the functions are poorly designed or resource-intensive, they can lead to increased memory consumption and longer execution times, thereby affecting overall system throughput and latency. Therefore, changes to this configuration can lead to notable variations in performance metrics."
+}

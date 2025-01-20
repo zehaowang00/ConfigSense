@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The LOB_TIMEOUT configuration in the h2 software project is performance-sensitive because it directly influences how long the system waits for large object (LOB) operations to complete. A lower timeout value can lead to premature termination of LOB operations, resulting in increased execution time due to retries or error handling. Conversely, a higher timeout may allow operations to complete but can lead to increased memory consumption and resource locking, affecting overall system throughput. Therefore, changes to this configuration can significantly impact both execution time and resource utilization, classifying it as performance-sensitive."
+}

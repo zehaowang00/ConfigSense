@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'enable_sasi_indexes' configuration in Cassandra directly influences how data is indexed and queried. Enabling SASI (SSTable Attached Secondary Indexes) can significantly improve query performance for specific use cases, particularly when dealing with complex queries and filtering on non-primary key columns. Conversely, disabling it may lead to slower query responses and increased execution time as the system may need to perform full table scans instead of leveraging the optimized indexing. Therefore, changes to this configuration can lead to notable variations in execution time and resource consumption, classifying it as performance-sensitive."
+}

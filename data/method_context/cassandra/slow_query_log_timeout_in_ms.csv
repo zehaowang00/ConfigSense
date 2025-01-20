@@ -1,0 +1,158 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+M:org.apache.cassandra.db.ReadCommandVerbHandler:doVerb(org.apache.cassandra.net.Message),(S)org.apache.cassandra.config.DatabaseDescriptor:getSlowQueryTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getSlowQueryTimeout(java.util.concurrent.TimeUnit),slow_query_log_timeout_in_ms,doVerb,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/ReadCommandVerbHandler.java,ReadCommandVerbHandler,../data/xml/cassandra/ReadCommandVerbHandler.xml,"public void doVerb(Message<ReadCommand> message)
+    {
+        if (StorageService.instance.isBootstrapMode())
+        {
+            throw new RuntimeException(""Cannot service reads while bootstrapping!"");
+        }
+
+        ReadCommand command = message.payload;
+        validateTransientStatus(message);
+
+        long timeout = message.expiresAtNanos() - message.createdAtNanos();
+        command.setMonitoringTime(message.createdAtNanos(), message.isCrossNode(), timeout, DatabaseDescriptor.getSlowQueryTimeout(NANOSECONDS));
+
+        ReadResponse response;
+        try (ReadExecutionController controller = command.executionController(message.trackRepairedData());
+             UnfilteredPartitionIterator iterator = command.executeLocally(controller))
+        {
+            response = command.createResponse(iterator, controller.getRepairedDataInfo());
+        }
+
+        if (!command.complete())
+        {
+            Tracing.trace(""Discarding partial response to {} (timed out)"", message.from());
+            MessagingService.instance().metrics.recordDroppedMessage(message, message.elapsedSinceCreated(NANOSECONDS), NANOSECONDS);
+            return;
+        }
+
+        Tracing.trace(""Enqueuing response to {}"", message.from());
+        Message<ReadResponse> reply = message.responseWith(response);
+        MessagingService.instance().send(reply, message.from());
+    }
+
+    "
+M:org.apache.cassandra.service.StorageProxy$LocalReadRunnable:runMayThrow(),(S)org.apache.cassandra.config.DatabaseDescriptor:getSlowQueryTimeout(java.util.concurrent.TimeUnit),org.apache.cassandra.config.DatabaseDescriptor:getSlowQueryTimeout(java.util.concurrent.TimeUnit),slow_query_log_timeout_in_ms,runMayThrow,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/service/StorageProxy.java,StorageProxy$LocalReadRunnable,../data/xml/cassandra/StorageProxy.xml,"public void runMayThrow()
+            {
+                try
+                {
+                    PaxosState.commit(message.payload);
+                    if (responseHandler != null)
+                        responseHandler.onResponse(null);
+                }
+                catch (Exception ex)
+                {
+                    if (!(ex instanceof WriteTimeoutException))
+                        logger.error(""Failed to apply paxos commit locally : "", ex);
+                    responseHandler.onFailure(FBUtilities.getBroadcastAddressAndPort(), RequestFailureReason.forException(ex));
+                }
+            }
+
+            
+public void runMayThrow()
+            {
+                try
+                {
+                    runnable.run();
+                }
+                catch (Exception ex)
+                {
+                    logger.error(""Failed to apply mutation locally : "", ex);
+                }
+            }
+
+            
+public void runMayThrow()
+            {
+                try
+                {
+                    runnable.run();
+                    handler.onResponse(null);
+                }
+                catch (Exception ex)
+                {
+                    if (!(ex instanceof WriteTimeoutException))
+                        logger.error(""Failed to apply mutation locally : "", ex);
+                    handler.onFailure(FBUtilities.getBroadcastAddressAndPort(), RequestFailureReason.forException(ex));
+                }
+            }
+
+            
+@Override
+            public void runMayThrow() throws OverloadedException, WriteTimeoutException
+            {
+                assert mutation instanceof CounterMutation;
+
+                Mutation result = ((CounterMutation) mutation).applyCounterMutation();
+                responseHandler.onResponse(null);
+                sendToHintedReplicas(result, replicaPlan, responseHandler, localDataCenter, Stage.COUNTER_MUTATION);
+            }
+        }
+protected void runMayThrow()
+        {
+            try
+            {
+                command.setMonitoringTime(approxCreationTimeNanos, false, verb.expiresAfterNanos(), DatabaseDescriptor.getSlowQueryTimeout(NANOSECONDS));
+
+                ReadResponse response;
+                try (ReadExecutionController controller = command.executionController(trackRepairedStatus);
+                     UnfilteredPartitionIterator iterator = command.executeLocally(controller))
+                {
+                    response = command.createResponse(iterator, controller.getRepairedDataInfo());
+                }
+
+                if (command.complete())
+                {
+                    handler.response(response);
+                }
+                else
+                {
+                    MessagingService.instance().metrics.recordSelfDroppedMessage(verb, MonotonicClock.approxTime.now() - approxCreationTimeNanos, NANOSECONDS);
+                    handler.onFailure(FBUtilities.getBroadcastAddressAndPort(), RequestFailureReason.UNKNOWN);
+                }
+
+                MessagingService.instance().latencySubscribers.add(FBUtilities.getBroadcastAddressAndPort(), MonotonicClock.approxTime.now() - approxCreationTimeNanos, NANOSECONDS);
+            }
+            catch (Throwable t)
+            {
+                if (t instanceof TombstoneOverwhelmingException)
+                {
+                    handler.onFailure(FBUtilities.getBroadcastAddressAndPort(), RequestFailureReason.READ_TOO_MANY_TOMBSTONES);
+                    logger.error(t.getMessage());
+                }
+                else
+                {
+                    handler.onFailure(FBUtilities.getBroadcastAddressAndPort(), RequestFailureReason.UNKNOWN);
+                    throw t;
+                }
+            }
+        }
+    }
+protected void runMayThrow() throws Exception
+                    {
+                        LocalMutationRunnable.this.runMayThrow();
+                    }
+                }
+public void runMayThrow()
+            {
+                Set<InetAddressAndPort> validTargets = new HashSet<>(targets.size());
+                Set<UUID> hostIds = new HashSet<>(targets.size());
+                for (InetAddressAndPort target : targets.endpoints())
+                {
+                    UUID hostId = StorageService.instance.getHostIdForEndpoint(target);
+                    if (hostId != null)
+                    {
+                        hostIds.add(hostId);
+                        validTargets.add(target);
+                    }
+                    else
+                        logger.debug(""Discarding hint for endpoint not part of ring: {}"", target);
+                }
+                logger.trace(""Adding hints for {}"", validTargets);
+                HintsService.instance.write(hostIds, Hint.create(mutation, System.currentTimeMillis()));
+                validTargets.forEach(HintsService.instance.metrics::incrCreatedHints);
+                // Notify the handler only for CL == ANY
+                if (responseHandler != null && responseHandler.replicaPlan.consistencyLevel() == ConsistencyLevel.ANY)
+                    responseHandler.onResponse(null);
+            }
+        }"

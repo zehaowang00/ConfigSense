@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "incremental_backups",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public void maybeIncrementallyBackup(final Iterable<SSTableReader> sstables)\n    {\n        if (!DatabaseDescriptor.isIncrementalBackupsEnabled())\n            return;\n\n        for (SSTableReader sstable : sstables)\n        {\n            File backupsDir = Directories.getBackupsDirectory(sstable.descriptor);\n            sstable.createLinks(FileUtils.getCanonicalPath(backupsDir));\n        }\n    }\n\n    \npublic boolean isIncrementalBackupsEnabled()\n    {\n        return DatabaseDescriptor.isIncrementalBackupsEnabled();\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: the incremental backups feature primarily checks a boolean flag and performs file operations based on the presence of that flag. While file operations can be time-consuming, the overall impact on performance is not substantial unless the number of SSTableReader instances is extremely large. The operations involved do not inherently lead to significant performance variations, as they are not memory-intensive or time-intensive enough to classify as performance-sensitive."
+        }
+    ]
+}

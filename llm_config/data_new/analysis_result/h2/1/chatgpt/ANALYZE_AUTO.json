@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'ANALYZE_AUTO' in the H2 database significantly impacts performance because it controls the automatic analysis of the database schema. When set to true, it can lead to additional overhead in terms of execution time and memory consumption, especially during operations that involve schema changes or complex queries. This can result in notable variations in performance, particularly in scenarios with large datasets or frequent schema modifications, making it a performance-sensitive configuration."
+}

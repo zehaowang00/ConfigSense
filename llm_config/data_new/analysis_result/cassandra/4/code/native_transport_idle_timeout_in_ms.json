@@ -1,0 +1,18 @@
+{
+    "performance_sensitive": "No",
+    "config_name": "native_transport_idle_timeout_in_ms",
+    "messages": [
+        {
+            "sender": "System",
+            "content": "Initialize the analysis for the target system and configuration."
+        },
+        {
+            "sender": "Developer",
+            "content": "public void configureInitialPipeline(Channel channel, Connection.Factory connectionFactory)\n    {\n        ChannelPipeline pipeline = channel.pipeline();\n\n        // Add the ConnectionLimitHandler to the pipeline if configured to do so.\n        if (DatabaseDescriptor.getNativeTransportMaxConcurrentConnections() > 0\n            || DatabaseDescriptor.getNativeTransportMaxConcurrentConnectionsPerIp() > 0)\n        {\n            // Add as first to the pipeline so the limit is enforced as first action.\n            pipeline.addFirst(CONNECTION_LIMIT_HANDLER, connectionLimitHandler);\n        }\n\n        long idleTimeout = DatabaseDescriptor.nativeTransportIdleTimeout();\n        if (idleTimeout > 0)\n        {\n            pipeline.addLast(IDLE_STATE_HANDLER, new IdleStateHandler(false, 0, 0, idleTimeout, TimeUnit.MILLISECONDS)\n            {\n                @Override\n                protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt)\n                {\n                    logger.info(\"Closing client connection {} after timeout of {}ms\", channel.remoteAddress(), idleTimeout);\n                    ctx.close();\n                }\n            });\n        }\n\n        if (DEBUG)\n            pipeline.addLast(DEBUG_HANDLER, new LoggingHandler(LogLevel.INFO));\n\n        pipeline.addLast(ENVELOPE_ENCODER, Envelope.Encoder.instance);\n        pipeline.addLast(INITIAL_HANDLER, new InitialConnectionHandler(new Envelope.Decoder(), connectionFactory, this));\n        // The exceptionHandler will take care of handling exceptionCaught(...) events while still running\n        // on the same EventLoop as all previous added handlers in the pipeline. This is important as the used\n        // eventExecutorGroup may not enforce strict ordering for channel events.\n        // As the exceptionHandler runs in the EventLoop as the previous handlers we are sure all exceptions are\n        // correctly handled before the handler itself is removed.\n        // See https://issues.apache.org/jira/browse/CASSANDRA-13649\n        pipeline.addLast(EXCEPTION_HANDLER, PreV5Handlers.ExceptionHandler.instance);\n        onInitialPipelineReady(pipeline);\n    }\n\n    "
+        },
+        {
+            "sender": "PerformanceSensitivity",
+            "content": "The configuration is Performance Insensitive: The `native_transport_idle_timeout` configuration primarily controls the timeout for idle connections, which results in closing inactive connections. While it can affect resource utilization by freeing up connections, it does not directly lead to significant performance variations through time-consuming or memory-heavy operations. The impact of this configuration is more about resource management rather than performance sensitivity in terms of execution time or memory usage."
+        }
+    ]
+}

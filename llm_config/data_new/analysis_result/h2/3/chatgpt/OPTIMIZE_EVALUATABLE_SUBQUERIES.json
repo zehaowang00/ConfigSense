@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'OPTIMIZE_EVALUATABLE_SUBQUERIES' in the H2 database can significantly influence the execution plan of queries that involve subqueries. When enabled, it allows the database engine to optimize the evaluation of subqueries, potentially reducing execution time and memory consumption. If this option is disabled, the database may resort to less efficient evaluation strategies, leading to longer execution times and higher resource usage. Therefore, changes in this configuration can lead to notable variations in system performance, classifying it as performance-sensitive."
+}

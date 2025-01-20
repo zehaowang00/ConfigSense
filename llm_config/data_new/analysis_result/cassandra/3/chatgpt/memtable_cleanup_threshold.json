@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The 'memtable_cleanup_threshold' configuration in Cassandra directly influences the frequency and efficiency of memtable flushing to SSTables. A lower threshold can lead to more frequent flushes, which may reduce memory usage but increase I/O operations and impact overall throughput negatively. Conversely, a higher threshold can lead to increased memory consumption and potential out-of-memory errors if the system is under heavy load. Therefore, changes to this configuration can significantly affect execution time and memory consumption, making it performance-sensitive."
+}

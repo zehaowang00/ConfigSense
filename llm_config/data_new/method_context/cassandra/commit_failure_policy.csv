@@ -1,0 +1,37 @@
+Method,Called_Method,function,option,Method_short,path,class_name,xml_path,Method_body
+"M:org.apache.cassandra.db.commitlog.CommitLog:handleCommitError(java.lang.String,java.lang.Throwable)",(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitFailurePolicy(),org.apache.cassandra.config.DatabaseDescriptor:getCommitFailurePolicy(),commit_failure_policy,handleCommitError,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/db/commitlog/CommitLog.java,CommitLog,../data/xml/cassandra/CommitLog.xml,"@VisibleForTesting
+    public static boolean handleCommitError(String message, Throwable t)
+    {
+        JVMStabilityInspector.inspectCommitLogThrowable(t);
+        switch (DatabaseDescriptor.getCommitFailurePolicy())
+        {
+            // Needed here for unit tests to not fail on default assertion
+            case die:
+            case stop:
+                StorageService.instance.stopTransports();
+                //$FALL-THROUGH$
+            case stop_commit:
+                String errorMsg = String.format(""%s. Commit disk failure policy is %s; terminating thread."", message, DatabaseDescriptor.getCommitFailurePolicy());
+                logger.error(addAdditionalInformationIfPossible(errorMsg), t);
+                return false;
+            case ignore:
+                logger.error(addAdditionalInformationIfPossible(message), t);
+                return true;
+            default:
+                throw new AssertionError(DatabaseDescriptor.getCommitFailurePolicy());
+        }
+    }
+
+    "
+M:org.apache.cassandra.utils.JVMStabilityInspector:inspectCommitLogError(java.lang.Throwable),(S)org.apache.cassandra.config.DatabaseDescriptor:getCommitFailurePolicy(),org.apache.cassandra.config.DatabaseDescriptor:getCommitFailurePolicy(),commit_failure_policy,inspectCommitLogError,/Users/wang/Documents/project/configuration_code_understanding/code3/data/system/cassandra/src/java/org/apache/cassandra/utils/JVMStabilityInspector.java,JVMStabilityInspector,../data/xml/cassandra/JVMStabilityInspector.xml,"private static void inspectCommitLogError(Throwable t)
+    {
+        if (!StorageService.instance.isDaemonSetupCompleted())
+        {
+            logger.error(""Exiting due to error while processing commit log during initialization."", t);
+            killer.killCurrentJVM(t, true);
+        }
+        else if (DatabaseDescriptor.getCommitFailurePolicy() == Config.CommitFailurePolicy.die)
+            killer.killCurrentJVM(t);
+    }
+
+    "

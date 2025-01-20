@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "The configuration option 'internode_application_receive_queue_capacity_in_bytes' in Cassandra directly impacts the capacity of the receive queue for inter-node communication. A higher capacity allows for more concurrent messages to be buffered, which can significantly reduce the likelihood of message loss during high load scenarios. Conversely, a lower capacity may lead to increased latency and potential bottlenecks, as nodes may need to wait for the queue to clear before processing incoming messages. Therefore, changes to this configuration can lead to notable variations in execution time and overall system throughput, classifying it as performance-sensitive."
+}
