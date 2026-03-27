@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"In the context of the Catena password hashing framework, the '_lambda' parameter (often referred to as the 'm' or memory cost parameter in related literature) directly controls the memory consumption and the number of iterations performed during the hashing process. Specifically, it determines the size of the memory-hard graph or the depth of the memory-expensive operations. Increasing the value of _lambda exponentially or linearly increases the RAM requirements and the CPU time needed to compute a hash, which is a fundamental design choice to thwart GPU/ASIC-based brute-force attacks. Therefore, any change to this configuration significantly impacts both execution time and memory footprint.\"\n}\n```"
+}

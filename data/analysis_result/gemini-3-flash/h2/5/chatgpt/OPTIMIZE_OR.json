@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The OPTIMIZE_OR configuration in the H2 database determines whether the query optimizer attempts to rewrite 'OR' expressions into 'UNION' queries or uses specific index-based optimizations for 'OR' conditions. From a system level, this directly impacts the query execution plan. When enabled, it can significantly reduce execution time for complex queries by allowing the engine to leverage multiple indexes that would otherwise be ignored, thereby reducing full table scans. Conversely, if disabled or misapplied, it could increase CPU overhead due to the complexity of plan generation or lead to suboptimal execution paths, directly affecting latency and throughput.\"\n}\n```"
+}

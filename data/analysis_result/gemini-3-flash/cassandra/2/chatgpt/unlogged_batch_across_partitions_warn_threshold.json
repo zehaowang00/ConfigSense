@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'unlogged_batch_across_partitions_warn_threshold' configuration directly impacts system performance monitoring and stability in Cassandra. Unlogged batches that span multiple partitions are an anti-pattern because they require the coordinator to manage multiple internal write operations without the atomicity guarantees of a logged batch, leading to increased CPU overhead, higher network traffic between nodes, and potential heap pressure. By setting this threshold, the system triggers warnings when inefficient write patterns occur. If set too low, it can cause excessive logging overhead and performance degradation due to I/O contention; if set too high or ignored, it allows inefficient queries to saturate system resources (like thread pools and memory) unnoticed, leading to increased latency and reduced throughput.\"\n}\n```"
+}

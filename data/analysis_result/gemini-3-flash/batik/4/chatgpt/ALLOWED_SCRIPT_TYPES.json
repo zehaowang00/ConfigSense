@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The ALLOWED_SCRIPT_TYPES configuration in Apache Batik determines which scripting languages (e.g., ECMAScript/JavaScript, Python, Tcl) are permitted to execute within an SVG document. This is performance-sensitive because different scripting engines have significantly different initialization overheads, execution speeds, and memory footprints. Enabling complex scripting languages requires the JVM to load additional interpreter or JIT compiler libraries, which increases memory consumption and startup latency. Furthermore, the execution of scripts during the rendering process can introduce non-deterministic delays and CPU spikes compared to static SVG rendering, directly impacting the overall throughput and responsiveness of the graphics processing pipeline.\"\n}\n```"
+}

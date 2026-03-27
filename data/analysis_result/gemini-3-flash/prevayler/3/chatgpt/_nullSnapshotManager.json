@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_nullSnapshotManager' configuration (or the implementation of the SnapshotManager interface in Prevayler) directly controls the persistence mechanism of the system. Prevayler is an in-memory prevalence system that relies on snapshots to avoid replaying the entire transaction log upon restart. If a 'null' or 'no-op' snapshot manager is used, the system will never save the state of the heap to disk. While this might improve write performance during runtime by avoiding disk I/O, it significantly impacts recovery performance (execution time) because the system must replay every single transaction from the log since the beginning of time to restore the state. Conversely, a functional snapshot manager consumes CPU and I/O resources during the snapshotting process but optimizes long-term system availability and startup time.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'dynamic_snitch_reset_interval_in_ms' configuration controls how often the Cassandra Dynamic Snitch resets its collected performance metrics (latency scores) for various nodes in the cluster. The Dynamic Snitch is responsible for routing read requests to the best-performing replicas to minimize latency. If this interval is set too low, the system loses historical performance data too frequently, leading to potential routing instability and increased overhead from recalculating scores. If set too high, the snitch may continue to route traffic to a node that was previously fast but is currently experiencing performance degradation (stale data). This directly impacts the system's tail latency, request distribution, and overall throughput by influencing the efficiency of the load-balancing mechanism.\"\n}\n```"
+}

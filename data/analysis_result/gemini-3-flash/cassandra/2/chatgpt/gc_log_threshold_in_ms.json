@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'gc_log_threshold_in_ms' configuration determines the threshold for logging Garbage Collection (GC) pauses in Cassandra. While it primarily controls logging, it is performance-sensitive for two reasons: First, setting this threshold too low can lead to excessive I/O overhead and log bloat as the system attempts to record every minor GC event, which can compete with data operations for disk resources. Second, it serves as a critical diagnostic trigger; the frequency and duration of GC events directly impact the 'stop-the-world' pauses in the JVM. If misconfigured, it can either mask significant latency spikes caused by GC (if set too high) or cause performance degradation through logging overhead (if set too low), directly affecting the observability and tail latency of the database.\"\n}\n```"
+}

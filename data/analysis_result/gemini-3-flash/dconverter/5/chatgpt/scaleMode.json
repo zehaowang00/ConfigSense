@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The 'scaleMode' configuration in dconverter (a multi-platform image resizer) directly determines the interpolation algorithm used during the image scaling process (e.g., Lanczos, Bilinear, Bicubic, or Nearest Neighbor). From a system level, different scaling modes have significantly different computational complexities. For instance, high-quality algorithms like Lanczos require more CPU cycles and floating-point operations per pixel compared to simpler algorithms like Nearest Neighbor. This choice directly impacts the execution time of the image processing pipeline and can affect memory throughput and cache utilization depending on the filter's kernel size.\"\n}\n```"
+}

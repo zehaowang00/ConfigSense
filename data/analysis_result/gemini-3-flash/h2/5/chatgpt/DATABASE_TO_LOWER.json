@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The DATABASE_TO_LOWER configuration in H2 is a compatibility setting that determines how identifiers (like table and column names) are handled during the initial parsing and metadata mapping phase. While it affects the logic of string normalization (converting identifiers to lowercase versus the default uppercase), this occurs during the SQL compilation/parsing stage rather than the execution engine's hot path. The computational overhead of string case conversion at parse time is negligible compared to disk I/O, indexing, and query execution logic. Therefore, changing this value does not result in notable variations in system execution time or memory consumption during data processing.\"\n}\n```"
+}

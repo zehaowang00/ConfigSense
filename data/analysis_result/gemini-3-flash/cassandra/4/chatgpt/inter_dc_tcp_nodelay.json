@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'inter_dc_tcp_nodelay' configuration controls the Nagle's algorithm for TCP connections between different data centers in a Cassandra cluster. When enabled (set to true), it disables Nagle's algorithm, ensuring that packets are sent immediately without waiting to buffer smaller chunks of data. In a distributed database like Cassandra, this significantly reduces network latency for inter-DC communication, which is critical for cross-region replication and consistency. However, it can increase network overhead and CPU utilization due to a higher volume of small packets. Conversely, disabling it can increase throughput for large data transfers but introduces latency spikes for small requests, directly impacting the execution time of cross-DC queries and synchronization.\"\n}\n```"
+}

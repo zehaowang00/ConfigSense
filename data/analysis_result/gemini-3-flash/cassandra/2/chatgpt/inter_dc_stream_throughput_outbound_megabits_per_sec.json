@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration directly throttles the outbound network throughput for data streaming between different data centers (inter-DC). In a distributed database like Cassandra, streaming occurs during critical operations such as node repairs, rebuilding, and data center migrations. By limiting the megabits per second, this setting controls the rate at which data is transferred over the WAN. If set too low, it significantly increases the time required for maintenance operations and data synchronization, potentially leading to stale data or prolonged recovery times. Conversely, if set too high, it can saturate the inter-DC network bandwidth, causing latency spikes for client requests and impacting the overall responsiveness of the cluster.\"\n}\n```"
+}

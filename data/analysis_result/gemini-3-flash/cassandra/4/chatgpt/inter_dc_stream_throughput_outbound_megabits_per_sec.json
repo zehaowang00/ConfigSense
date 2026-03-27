@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'inter_dc_stream_throughput_outbound_megabits_per_sec' configuration directly throttles the network bandwidth used for data streaming between different data centers in a Cassandra cluster. From a system level, streaming is a resource-intensive operation used during node repairs, additions, or removals. If this value is set too low, administrative operations like cluster rebalancing or recovery will take significantly longer, increasing the window of vulnerability or data inconsistency. If set too high, it can saturate the network interface or consume excessive CPU cycles for serialization/deserialization, leading to increased latency for client requests (application traffic) and potentially causing network congestion that affects the overall stability of the distributed system.\"\n}\n```"
+}

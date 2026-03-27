@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'commitlog_compression' configuration determines the compression algorithm used for Cassandra's commit logs, which directly impacts both CPU utilization and I/O throughput. Enabling compression reduces the volume of data written to disk (saving I/O bandwidth and disk space) but introduces CPU overhead for the compression/decompression cycles during every write operation. Since the commit log is on the critical path for every write request (mutations), the choice of compression (e.g., LZ4, Snappy, Deflate) or disabling it entirely significantly affects write latency, throughput, and the system's overall resource bottleneck profile.\"\n}\n```"
+}

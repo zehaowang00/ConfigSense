@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'concurrent_compactors' configuration directly controls the number of concurrent background compaction processes in Cassandra. Compaction is a resource-intensive operation involving heavy disk I/O and CPU usage to merge SSTables and reclaim space. Increasing this value allows for faster merging of data, which helps maintain read performance by reducing the number of SSTables to scan; however, it also increases contention for system resources (CPU and Disk I/O). If set too high, it can starve foreground read/write operations, leading to increased latency. If set too low, the system may fall behind on compaction (compaction debt), leading to bloated storage and degraded read performance over time.\"\n}\n```"
+}

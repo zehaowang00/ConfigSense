@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'trickle_fsync' configuration in Cassandra controls whether the system periodically flushes dirty pages to disk during the writing of SSTables, rather than allowing the OS to buffer all writes and perform a massive flush at the end. From a system level, enabling this option helps prevent 'IO spikes' and OS cache pollution, which can lead to significant latency jitter and stalls in read/write operations. By spreading the I/O load over time, it stabilizes throughput and ensures more predictable execution times, directly impacting the system's performance profile under heavy write loads.\"\n}\n```"
+}

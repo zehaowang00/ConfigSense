@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'key_cache_keys_to_save' configuration determines the number of keys from the key cache to be persisted to disk during a graceful shutdown or periodic save. This is performance-sensitive for two primary reasons: First, it directly impacts the warm-up time of the node after a restart; a higher value ensures that the key cache is pre-populated, significantly reducing disk I/O and latency for initial read operations by avoiding partition index lookups. Second, the process of saving and loading these keys involves disk I/O and memory overhead; if set excessively high, it can increase shutdown/startup times and consume more heap memory to maintain the cache structure, while setting it too low can lead to 'cold' starts and degraded read performance.\"\n}\n```"
+}

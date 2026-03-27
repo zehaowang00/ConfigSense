@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The 'commitlog_sync' configuration determines how Apache Cassandra acknowledges writes to the commit log, which directly impacts the trade-off between data durability and system throughput/latency. It typically has two modes: 'periodic' and 'batch'. In 'batch' mode, the system waits for a group of writes to be fsynced to disk before acknowledging them, which can significantly increase write latency but ensures higher durability. In 'periodic' mode, writes are acknowledged immediately and synced to disk at a defined interval, which maximizes throughput and minimizes latency but risks data loss in the event of a power failure. Because this setting controls the frequency and blocking nature of disk I/O operations (fsync), it is a critical performance-sensitive parameter.\"\n}\n```"
+}

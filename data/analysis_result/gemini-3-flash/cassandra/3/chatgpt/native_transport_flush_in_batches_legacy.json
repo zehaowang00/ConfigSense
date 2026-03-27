@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'native_transport_flush_in_batches_legacy' configuration determines the flushing strategy for Cassandra's native protocol responses. When enabled, it reverts to a legacy behavior where responses are flushed in batches rather than immediately or via the modern netty-based pipeline. This directly impacts network throughput and latency: batching can reduce the overhead of system calls (context switching) and improve throughput under high concurrency, but it may increase the latency of individual requests. Conversely, disabling it changes how the network buffer is managed, affecting CPU utilization and the responsiveness of the database's communication layer.\"\n}\n```"
+}

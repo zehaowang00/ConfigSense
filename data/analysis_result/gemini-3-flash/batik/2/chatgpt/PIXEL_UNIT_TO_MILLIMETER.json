@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The PIXEL_UNIT_TO_MILLIMETER configuration in Apache Batik is a constant used for unit conversion between pixels and physical measurements (millimeters). From a system level, this value is typically used in simple arithmetic calculations during the rendering or layout phase of SVG processing. Changing this value affects the visual scaling and coordinate mapping of the output, but it does not alter the computational complexity, memory allocation patterns, or the execution flow of the rendering engine. Since it is a static conversion factor, its impact is limited to the accuracy and scale of the output rather than the performance characteristics (latency or throughput) of the system.\"\n}\n```"
+}

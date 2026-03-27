@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The MAX_WIDTH configuration in the Batik SVG toolkit directly limits the maximum dimensions of the rendered image or the viewport. From a system level, increasing this value allows for the processing of larger raster images, which leads to a non-linear increase in memory consumption (heap space) and CPU cycles required for pixel calculations, rasterization, and rendering. If set too high, it can lead to OutOfMemoryErrors or significant latency during image processing; if set too low, it restricts the system's ability to handle high-resolution graphics, impacting the quality and scale of the output.\"\n}\n```"
+}

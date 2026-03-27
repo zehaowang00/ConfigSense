@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'counter_cache_keys_to_save' configuration determines the number of keys from the counter cache that are saved to disk during a shutdown or periodic save. This is performance-sensitive for two primary reasons: First, a higher value increases the overhead of I/O operations and disk space usage during the saving process, which can impact system shutdown or background maintenance time. Second, and more importantly, it directly affects the 'warm-up' time and read performance of the system after a restart. A larger cache save ensures that frequently accessed counter data is immediately available in memory, preventing expensive disk seeks and read-before-write operations required for counter increments, thereby significantly reducing latency for counter-heavy workloads post-restart.\"\n}\n```"
+}

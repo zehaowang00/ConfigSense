@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'gi.igi.samples' configuration in the Sunflow rendering engine controls the number of samples used for Instant Global Illumination (IGI). In rendering systems, global illumination is a computationally expensive process. Increasing the number of samples directly leads to a linear or near-linear increase in the number of rays traced and processed per pixel or per light path. This significantly impacts the execution time (rendering duration) and CPU utilization. While higher sample counts reduce stochastic noise and improve image quality, they impose a heavy load on the system's processing resources, making this a performance-sensitive parameter.\"\n}\n```"
+}

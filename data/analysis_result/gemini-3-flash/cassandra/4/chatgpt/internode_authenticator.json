@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'internode_authenticator' configuration determines the mechanism used to authenticate communication between nodes in a Cassandra cluster. From a system level, this is performance-sensitive because every connection request between nodes must be processed by this authenticator. If a complex or computationally expensive authentication provider (such as one requiring external LDAP lookups or heavy cryptographic operations) is chosen, it increases the latency of establishing new connections. Furthermore, in high-churn environments or during cluster-wide restarts, the overhead of authentication can impact the speed of cluster stabilization and increase CPU utilization, directly affecting the overall throughput and responsiveness of the distributed system.\"\n}\n```"
+}

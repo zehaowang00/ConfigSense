@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The XML_PARSER_VALIDATING configuration determines whether the XML parser should validate the document against its DTD (Document Type Definition) or schema. Enabling validation significantly increases the computational overhead during the parsing process because the parser must perform additional checks for structural integrity, attribute constraints, and data types. This leads to increased CPU cycles and higher execution time. Furthermore, validation often requires fetching and processing external resources (like DTD files), which can introduce network latency and additional memory consumption for storing the validation rules and state.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'flush_compression' configuration in Cassandra determines whether and how data is compressed when it is flushed from the Memtable (in-memory) to the SSTable (on-disk). This setting is performance-sensitive because it directly impacts the I/O throughput and CPU utilization of the system. Enabling compression reduces the amount of data written to disk, which can alleviate I/O bottlenecks and save storage space; however, it introduces CPU overhead for the compression algorithms. Conversely, disabling it reduces CPU load but increases disk write volume and storage footprint. These trade-offs significantly affect the latency and throughput of write operations and subsequent background processes like compaction.\"\n}\n```"
+}

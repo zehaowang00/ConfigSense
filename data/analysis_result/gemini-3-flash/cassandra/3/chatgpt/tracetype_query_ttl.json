@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'tracetype_query_ttl' configuration determines the Time-To-Live (TTL) for records stored in the 'system_traces.sessions' and 'system_traces.events' tables in Cassandra. This is performance-sensitive because tracing in Cassandra involves writing detailed execution steps to disk for every traced request. If the TTL is set too high, the volume of tracing data can grow significantly, leading to increased disk space consumption and potentially impacting compaction performance and read latency on the system keyspace. Conversely, while a low TTL saves space, frequent tracing with high-volume writes still consumes I/O bandwidth and CPU cycles. Managing the lifecycle of this metadata directly affects the overhead associated with the observability subsystem.\"\n}\n```"
+}

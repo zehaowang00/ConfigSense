@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'networking_cache_size_in_mb' configuration directly controls the amount of off-heap memory allocated for networking-related buffers in Cassandra (specifically for internode messaging). From a system level, this parameter impacts performance in two primary ways: First, it dictates the memory overhead of the networking stack; if set too low, the system may experience increased CPU overhead and latency due to frequent buffer reallocations or backpressure during high-throughput internode communication. Second, because this memory is typically allocated off-heap, it competes with other system resources like the OS page cache and the JVM heap. Improper sizing can lead to memory fragmentation or exhaustion, directly affecting the stability and execution time of data replication and synchronization tasks.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration directly controls the concurrency level of client connections from a single IP address to the Cassandra node. From a system perspective, it acts as a resource throttle. Setting this value too low can lead to connection queuing and increased latency for client requests, effectively bottlenecking throughput even if the server has idle CPU or I/O capacity. Conversely, setting it too high can lead to resource exhaustion, such as excessive memory consumption for connection buffers and context switching overhead on the networking stack, potentially degrading the overall stability and response time of the node under heavy load.\"\n}\n```"
+}

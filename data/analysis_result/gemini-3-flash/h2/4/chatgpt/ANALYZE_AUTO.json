@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The ANALYZE_AUTO configuration in the H2 database determines how frequently the database automatically updates its table statistics (via the ANALYZE command). These statistics are critical for the Cost-Based Optimizer (CBO) to generate efficient execution plans. If this value is set too high, the optimizer may use stale statistics, leading to suboptimal query plans and significantly increased execution time. Conversely, if it is set too low, the system may trigger frequent background analysis tasks, consuming CPU and I/O resources and potentially causing latency spikes during write-heavy workloads. Therefore, it directly impacts both query execution efficiency and background resource consumption.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the Batik SVG toolkit, the 'WIDTH' configuration (often associated with the canvas, viewport, or rasterization dimensions) directly impacts the computational workload and memory footprint of the rendering engine. Increasing the width increases the number of pixels that must be processed, stored in memory as a buffer, and eventually rendered or encoded. This leads to higher CPU utilization for rasterization calculations and increased heap memory consumption for the image data, directly affecting execution time and system resource availability.\"\n}\n```"
+}

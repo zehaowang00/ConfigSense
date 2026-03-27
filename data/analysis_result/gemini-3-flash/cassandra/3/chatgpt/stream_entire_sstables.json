@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'stream_entire_sstables' configuration determines how Cassandra transfers data during operations like node joining, leaving, or repair. When enabled, it allows Cassandra to stream entire SSTable files (Zero Copy Streaming) instead of reading, serializing, and sending individual rows. From a system level, this significantly reduces CPU overhead and garbage collection pressure by bypassing the application-level processing of data. It also optimizes disk I/O and network throughput by utilizing direct file transfers. Conversely, disabling it increases CPU cycles and memory allocation for data serialization, which can lead to longer streaming times and increased impact on the performance of concurrent read/write requests.\"\n}\n```"
+}

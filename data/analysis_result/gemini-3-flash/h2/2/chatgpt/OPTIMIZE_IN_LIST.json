@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The OPTIMIZE_IN_LIST configuration in H2 determines whether the database engine optimizes 'IN (...)' expressions by converting them into a join with a temporary table or using an internal lookup mechanism (like a hash set) instead of performing a linear scan or multiple OR conditions. For large lists of values, this optimization significantly reduces the time complexity of query execution and minimizes CPU cycles spent on predicate evaluation. Disabling or enabling this can lead to dramatic variations in execution time, especially in complex queries involving large datasets or extensive IN-clause filters.\"\n}\n```"
+}

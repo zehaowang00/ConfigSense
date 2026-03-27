@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'commitlog_total_space_in_mb' configuration directly impacts Cassandra's write throughput and disk I/O patterns. It defines the total amount of space dedicated to the commit log on disk. When this threshold is reached, Cassandra must flush the oldest Memtables (in-memory data) to disk as SSTables to free up space in the commit log. If this value is set too low, it triggers frequent, premature flushing of small Memtables, leading to increased disk I/O pressure, higher CPU overhead for compaction, and potential write stalls. Conversely, a larger value allows for more efficient, larger flushes but increases the time required for data recovery during a system restart or crash.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'file_cache_size_in_mb' configuration directly controls the amount of memory allocated for caching file metadata and frequently accessed data blocks in Cassandra. From a system level, this parameter impacts the OS page cache utilization and the efficiency of disk I/O operations. A larger cache size can significantly reduce disk read latency and IOPS by keeping more data in memory, thereby improving query throughput and reducing execution time. Conversely, setting this value too high can lead to excessive memory consumption, potentially triggering aggressive garbage collection or causing Out-Of-Memory (OOM) errors, while setting it too low increases the frequency of expensive disk seeks.\"\n}\n```"
+}

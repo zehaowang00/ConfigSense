@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'row_cache_size_in_mb' configuration directly impacts Cassandra's memory management and read performance. By caching the entire contents of a row in memory, it eliminates the need to perform disk I/O and merge data from multiple SSTables for frequently accessed rows. Increasing this value can significantly reduce read latency and CPU overhead for read-heavy workloads with high data locality. However, because this memory is allocated off-heap, setting it too high can lead to memory pressure on the operating system, potentially causing swapping or Out-Of-Memory (OOM) issues, while setting it too low may result in cache churn and increased disk I/O, thereby degrading system throughput.\"\n}\n```"
+}

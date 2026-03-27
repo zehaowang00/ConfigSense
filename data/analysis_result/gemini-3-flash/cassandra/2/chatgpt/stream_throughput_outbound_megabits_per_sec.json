@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'stream_throughput_outbound_megabits_per_sec' configuration directly controls the bandwidth allocated for outbound data streaming in Cassandra, which occurs during critical operations such as node joining, leaving, repairing, or rebalancing. From a system level, this acts as a traffic shaper; setting it too low can significantly increase the duration of maintenance operations (increasing execution time), while setting it too high can saturate the network interface, leading to contention with client request traffic (increasing latency and decreasing overall system throughput). Proper tuning is essential to balance background administrative tasks with foreground application performance.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_n' parameter (often representing the time cost or the number of iterations/rounds) directly dictates the computational complexity of the hashing process. Increasing the value of '_n' linearly or exponentially increases the CPU cycles required to compute a hash, thereby directly impacting the execution time and system throughput. This parameter is a security-performance trade-off: higher values provide better resistance against brute-force attacks but consume more processing time and resources per operation.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The 'threadCount' configuration directly controls the level of parallelism in the dconverter tool. Since dconverter is an image conversion utility, its primary workload involves CPU-intensive tasks (decoding and encoding images) and I/O operations. Increasing the threadCount allows the system to process multiple images concurrently, which can significantly reduce total execution time on multi-core processors. Conversely, setting it too high can lead to performance degradation due to excessive context switching and resource contention (CPU and memory bandwidth), while setting it too low fails to fully utilize the available hardware resources.\"\n}\n```"
+}

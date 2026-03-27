@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'hints_compression' configuration determines whether hint files (data stored when a node is down to be replayed later) are compressed on disk. Enabling compression reduces Disk I/O and storage footprint at the cost of increased CPU utilization for compression/decompression cycles during write and replay phases. Conversely, disabling it increases disk space usage and I/O throughput requirements. Since this setting directly impacts the trade-off between CPU overhead and I/O efficiency, as well as the speed at which a node can recover and process hints, it is considered performance-sensitive.\"\n}\n```"
+}

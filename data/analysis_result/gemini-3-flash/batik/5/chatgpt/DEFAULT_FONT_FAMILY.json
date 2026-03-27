@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The DEFAULT_FONT_FAMILY configuration in Apache Batik specifies the fallback font name used when a requested font is missing or not specified in an SVG document. While font rendering itself is a computationally intensive process, the specific choice of the default font family string (e.g., changing 'Arial' to 'Times New Roman') primarily affects the visual layout and text metrics (kerning, glyph width) rather than the underlying system performance. Changing this value does not significantly alter CPU cycles, memory allocation patterns, or I/O throughput in a way that would cause notable variations in execution time compared to the overall rendering pipeline.\"\n}\n```"
+}

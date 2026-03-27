@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'INDEXED' configuration (often associated with the ColorModel or image representation in Batik/SVG processing) determines how color information is stored and processed. When an image is treated as 'Indexed', it uses a color palette (lookup table) rather than full direct color values (like ARGB). From a system level, this significantly impacts memory consumption because indexed images require fewer bits per pixel (e.g., 8 bits vs 32 bits). Furthermore, it affects execution time during rendering and filter operations: while it can speed up certain operations by reducing data throughput, it may introduce overhead if the system needs to perform color quantization or convert the indexed format back to a direct color model for complex compositing or filtering tasks.\"\n}\n```"
+}

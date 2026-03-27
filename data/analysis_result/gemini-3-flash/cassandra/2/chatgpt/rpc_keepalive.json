@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'rpc_keepalive' configuration (often associated with the underlying Netty transport or Thrift in older versions) determines whether the system enables TCP keep-alive probes on RPC connections. From a system level, enabling this affects how the OS manages socket lifecycles and detects dead connections. While it helps prevent resource leakage by cleaning up stale connections, frequent keep-alive probes can increase network overhead and CPU interrupts. Conversely, disabling it or misconfiguring it can lead to an accumulation of 'ghost' connections, which consumes file descriptors and memory (socket buffers), potentially leading to resource exhaustion and increased latency in connection establishment under high-load scenarios.\"\n}\n```"
+}

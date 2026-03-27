@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The MAX_HEIGHT configuration in Apache Batik directly limits the vertical dimension of the rasterized output or the rendering surface. In a graphics processing context, increasing the height significantly increases the total number of pixels to be processed, which leads to a linear or super-linear increase in memory allocation for the image buffer and a corresponding increase in CPU execution time for rendering operations (such as rasterization, filtering, and painting). Conversely, setting this value too low can cause rendering failures or truncation, while setting it too high without sufficient resources can lead to OutOfMemoryErrors or excessive garbage collection overhead.\"\n}\n```"
+}

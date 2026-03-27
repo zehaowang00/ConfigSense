@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'allocate_tokens_for_keyspace' configuration determines how tokens are distributed across a cluster for a specific keyspace when using virtual nodes (vnodes). This setting directly impacts data distribution and load balancing. If tokens are not allocated optimally, it can lead to 'hotspots' where specific nodes handle disproportionately more data or request traffic than others. From a system level, uneven data distribution results in increased I/O contention, higher CPU utilization on overloaded nodes, and inconsistent latency across the cluster, all of which are critical performance metrics in a distributed database like Cassandra.\"\n}\n```"
+}

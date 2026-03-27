@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'QUALITY' configuration in the Batik project (a Java-based toolkit for SVG) directly controls the rendering fidelity and computational intensity of graphical operations. At the system level, increasing the quality setting typically enables features like anti-aliasing, high-precision color interpolation, and sophisticated stroke calculations. These operations significantly increase the CPU workload per pixel and can lead to higher memory bandwidth usage during the rasterization process. Conversely, lowering the quality reduces the number of mathematical operations required to render a frame, leading to faster execution times and reduced resource consumption, which is a classic performance trade-off.\"\n}\n```"
+}

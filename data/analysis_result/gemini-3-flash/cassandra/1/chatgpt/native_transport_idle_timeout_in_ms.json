@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'native_transport_idle_timeout_in_ms' configuration controls how long the Cassandra server allows a client connection to remain idle before closing it. From a system level, this is performance-sensitive because it directly impacts resource management (file descriptors and memory). If the timeout is set too high, the system may accumulate a large number of idle connections, leading to resource exhaustion (reaching the 'ulimit' for open files) and increased memory overhead for connection state tracking. Conversely, if set too low, it can cause frequent connection churn, where clients are forced to repeatedly perform expensive TCP and TLS handshakes, increasing CPU utilization and latency for client requests.\"\n}\n```"
+}

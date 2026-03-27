@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'sstable_preemptive_open_interval_in_mb' configuration controls the background process of opening SSTables before they are fully written to disk during compaction. By preemptively opening SSTables, Cassandra can reduce the 'cold start' latency associated with newly created files and improve read performance by making data available in the page cache sooner. If this value is set too low, it can lead to excessive overhead and increased I/O pressure due to frequent file handle operations and metadata updates. Conversely, if set too high or disabled, it may lead to spikes in read latency immediately following a compaction event as the system waits for the entire SSTable to be finalized and indexed. Therefore, it directly impacts I/O throughput, memory mapping efficiency, and tail latency (p99) during heavy write/compaction workloads.\"\n}\n```"
+}

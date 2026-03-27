@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'phi_convict_threshold' configuration in Cassandra is a critical parameter for the failure detector (based on the Phi Accrual Failure Detection algorithm). It determines the sensitivity of the system in deciding whether a node is down or unreachable. From a system level, a lower threshold makes the system more aggressive in convicting nodes, which can lead to false positives (marking healthy nodes as down) during minor network jitters or GC pauses. This triggers unnecessary data hint generation, increased gossip traffic, and potential read/write availability issues. Conversely, a higher threshold delays the detection of actual node failures, causing requests to time out and increasing latency for client operations. Both scenarios directly impact the system's throughput, latency, and overall stability.\"\n}\n```"
+}

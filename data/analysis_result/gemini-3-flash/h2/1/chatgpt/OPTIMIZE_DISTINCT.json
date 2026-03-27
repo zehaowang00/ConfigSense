@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The OPTIMIZE_DISTINCT configuration in H2 directly impacts the query execution plan for 'SELECT DISTINCT' and 'GROUP BY' operations. When enabled, the database engine attempts to optimize these queries by using indexes to skip duplicate entries or by transforming the query into a more efficient execution path (such as a loose index scan). If disabled, the engine may resort to full table scans followed by a temporary sort or hash-based deduplication in memory. This change significantly affects CPU utilization, I/O overhead, and memory consumption, leading to notable variations in query execution time, especially on large datasets.\"\n}\n```"
+}

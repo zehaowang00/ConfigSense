@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The MAX_HEIGHT configuration in Apache Batik (a toolkit for processing SVG) directly limits the maximum vertical dimension of images being rendered or processed. From a system level, this parameter acts as a constraint on memory allocation and CPU cycles. Increasing this value allows for the generation of larger bitmaps, which leads to higher heap memory consumption and increased garbage collection pressure. Conversely, a very low value can lead to frequent clipping or rendering failures, but a very high value can lead to OutOfMemoryErrors or significant latency during the rasterization process, as the system must allocate and manipulate larger pixel arrays.\"\n}\n```"
+}

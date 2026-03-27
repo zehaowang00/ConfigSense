@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'enable_scripted_user_defined_functions' configuration controls whether Cassandra allows the execution of User Defined Functions (UDFs) written in scripting languages like JavaScript (via the Nashorn engine). Enabling this has significant performance implications at the system level: 1. Execution Overhead: Scripted UDFs are generally slower than native Java UDFs because they require an interpreted or JIT-compiled execution environment within the JVM. 2. Resource Consumption: Running scripts can lead to increased CPU cycles and unpredictable memory usage (heap pressure) depending on the complexity of the script. 3. System Stability: Since UDFs run within the database process, a poorly written script can block execution threads or cause garbage collection spikes, directly impacting the latency and throughput of the entire node.\"\n}\n```"
+}

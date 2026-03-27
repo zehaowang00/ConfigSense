@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'authorizer' configuration in Cassandra determines the implementation used to manage permissions and access control. While the default 'AllowAllAuthorizer' has negligible performance impact, switching to a more complex implementation like 'CassandraAuthorizer' introduces significant overhead. This is because 'CassandraAuthorizer' requires querying internal system tables to verify permissions for every database operation (unless cached). This adds latency to the request execution path, increases CPU cycles for processing authorization logic, and consumes memory for permission caching. In high-throughput environments, the efficiency of the authorizer directly impacts the overall system latency and throughput.\"\n}\n```"
+}

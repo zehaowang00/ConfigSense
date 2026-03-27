@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_d' parameter typically refers to the 'd' (garlic) or the output dimension/depth parameter depending on the specific implementation version. In Catena, this parameter directly controls the memory-hardness and the number of iterations performed during the hashing process. Increasing this value exponentially increases the memory requirements and the computational time required to compute a hash, as it dictates how many times the underlying compression function is called and how much memory is allocated for the graph-based hashing structure. Therefore, changes to this value have a significant and measurable impact on both execution time and memory consumption.\"\n}\n```"
+}

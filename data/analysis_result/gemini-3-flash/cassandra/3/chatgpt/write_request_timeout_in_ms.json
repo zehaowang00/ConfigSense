@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'write_request_timeout_in_ms' configuration directly impacts the latency and throughput characteristics of the Cassandra cluster. From a system level, this parameter defines how long a coordinator node will wait for replicas to respond to a write request before timing out. If set too low, it can lead to increased write failures and 'TimedOutException' errors under heavy load or transient network jitter, forcing client-side retries that further congest the network and CPU. If set too high, it can cause thread pools (like the MutationStage) to saturate because threads remain occupied waiting for unresponsive or slow replicas, leading to increased memory pressure and potential cascading failures across the cluster. Thus, it is a critical tuning parameter for balancing system availability and resource utilization.\"\n}\n```"
+}

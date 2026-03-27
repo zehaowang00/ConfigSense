@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The 'clearDirBeforeConvert' configuration determines whether the output directory is recursively deleted and recreated before the conversion process begins. From a system level, enabling this option triggers intensive I/O operations, specifically metadata updates and file deletions (unlink operations) proportional to the number of existing files in the directory. For large datasets, this can lead to significant execution time overhead due to disk latency and file system contention. Conversely, disabling it skips these operations but may lead to increased storage consumption if old files are not overwritten, potentially impacting disk space management and subsequent read/write performance.\"\n}\n```"
+}

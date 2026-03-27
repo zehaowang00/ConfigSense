@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'gc_warn_threshold_in_ms' configuration determines the threshold at which Cassandra logs a warning about long Garbage Collection (GC) pauses. While changing this value does not directly change the GC algorithm's behavior, it is performance-sensitive from an observability and system-health perspective. At a system level, GC pauses directly stop the 'world' (STW), halting all application threads, which increases request latency and can lead to node instability or timeouts in a distributed cluster. This setting defines the sensitivity of the monitoring system to these performance-degrading events; setting it too high may mask significant latency spikes, while setting it too low can lead to excessive logging overhead (I/O) during periods of high memory pressure, further impacting system throughput.\"\n}\n```"
+}

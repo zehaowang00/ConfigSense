@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'transparent_data_encryption_options' configuration in Cassandra is performance-sensitive because it controls the encryption and decryption of data at rest. Enabling this feature introduces significant CPU overhead due to the cryptographic operations (like AES) required every time data is written to (SSTables) or read from the disk. Furthermore, it impacts the I/O pipeline and can increase latency and decrease throughput, especially on systems without hardware-accelerated encryption (like AES-NI). The choice of cipher, key length, and chunk length within these options directly dictates the computational cost per byte of data processed.\"\n}\n```"
+}

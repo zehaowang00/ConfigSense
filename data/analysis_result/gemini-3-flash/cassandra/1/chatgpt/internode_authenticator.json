@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'internode_authenticator' configuration determines the mechanism used to authenticate communication between nodes in a Cassandra cluster. From a system level, changing this from the default 'AllowAllAuthenticator' to a custom or more complex implementation (such as one involving LDAP, Kerberos, or heavy cryptographic handshakes) introduces additional CPU overhead and network latency during the connection establishment phase. Because Cassandra is a distributed system that frequently opens and maintains connections between nodes for data replication, hints, and gossip, a computationally expensive authentication process can increase the time required for cluster topology changes and node restarts, and potentially impact the throughput of inter-node communication under high-concurrency scenarios.\"\n}\n```"
+}

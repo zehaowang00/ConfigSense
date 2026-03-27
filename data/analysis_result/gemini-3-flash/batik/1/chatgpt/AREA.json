@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of Apache Batik (a toolkit for SVG processing), 'AREA' typically refers to the rendering area or the dimensions of the viewport/canvas being processed. This configuration is performance-sensitive because it directly determines the number of pixels that must be calculated, rasterized, and stored in memory. Increasing the area leads to a linear or quadratic increase in memory consumption for the image buffer and significantly increases the CPU time required for painting operations, anti-aliasing, and filter effects. Conversely, reducing the area decreases the computational workload and memory footprint during the SVG-to-image transcoding process.\"\n}\n```"
+}

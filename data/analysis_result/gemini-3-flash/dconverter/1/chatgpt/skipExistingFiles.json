@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'skipExistingFiles' configuration directly impacts the I/O workload and execution time of the conversion process. When set to true, the system avoids redundant file processing, disk reads, and write operations for files that already exist in the target directory. In large-scale batch processing, this significantly reduces the CPU cycles spent on encoding/decoding and minimizes disk I/O contention, leading to a substantial decrease in total execution time. Conversely, if set to false, the system performs full re-processing and overwriting, which consumes significantly more system resources (CPU and Disk I/O).\"\n}\n```"
+}

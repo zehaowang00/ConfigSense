@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'batch_size_fail_threshold_in_kb' configuration directly impacts the system's resource management and stability during write operations. In Cassandra, atomic batches are used to ensure atomicity across multiple mutations. If a batch size exceeds this threshold, the system rejects the operation to prevent excessive heap pressure and potential OutOfMemory (OOM) errors. Setting this value too high can lead to large garbage collection (GC) pauses and increased memory consumption as the system attempts to process oversized mutations, while setting it too low can cause frequent application-level failures and retries, impacting overall throughput and latency.\"\n}\n```"
+}

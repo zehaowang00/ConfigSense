@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The QUERY_CACHE_SIZE configuration in H2 determines the number of results from compiled queries that are stored in memory for reuse. From a system level, this directly impacts both memory consumption and CPU utilization. A larger cache size can significantly reduce execution time for repetitive queries by avoiding the overhead of re-parsing and re-optimizing SQL statements (reducing CPU cycles). However, if set too high, it increases the heap memory footprint of the JVM, which can lead to increased Garbage Collection (GC) activity and potential OutOfMemory errors, thereby degrading overall system throughput and latency.\"\n}\n```"
+}

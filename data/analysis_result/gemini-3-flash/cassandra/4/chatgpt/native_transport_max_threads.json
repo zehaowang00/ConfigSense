@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'native_transport_max_threads' configuration determines the maximum number of threads dedicated to handling client requests (CQL) via the native transport protocol. From a system level, this directly impacts the concurrency model of the database. If set too low, the system may experience high request latency or queuing delays as incoming requests wait for an available thread, leading to underutilization of CPU resources. Conversely, if set too high, it can lead to excessive context switching, increased memory overhead for thread stacks, and potential resource contention (lock contention), which degrades overall system throughput and increases tail latency.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"In the context of the Apache Batik project, 'AOI' (Area of Interest) is a configuration parameter used to define the specific rectangular region of an SVG document that should be rendered or transcoded. While changing the AOI changes 'what' is being processed, it is considered a functional specification of the output bounds rather than a performance-tuning knob. From a system level, while a larger AOI might involve more pixels, the configuration itself does not alter the underlying execution logic, resource allocation strategies, or algorithmic complexity of the rendering engine. It is a spatial filter rather than a parameter that controls the efficiency or throughput of the system's performance.\"\n}\n```"
+}

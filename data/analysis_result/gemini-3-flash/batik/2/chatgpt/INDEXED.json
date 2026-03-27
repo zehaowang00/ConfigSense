@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'INDEXED' configuration in the Batik project (specifically within the context of image transcoding and SVG rendering) determines the color model used for the output image. When this mode is enabled, the system must perform color quantization and dithering to map a full-color SVG or image into a limited indexed color palette (typically 256 colors or fewer). This process is computationally expensive compared to standard RGB rendering because it involves analyzing the image's color distribution, building a palette, and applying error diffusion algorithms. Furthermore, it impacts memory consumption and I/O performance, as indexed images result in smaller file sizes but require additional processing cycles during the encoding phase.\"\n}\n```"
+}

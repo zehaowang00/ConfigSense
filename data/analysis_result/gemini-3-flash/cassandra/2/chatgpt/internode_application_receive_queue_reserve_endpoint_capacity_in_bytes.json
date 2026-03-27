@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration defines the amount of memory reserved for the receive queue of a specific network endpoint in Cassandra's internode communication system. From a system level, it directly impacts memory management and network throughput. If set too low, it can lead to frequent queue overflows and backpressure, causing increased latency and reduced throughput for inter-node operations like hints delivery or data replication. If set too high, it increases the memory footprint of the JVM heap, potentially leading to more frequent or longer Garbage Collection (GC) pauses, which degrades overall system stability and performance.\"\n}\n```"
+}

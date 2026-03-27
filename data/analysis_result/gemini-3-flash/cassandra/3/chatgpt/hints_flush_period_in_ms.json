@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'hints_flush_period_in_ms' configuration determines the frequency at which 'hints' (data stored temporarily when a replica is down) are flushed from memory to disk. From a system level, this directly impacts both I/O throughput and memory pressure. A very short period leads to frequent disk writes, increasing I/O overhead and potentially causing disk contention, which can slow down other operations. Conversely, a very long period keeps more hint data in memory for longer durations, increasing heap pressure and potentially triggering more frequent or longer Garbage Collection (GC) cycles, which impacts overall system latency and stability.\"\n}\n```"
+}

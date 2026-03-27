@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'hints_compression' configuration in Cassandra determines whether hint files (data stored when a node is down to be replayed later) are compressed on disk. Enabling compression reduces disk I/O and storage footprint, which can improve performance in I/O-bound environments. However, it introduces CPU overhead for compression and decompression cycles during the hint writing and handoff (replay) processes. If the system is CPU-constrained, enabling this can increase latency during hint processing. Conversely, if the system is I/O-constrained, disabling it can lead to slower hint storage and retrieval, potentially impacting the overall recovery time of a node and system throughput.\"\n}\n```"
+}

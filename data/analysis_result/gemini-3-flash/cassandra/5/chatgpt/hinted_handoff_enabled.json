@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'hinted_handoff_enabled' configuration in Cassandra is performance-sensitive because it directly controls the mechanism for handling node failures during write operations. When enabled, if a replica node is down, the coordinator node stores a 'hint' on its local disk to replay the write later. This process consumes additional I/O and disk space on the coordinator during the failure period. More significantly, when the failed node recovers, the 'handoff' process triggers a surge in network traffic and disk I/O as the stored hints are replayed to the recovered node. While it improves eventual consistency, it introduces overhead that can impact write latency and system throughput during both the failure and recovery phases.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'key_cache_save_period' configuration determines the interval (in seconds) at which Cassandra persists the key cache to disk. This is performance-sensitive for two primary reasons: First, the saving process involves disk I/O operations; if set too frequently, it can increase I/O contention and overhead, potentially impacting the latency of concurrent read/write operations. Second, this setting directly affects the 'warm-up' time of the node after a restart. A longer save period or disabling it means the key cache will be less up-to-date or empty upon restart, leading to significantly higher read latencies as the system must perform more disk seeks to locate keys until the cache is repopulated. Balancing this value is critical for maintaining consistent read performance across restarts while minimizing background I/O overhead.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'compressionQuality' configuration in dconverter (a batch image converter) directly controls the trade-off between image fidelity and file size during the encoding process. From a system level, lower compression quality typically reduces the computational complexity and the resulting output file size, leading to lower disk I/O and memory bandwidth usage. Conversely, higher quality settings require more intensive processing cycles (CPU time) and result in larger memory footprints and increased disk write operations. Because changing this value significantly impacts execution time and resource consumption during the image processing pipeline, it is classified as performance-sensitive.\"\n}\n```"
+}

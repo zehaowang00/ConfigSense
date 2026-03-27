@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'row_cache_size_in_mb' configuration directly impacts the system's memory allocation and I/O performance. By caching the most frequently accessed rows in memory, it significantly reduces the need for disk I/O and the overhead of merging multiple SSTables during read operations, leading to lower latency and higher throughput. However, since this cache resides in the JVM heap (or off-heap depending on the implementation version), setting it too high can lead to increased memory pressure, potentially triggering frequent Garbage Collection (GC) cycles or OutOfMemory errors, while setting it too low may result in a low cache hit rate and increased disk read latency.\"\n}\n```"
+}

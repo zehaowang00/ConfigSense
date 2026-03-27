@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cache_load_timeout_seconds' configuration in Cassandra determines the maximum time allowed for loading saved caches (like Key Cache or Row Cache) into memory during node startup. This is performance-sensitive for two primary reasons: 1) Startup Latency: If set too high and the cache files are corrupted or slow to read, it can significantly delay the time it takes for a node to become 'Ready' to serve traffic. 2) Read Performance: If the timeout is set too low, the system may abort the cache loading process prematurely. This results in a 'cold' cache, leading to a significant spike in disk I/O and increased read latency immediately after startup as the system is forced to fetch data from SSTables instead of memory.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'haltOnError' configuration in dconverter (a multi-platform icon resource converter) is a control-flow flag that determines whether the application should stop execution or continue when an error occurs during the conversion process. From a system performance perspective, this setting affects the error-handling logic rather than the resource-intensive image processing algorithms themselves. While it can affect the total execution time by terminating a batch job early, it does not change the computational complexity, memory throughput, or CPU utilization of the actual conversion tasks. It is a functional behavior setting rather than a performance-tuning parameter.\"\n}\n```"
+}

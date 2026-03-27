@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'memtable_offheap_space_in_mb' configuration directly controls the amount of off-heap memory allocated for memtables in Cassandra. This is performance-sensitive for several reasons: First, it dictates the threshold for flushing data to disk (SSTables); a smaller value leads to more frequent flushes, increasing I/O pressure and compaction overhead, while a larger value allows more data to be buffered, improving write throughput but potentially increasing the risk of data loss on crash. Second, by moving memtables off-heap, it reduces the pressure on the JVM heap, which directly impacts Garbage Collection (GC) frequency and pause times. Improper tuning can lead to either inefficient memory utilization or system instability if the off-heap memory limits are exceeded.\"\n}\n```"
+}

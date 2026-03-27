@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_d' parameter typically represents the 'digest size' or the output length of the hash function. This configuration is performance-sensitive because it directly influences the amount of data the underlying cryptographic primitives must process and output. Increasing the digest size can lead to higher memory bandwidth requirements and increased CPU cycles for the finalization stage of the hashing algorithm. Furthermore, in many implementations of Catena and its underlying components (like the H-Layer or the Graph-Layer), the output size can dictate the internal state size or the number of iterations required to produce the desired length, thereby affecting the overall execution time and throughput of the hashing process.\"\n}\n```"
+}

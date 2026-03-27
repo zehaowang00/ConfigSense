@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'keepUnoptimizedFilesPostProcessor' configuration in dconverter determines whether the system retains or deletes intermediate, unoptimized files during the image conversion and post-processing workflow. From a system level, enabling this option increases disk I/O operations and significantly impacts storage space consumption, especially when processing large batches of images. Furthermore, keeping these files can affect the cache efficiency and the overall execution time of the post-processing pipeline, as the system must manage additional file handles and metadata for the unoptimized assets instead of streamlining the output to only the final, optimized versions.\"\n}\n```"
+}

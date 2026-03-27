@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'client_encryption_options' configuration in Cassandra controls the encryption of data in transit between the client and the server (SSL/TLS). Enabling encryption introduces significant computational overhead due to the cryptographic operations required for every request and response, such as symmetric encryption/decryption and message authentication codes (MAC). At the system level, this increases CPU utilization and can lead to higher latency and reduced throughput compared to plaintext communication. Furthermore, the choice of cipher suites and the overhead of the TLS handshake process directly impact the connection establishment time and overall system performance.\"\n}\n```"
+}

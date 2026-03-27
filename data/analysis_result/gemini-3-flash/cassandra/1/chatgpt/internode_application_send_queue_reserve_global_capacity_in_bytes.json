@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration defines the global reserve capacity for the internode application send queue in Cassandra. At a system level, it acts as a backpressure and resource management mechanism for network communication between nodes. If this value is set too low, the system may prematurely throttle outgoing messages or experience frequent queue overflows, leading to increased latency in cross-node operations (like mutations or read repairs). If set too high, it can lead to excessive heap memory consumption and potential OutOfMemory (OOM) errors under heavy load, as more memory is allocated to buffer outgoing messages. Therefore, tuning this parameter directly impacts the balance between network throughput, system stability, and memory footprint.\"\n}\n```"
+}

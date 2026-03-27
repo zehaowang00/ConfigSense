@@ -1,146 +1,146 @@
-Configuration,Baseline,DiaConfig,Reason
-commitlog_sync_period_in_ms,Yes,Yes,
-truncate_request_timeout_in_ms,Yes,Yes,
-hinted_handoff_throttle_in_kb,Yes,No,
-commitlog_compression,Yes,Yes,
-max_hint_window_in_ms,Yes,Yes,
-partitioner,Yes,Yes,
-enable_sasi_indexes,Yes,Yes,
-row_cache_save_period,Yes,Yes,
-key_cache_size_in_mb,Yes,No,
-enable_materialized_views,Yes,Yes,
-allocate_tokens_for_keyspace,Yes,Yes,
-cas_contention_timeout_in_ms,Yes,Yes,
-inter_dc_tcp_nodelay,Yes,No,
-enable_drop_compact_storage,Yes,Yes,
-allocate_tokens_for_local_replication_factor,Yes,Yes,
-concurrent_writes,Yes,Yes,
-file_cache_size_in_mb,Yes,Yes,
-counter_write_request_timeout_in_ms,Yes,Yes,
-hinted_handoff_enabled,Yes,Yes,
-concurrent_counter_writes,Yes,Yes,
-commitlog_segment_size_in_mb,Yes,Yes,
-read_request_timeout_in_ms,Yes,No,
-initial_token,Yes,Yes,
-dynamic_snitch_update_interval_in_ms,Yes,No,
-cache_load_timeout_seconds,Yes,No,
-concurrent_materialized_view_writes,Yes,Yes,
-periodic_commitlog_sync_lag_block_in_ms,Yes,No,
-native_transport_flush_in_batches_legacy,Yes,No,
-commitlog_sync,Yes,No,
-server_encryption_options,Yes,No,
-native_transport_max_threads,Yes,No,
-ideal_consistency_level,Yes,No,
-hints_flush_period_in_ms,Yes,No,
-range_request_timeout_in_ms,Yes,Yes,https://asrblogger.com/apache-cassandra-performance-tuning/
-table_count_warn_threshold,Yes,Yes,
-networking_cache_size_in_mb,Yes,Yes,
-transparent_data_encryption_options,Yes,Yes,
-write_request_timeout_in_ms,Yes,No,
-keyspace_count_warn_threshold,Yes,Yes,
-num_tokens,Yes,Yes,
-request_timeout_in_ms,Yes,Yes,
-client_encryption_options,Yes,Yes,
-key_cache_save_period,Yes,Yes,
-compaction_large_partition_warning_threshold_mb,Yes,No,
-streaming_connections_per_host,Yes,No,https://docs.datastax.com/en/luna-cassandra/guides/upgrade/cassandra-4-configuration-changes.html#zero-copy-streams
-cdc_free_space_check_interval_ms,Yes,No,https://docs.datastax.com/en/dse/6.9/managing/configure/configure-cassandra-yaml.html#cdcSpaceSection
-concurrent_materialized_view_builders,No,No,
-max_hints_file_size_in_mb,No,No,
-cdc_total_space_in_mb,Yes,No,https://docs.datastax.com/en/dse/6.9/managing/configure/configure-cassandra-yaml.html#cdcSpaceSection
-tombstone_failure_threshold,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#tombstone_warn_threshold
-tracetype_query_ttl,No,No,
-repair_session_space_in_mb,No,No,
-column_index_cache_size_in_kb,No,No,
-gc_log_threshold_in_ms,No,No,
-enable_user_defined_functions,No,No,
-disk_optimization_strategy,Yes,No,https://community.dataminer.services/troubleshooting-cassandra/
-authorizer,No,No,
-role_manager,No,Yes,
-cross_node_timeout,No,No,
-internode_compression,No,No,
-concurrent_validations,Yes,No,https://docs.datastax.com/en/dse/6.8/managing/configure/configure-cassandra-yaml.html#compaction-settings
-start_native_transport,No,Yes,
+Configuration,Baseline,DiaConfig,Reason,Explanation
+commitlog_sync_period_in_ms,Yes,Yes,,
+truncate_request_timeout_in_ms,Yes,Yes,,
+hinted_handoff_throttle_in_kb,Yes,No,,
+commitlog_compression,Yes,Yes,,
+max_hint_window_in_ms,Yes,Yes,,
+partitioner,Yes,Yes,,
+enable_sasi_indexes,Yes,Yes,,
+row_cache_save_period,Yes,Yes,,
+key_cache_size_in_mb,Yes,No,,
+enable_materialized_views,Yes,Yes,,
+allocate_tokens_for_keyspace,Yes,Yes,,
+cas_contention_timeout_in_ms,Yes,Yes,,
+inter_dc_tcp_nodelay,Yes,No,,
+enable_drop_compact_storage,Yes,Yes,,
+allocate_tokens_for_local_replication_factor,Yes,Yes,,
+concurrent_writes,Yes,Yes,,
+file_cache_size_in_mb,Yes,Yes,,
+counter_write_request_timeout_in_ms,Yes,Yes,,
+hinted_handoff_enabled,Yes,Yes,,
+concurrent_counter_writes,Yes,Yes,,
+commitlog_segment_size_in_mb,Yes,Yes,,
+read_request_timeout_in_ms,Yes,No,,
+initial_token,Yes,Yes,,
+dynamic_snitch_update_interval_in_ms,Yes,No,,
+cache_load_timeout_seconds,Yes,No,,
+concurrent_materialized_view_writes,Yes,Yes,,
+periodic_commitlog_sync_lag_block_in_ms,Yes,No,,
+native_transport_flush_in_batches_legacy,Yes,No,,
+commitlog_sync,Yes,No,,
+server_encryption_options,Yes,No,,
+native_transport_max_threads,Yes,No,,
+ideal_consistency_level,Yes,No,,
+hints_flush_period_in_ms,Yes,No,,
+range_request_timeout_in_ms,Yes,Yes,https://asrblogger.com/apache-cassandra-performance-tuning/,"Range scans involve coordinator-to-replica communication across potentially large token ranges. This timeout determines when slow range queries are aborted. Too aggressive a value causes spurious failures under load, while too lenient allows slow scans to hold resources and degrade cluster-wide throughput."
+table_count_warn_threshold,Yes,Yes,,
+networking_cache_size_in_mb,Yes,Yes,,
+transparent_data_encryption_options,Yes,Yes,,
+write_request_timeout_in_ms,Yes,No,,
+keyspace_count_warn_threshold,Yes,Yes,,
+num_tokens,Yes,Yes,,
+request_timeout_in_ms,Yes,Yes,,
+client_encryption_options,Yes,Yes,,
+key_cache_save_period,Yes,Yes,,
+compaction_large_partition_warning_threshold_mb,Yes,No,,
+streaming_connections_per_host,Yes,No,https://docs.datastax.com/en/luna-cassandra/guides/upgrade/cassandra-4-configuration-changes.html#zero-copy-streams,"In Cassandra 4.0's zero-copy streaming, this parameter enables parallel transfer channels between nodes. When the receiver is CPU-bound, adding connections directly reduces bootstrap and rebuild wall-clock time."
+cdc_free_space_check_interval_ms,Yes,No,https://docs.datastax.com/en/dse/6.9/managing/configure/configure-cassandra-yaml.html#cdcSpaceSection,"Once CDC log space is exhausted, all writes to CDC-enabled tables fail with WriteTimeoutException. This interval determines how quickly the node detects reclaimed space and resumes accepting writes, so too infrequent checks prolong write outages unnecessarily."
+cdc_total_space_in_mb,Yes,No,https://docs.datastax.com/en/dse/6.9/managing/configure/configure-cassandra-yaml.html#cdcSpaceSection,"When CDC logs exceed this limit, Cassandra rejects all writes to CDC-enabled tables with WriteTimeoutException. An undersized value on high-throughput clusters causes frequent write rejections whenever the CDC compactor falls behind."
+concurrent_materialized_view_builders,No,No,,
+max_hints_file_size_in_mb,No,No,,
+tombstone_failure_threshold,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#tombstone_warn_threshold,"Reads that encounter excessive tombstones must materialize them in heap memory before discarding, leading to GC pressure and latency spikes. Beyond this threshold Cassandra aborts the query entirely to prevent heap exhaustion."
+tracetype_query_ttl,No,No,,
+repair_session_space_in_mb,No,No,,
+column_index_cache_size_in_kb,No,No,,
+gc_log_threshold_in_ms,No,No,,
+enable_user_defined_functions,No,No,,
+disk_optimization_strategy,Yes,No,https://community.dataminer.services/troubleshooting-cassandra/,"Selects between I/O patterns optimized for spinning disks (sequential prefetch) versus SSDs (random access). Mismatching the strategy to actual hardware leads to suboptimal read amplification and unnecessary seek penalties."
+authorizer,No,No,,
+role_manager,No,Yes,,
+cross_node_timeout,No,No,,
+internode_compression,No,No,,
+concurrent_validations,Yes,No,https://docs.datastax.com/en/dse/6.8/managing/configure/configure-cassandra-yaml.html#compaction-settings,"During anti-entropy repair, each validation builds a Merkle tree from a full SSTable scan. Running multiple validations in parallel accelerates repair but competes with production reads and writes for disk I/O and CPU."
+start_native_transport,No,Yes,,
 memtable_heap_space_in_mb,Yes,No,"https://stackoverflow.com/questions/75379954/how-do-i-force-a-memtable-flush-for-every-write
-https://stackoverflow.com/questions/49874917/memtable-type-and-size-allocation/49879147#49879147"
-max_hints_delivery_threads,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#max_hints_delivery_threads
-native_transport_max_concurrent_connections,Yes,No,https://dba.stackexchange.com/questions/337312/best-practices-for-managing-concurrent-client-connections-in-cassandra
-flush_compression,Yes,No,https://cassandra.apache.org/doc/4.0.1/cassandra/configuration/cass_yaml_file.html#flush_compression
-trickle_fsync_interval_in_kb,Yes,No,https://reintech.io/blog/achieving-low-latency-writes-cassandra
-internode_tcp_connect_timeout_in_ms,No,No,
-max_value_size_in_mb,No,No,
-snapshot_links_per_second,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#snapshot_links_per_second
-internode_application_receive_queue_reserve_endpoint_capacity_in_bytes,No,No,
-compaction_throughput_mb_per_sec,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#concurrent_compactors
-disk_optimization_strategy,No,No,
-gc_warn_threshold_in_ms,No,No,
-internode_streaming_tcp_user_timeout_in_ms,No,No,
-native_transport_allow_older_protocols,No,No,
-rpc_keepalive,No,No,
-stream_entire_sstables,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#stream_entire_sstables
+https://stackoverflow.com/questions/49874917/memtable-type-and-size-allocation/49879147#49879147","Memtables buffer all incoming writes in memory before flushing to SSTables on disk. Setting this value too low forces excessively frequent flushes, and when the allocation is fully exceeded Cassandra halts all incoming mutations until a flush completes, directly stalling write throughput."
+max_hints_delivery_threads,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#max_hints_delivery_threads,"After a node recovers from downtime, hints must be replayed to restore consistency. With too few delivery threads, especially across data centers where network latency is higher, hint replay falls behind and consistency restoration is delayed."
+native_transport_max_concurrent_connections,Yes,No,https://dba.stackexchange.com/questions/337312/best-practices-for-managing-concurrent-client-connections-in-cassandra,"Each CQL connection consumes memory for buffers and session state. When the limit is reached nodes reject new connections, and clients begin retrying aggressively, which piles up connection requests and further strains the node. In practice, capacity planning matters more than simply capping connections."
+flush_compression,Yes,No,https://cassandra.apache.org/doc/4.0.1/cassandra/configuration/cass_yaml_file.html#flush_compression,"SSTable flushes are latency-sensitive because the memtable is held in memory until the flush completes. Using a slow compressor (e.g., Zstd or Deflate) during flush increases flush duration and can trigger write backpressure."
+trickle_fsync_interval_in_kb,Yes,No,https://reintech.io/blog/achieving-low-latency-writes-cassandra,"Rather than issuing a single large fsync at segment boundaries, trickle fsync spreads sync operations across smaller byte intervals. This smooths out I/O latency and substantially reduces P99 write latency spikes."
+internode_tcp_connect_timeout_in_ms,No,No,,
+max_value_size_in_mb,No,No,,
+snapshot_links_per_second,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#snapshot_links_per_second,"Creating or clearing a snapshot involves hardlinking potentially tens of thousands of SSTable files. Without throttling, this burst of filesystem metadata operations can saturate I/O on consumer SSDs and stall concurrent reads and writes."
+internode_application_receive_queue_reserve_endpoint_capacity_in_bytes,No,No,,
+compaction_throughput_mb_per_sec,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#concurrent_compactors,"Compaction is essential for read performance because merging SSTables reduces read amplification, but it consumes disk bandwidth. Too little throughput lets SSTables pile up and degrade reads, while too much starves foreground operations of I/O."
+disk_optimization_strategy,No,No,,
+gc_warn_threshold_in_ms,No,No,,
+internode_streaming_tcp_user_timeout_in_ms,No,No,,
+native_transport_allow_older_protocols,No,No,,
+rpc_keepalive,No,No,,
+stream_entire_sstables,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#stream_entire_sstables,"Zero-copy streaming transfers SSTable files directly from disk to network, bypassing deserialization into Java objects. This eliminates significant GC overhead and achieves roughly 5x faster transfers compared to partition-level streaming."
 stream_throughput_outbound_megabits_per_sec,Yes,No,"https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#stream_throughput_outbound_megabits_per_sec
-https://cassandra.apache.org/doc/4.0/cassandra/new/streaming.html"
-internode_application_send_queue_reserve_endpoint_capacity_in_bytes,No,No,
-counter_cache_save_period,Yes,No,https://stackoverflow.com/questions/56497815/why-is-counter-cache-not-being-utilized-after-i-increase-the-size
-memtable_cleanup_threshold,Yes,No,https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/operations/opsMemtableThruput.html
-index_summary_capacity_in_mb,Yes,No,https://stackoverflow.com/questions/36484868/is-read-latency-increased-due-to-a-big-sstable
-unlogged_batch_across_partitions_warn_threshold,No,No,
-internode_tcp_user_timeout_in_ms,No,No,
-phi_convict_threshold,No,No,
-key_cache_keys_to_save,No,No,
-native_transport_max_concurrent_connections_per_ip,Yes,No,https://dba.stackexchange.com/questions/337312/best-practices-for-managing-concurrent-client-connections-in-cassandra
-inter_dc_stream_throughput_outbound_megabits_per_sec,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/new/streaming.html
-incremental_backups,Yes,Yes,
-full_query_logging_options,No,No,
-network_authorizer,No,No,
-row_cache_class_name,Yes,No,https://stackoverflow.com/questions/64089098/is-there-any-side-effect-of-increasing-row-cache-size-in-mb-in-cassandra/64091913#64091913
+https://cassandra.apache.org/doc/4.0/cassandra/new/streaming.html","Streaming during bootstrap or repair generates mostly sequential I/O that can easily saturate the network link. This throttle prevents streaming from crowding out latency-sensitive client RPC traffic on the same interface."
+internode_application_send_queue_reserve_endpoint_capacity_in_bytes,No,No,,
+counter_cache_save_period,Yes,No,https://stackoverflow.com/questions/56497815/why-is-counter-cache-not-being-utilized-after-i-increase-the-size,"The counter cache is periodically saved to disk so it can be restored after restarts. Users report that cache warm-up after restart can take over 90 minutes with large caches, during which counter read/write performance degrades substantially until the cache is repopulated."
+memtable_cleanup_threshold,Yes,No,https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/operations/opsMemtableThruput.html,"This threshold triggers the largest memtable to flush when total memtable memory exceeds the limit. A higher value batches more writes per flush (better I/O efficiency) but leaves less heap for the page cache and other internal structures."
+index_summary_capacity_in_mb,Yes,No,https://stackoverflow.com/questions/36484868/is-read-latency-increased-due-to-a-big-sstable,"Index summaries let Cassandra locate partition keys without scanning the full on-disk index. When total summary memory exceeds this cap, Cassandra downsamples summaries for less-accessed SSTables, which increases disk seeks and read latency for those tables proportionally."
+unlogged_batch_across_partitions_warn_threshold,No,No,,
+internode_tcp_user_timeout_in_ms,No,No,,
+phi_convict_threshold,No,No,,
+key_cache_keys_to_save,No,No,,
+native_transport_max_concurrent_connections_per_ip,Yes,No,https://dba.stackexchange.com/questions/337312/best-practices-for-managing-concurrent-client-connections-in-cassandra,"Without per-IP limits, a single client can open enough connections to monopolize a node's memory and threads, starving other clients. Capping connections is a stopgap since refused clients retry aggressively, but it remains necessary in multi-tenant environments to prevent one application from degrading the entire cluster."
+inter_dc_stream_throughput_outbound_megabits_per_sec,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/new/streaming.html,"Cross-datacenter links are typically the narrowest bandwidth bottleneck. This throttle prevents repair or bootstrap streaming from saturating the WAN link and degrading cross-DC replication and client traffic."
+incremental_backups,Yes,Yes,,
+full_query_logging_options,No,No,,
+network_authorizer,No,No,,
+row_cache_class_name,Yes,No,https://stackoverflow.com/questions/64089098/is-there-any-side-effect-of-increasing-row-cache-size-in-mb-in-cassandra/64091913#64091913,"Determines whether cached rows are stored fully off-heap (OHCProvider) or partially on-heap (SerializingCacheProvider). With on-heap caching, frequent row evictions due to undersized cache or volatile data force additional GC work, which degrades read latencies under sustained load."
 memtable_offheap_space_in_mb,Yes,No,"https://stackoverflow.com/questions/75379954/how-do-i-force-a-memtable-flush-for-every-write/75381526#75381526
 https://stackoverflow.com/questions/39298056/cassandra-insert-performance-on-a-single-node-c-apis
-https://stackoverflow.com/questions/47905949/cassandra-cluster-looses-performance-in-one-node"
-internode_socket_send_buffer_size_in_bytes,No,No,
-enable_scripted_user_defined_functions,No,No,
-disk_failure_policy,No,No,
-diagnostic_events_enabled,No,No,
+https://stackoverflow.com/questions/47905949/cassandra-cluster-looses-performance-in-one-node","Moving memtable data off-heap avoids GC pauses from large on-heap write buffers. In a reported production case, hitting the offheap limit (512 MB default) caused 'cannot allocate chunk' errors and throughput collapsed from 400 to 60 writes/s per node until the allocation was increased."
+internode_socket_send_buffer_size_in_bytes,No,No,,
+enable_scripted_user_defined_functions,No,No,,
+disk_failure_policy,No,No,,
+diagnostic_events_enabled,No,No,,
 commitlog_total_space_in_mb,Yes,No,"https://stackoverflow.com/questions/55573249/how-to-flush-cassandra-cdc-changes-periodically-to-disk
-https://docs.genesys.com/Documentation/OS/latest/Cassandra/Perf"
-snapshot_before_compaction,No,No,
-slow_query_log_timeout_in_ms,No,No,
-audit_logging_options,No,No,
-commit_failure_policy,No,No,
-native_transport_max_frame_size_in_mb,No,No,
+https://docs.genesys.com/Documentation/OS/latest/Cassandra/Perf","When the commit log exceeds this size, Cassandra force-flushes all dirty memtables from the oldest segments. In one reported case, setting this to just 2 MB caused Cassandra to flush every table constantly, and when space still could not be reclaimed, writes were rejected entirely."
+snapshot_before_compaction,No,No,,
+slow_query_log_timeout_in_ms,No,No,,
+audit_logging_options,No,No,,
+commit_failure_policy,No,No,,
+native_transport_max_frame_size_in_mb,No,No,,
 dynamic_snitch_badness_threshold,Yes,No,"https://docs.datastax.com/en/dse/6.8/docs/managing/configure/configure-cassandra-yaml.html
 https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#dynamic_snitch_badness_threshold
-https://stackoverflow.com/questions/51826861/dynamic-snitches-in-cassandra/51835387#51835387"
-counter_cache_keys_to_save,No,No,
-hints_directory,No,No,
-internode_application_receive_queue_capacity_in_bytes,No,No,
-windows_timer_interval,Yes,No,
-max_concurrent_automatic_sstable_upgrades,No,No,
-index_summary_resize_interval_in_minutes,No,No,
-counter_cache_size_in_mb,Yes,No,https://stackoverflow.com/questions/56497815/why-is-counter-cache-not-being-utilized-after-i-increase-the-size
-row_cache_size_in_mb,Yes,No,https://stackoverflow.com/questions/51963193/cassandra-setting-row-cache-size-in-mb-decrease-performance-by-factor-4
-batchlog_replay_throttle_in_kb,Yes,No,https://support.datastax.com/s/article/nodetool-setbatchlogreplaythrottle
-concurrent_compactors,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#concurrent_compactors
-internode_application_send_queue_capacity_in_bytes,No,No,
-report_unconfirmed_repaired_data_mismatches,No,Yes,
-internode_application_send_queue_reserve_global_capacity_in_bytes,No,No,
-trickle_fsync,Yes,No,https://reintech.io/blog/achieving-low-latency-writes-cassandra
-dynamic_snitch_reset_interval_in_ms,No,No,
-tombstone_warn_threshold,Yes,No,https://cassandra.apache.org/doc/stable/cassandra/configuration/cass_yaml_file.html#tombstone_warn_threshold
-authenticator,No,No,
-hints_compression,No,No,
-sstable_preemptive_open_interval_in_mb,Yes,No,https://docs.datastax.com/en/dse/6.8/docs/managing/configure/configure-cassandra-yaml.html
-repaired_data_tracking_for_range_reads_enabled,Yes,No,https://dba.stackexchange.com/questions/329930/seeing-slow-performance-for-range-queries-with-allow-filtering-in-cassandra-4-0
-file_cache_enabled,No,No,
-memtable_allocation_type,Yes,No,https://community.cloudera.com/t5/Support-Questions/what-to-do-for-performance-tuning-of-Cassandra-database/td-p/134099
-batch_size_fail_threshold_in_kb,No,No,
-streaming_keep_alive_period_in_secs,No,No,
-batch_size_warn_threshold_in_kb,No,No,
-internode_authenticator,No,No,
-cluster_name,No,No,
-auto_snapshot,Yes,No,https://stackoverflow.com/questions/39481424/why-would-dropping-a-table-in-cassandra-take-many-minutes/39488094#39488094
-endpoint_snitch,Yes,Yes,
-prepared_statements_cache_size_mb,Yes,Yes,
-memtable_flush_writers,Yes,Yes,
-internode_application_receive_queue_reserve_global_capacity_in_bytes,No,No,
-cdc_enabled,Yes,No,
+https://stackoverflow.com/questions/51826861/dynamic-snitches-in-cassandra/51835387#51835387","The dynamic snitch routes reads to the fastest replica but uses this threshold to allow replica pinning for better cache locality. For example, a value of 0.2 means a pinned host must be 20% slower than the fastest before the snitch reroutes, so the setting directly governs read latency variance across the cluster."
+counter_cache_keys_to_save,No,No,,
+hints_directory,No,No,,
+internode_application_receive_queue_capacity_in_bytes,No,No,,
+windows_timer_interval,Yes,No,,
+max_concurrent_automatic_sstable_upgrades,No,No,,
+index_summary_resize_interval_in_minutes,No,No,,
+counter_cache_size_in_mb,Yes,No,https://stackoverflow.com/questions/56497815/why-is-counter-cache-not-being-utilized-after-i-increase-the-size,"Counter updates require a read-before-write, and the counter cache eliminates the disk read for hot cells. Resizing the cache is disruptive: one production report shows throughput dropped substantially after increasing from 1000 to 3500 MB while the cache spent over 90 minutes repopulating."
+row_cache_size_in_mb,Yes,No,https://stackoverflow.com/questions/51963193/cassandra-setting-row-cache-size-in-mb-decrease-performance-by-factor-4,"Caching entire rows benefits hot small partitions, but a StackOverflow report documents a measured 4x throughput reduction when enabling row cache on large column families. The root cause is GC overhead from evacuating and repopulating large cached rows, which stalls the JVM."
+batchlog_replay_throttle_in_kb,Yes,No,https://support.datastax.com/s/article/nodetool-setbatchlogreplaythrottle,"After a node failure, accumulated batch logs are replayed to ensure atomicity. The replay throttle bounds the I/O spent on replay so it does not overwhelm the recovering node, but a value set too low delays recovery."
+concurrent_compactors,Yes,No,https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html#concurrent_compactors,"Each compactor thread performs sequential reads and writes against SSTables. On SSDs, where random I/O is cheap, increasing this up to the core count accelerates compaction. On spinning disks, more than one or two threads causes seek contention."
+internode_application_send_queue_capacity_in_bytes,No,No,,
+report_unconfirmed_repaired_data_mismatches,No,Yes,,
+internode_application_send_queue_reserve_global_capacity_in_bytes,No,No,,
+trickle_fsync,Yes,No,https://reintech.io/blog/achieving-low-latency-writes-cassandra,"When enabled, the commit log is synced to disk in small increments rather than in one large batch at segment boundaries. This eliminates the latency spikes caused by flushing a full segment, which can reach tens of milliseconds."
+dynamic_snitch_reset_interval_in_ms,No,No,,
+tombstone_warn_threshold,Yes,No,https://cassandra.apache.org/doc/stable/cassandra/configuration/cass_yaml_file.html#tombstone_warn_threshold,"Reads touching many tombstones must materialize them in memory before filtering, which increases heap usage and GC pressure. This threshold flags queries that are likely experiencing tombstone-related read amplification."
+authenticator,No,No,,
+hints_compression,No,No,,
+sstable_preemptive_open_interval_in_mb,Yes,No,https://docs.datastax.com/en/dse/6.8/docs/managing/configure/configure-cassandra-yaml.html,"During compaction, Cassandra can start serving reads from a partially-written SSTable to smooth the transition from old to new data files. Setting this too low increases the number of premature opens, adding GC overhead and heap pressure."
+repaired_data_tracking_for_range_reads_enabled,Yes,No,https://dba.stackexchange.com/questions/329930/seeing-slow-performance-for-range-queries-with-allow-filtering-in-cassandra-4-0,"Introduced in Cassandra 4.0, this feature tracks repaired data consistency during range reads. Operators migrating from 3.x have reported measurable latency increases for range queries with this enabled, and disabling it is a documented tuning step to recover the read performance that existed before 4.0."
+file_cache_enabled,No,No,,
+memtable_allocation_type,Yes,No,https://community.cloudera.com/t5/Support-Questions/what-to-do-for-performance-tuning-of-Cassandra-database/td-p/134099,"Choosing offheap_buffers or offheap_objects moves memtable storage outside the JVM heap, reducing GC pause times. For write-intensive workloads, this can be the difference between sub-millisecond and multi-second tail latencies."
+batch_size_fail_threshold_in_kb,No,No,,
+streaming_keep_alive_period_in_secs,No,No,,
+batch_size_warn_threshold_in_kb,No,No,,
+internode_authenticator,No,No,,
+cluster_name,No,No,,
+auto_snapshot,Yes,No,https://stackoverflow.com/questions/39481424/why-would-dropping-a-table-in-cassandra-take-many-minutes/39488094#39488094,"Before dropping or truncating a table, Cassandra flushes all memtables and then hardlinks every SSTable file as a snapshot. The flush itself can trigger compaction, and on tables with many SSTables the filesystem unlink operations become the bottleneck, causing drops to block for several minutes."
+endpoint_snitch,Yes,Yes,,
+prepared_statements_cache_size_mb,Yes,Yes,,
+memtable_flush_writers,Yes,Yes,,
+internode_application_receive_queue_reserve_global_capacity_in_bytes,No,No,,
+cdc_enabled,Yes,No,,

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'table_count_warn_threshold' configuration in Cassandra is a monitoring and safety threshold rather than a direct performance-tuning parameter. Its primary function is to trigger a warning message in the logs when the number of tables in a cluster exceeds a predefined limit. While having an excessive number of tables can lead to performance degradation (due to increased memory overhead for metadata, more Memtables, and overhead in compaction), the configuration itself only controls the reporting threshold. Changing this value does not alter the system's resource allocation, execution logic, or data processing efficiency; it merely changes when a warning is issued to the administrator.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'key_cache_keys_to_save' configuration determines the number of keys from the key cache that Cassandra saves to disk during a shutdown or periodic save. This directly impacts performance in two ways: 1) Disk I/O and Latency: Saving a large number of keys increases disk write operations during shutdown and read operations during startup (warm-up phase). 2) Read Performance: The key cache is critical for avoiding expensive disk seeks to locate row offsets in SSTables. If this value is set too low, the cache will be 'cold' after a restart, leading to significantly higher read latency and increased CPU/IO usage until the cache is naturally repopulated. Conversely, setting it too high can increase memory pressure and startup time.\"\n}\n```"
+}

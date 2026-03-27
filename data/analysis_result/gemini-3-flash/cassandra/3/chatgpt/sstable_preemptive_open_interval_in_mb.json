@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'sstable_preemptive_open_interval_in_mb' configuration controls the background process of opening SSTables (Sorted String Tables) before they are fully compacted. By preemptively opening these files, Cassandra can reduce the 'tail latency' of read operations that would otherwise wait for a full compaction to complete before accessing new data. From a system level, adjusting this value impacts disk I/O patterns and memory overhead associated with file handles and index caching. If set too low, it may cause excessive overhead by opening files too frequently; if set too high, it may delay the availability of compacted data, leading to increased read latency and higher disk space amplification during the compaction process.\"\n}\n```"
+}

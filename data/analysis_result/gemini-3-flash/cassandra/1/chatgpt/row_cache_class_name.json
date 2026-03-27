@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'row_cache_class_name' configuration determines the implementation of the row cache provider in Cassandra (e.g., OhcProvider). The row cache is designed to store frequently accessed rows in memory to avoid the overhead of merging data from SSTables and Memtables during read operations. Different implementations can significantly impact memory management (on-heap vs. off-heap), garbage collection (GC) pressure, and cache hit/miss latency. Choosing an inefficient implementation or one that does not align with the system's memory architecture can lead to increased CPU usage, higher memory consumption, and significant variations in read latency.\"\n}\n```"
+}

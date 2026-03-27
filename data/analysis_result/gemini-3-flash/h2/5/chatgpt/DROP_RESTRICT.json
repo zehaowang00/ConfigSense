@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The DROP_RESTRICT configuration in H2 is a security and behavioral setting that controls whether the 'RESTRICT' keyword is required or enforced during 'DROP' operations (like DROP TABLE or DROP SCHEMA). This setting governs metadata validation and dependency checking logic within the database engine's control plane. It does not influence the data path, query execution plans, memory allocation, or I/O throughput. Changes to this setting only affect the success or failure of DDL (Data Definition Language) statements and have no measurable impact on the system's runtime performance or resource consumption.\"\n}\n```"
+}

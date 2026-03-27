@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'index_summary_capacity_in_mb' configuration directly controls the amount of memory allocated for the index summaries of all SSTables on a Cassandra node. Index summaries are in-memory structures that allow the system to quickly locate specific data within large SSTable files on disk. If this capacity is set too low, Cassandra will be forced to downsample the index summaries, leading to more frequent disk I/O operations and increased read latency as the system must scan more of the index file. Conversely, setting it too high consumes significant heap memory, which can lead to increased garbage collection pressure and potentially OutOfMemory errors. Therefore, changes to this value significantly impact both memory consumption and read performance.\"\n}\n```"
+}

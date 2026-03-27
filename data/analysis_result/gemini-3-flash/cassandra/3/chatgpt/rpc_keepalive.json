@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'rpc_keepalive' configuration (often related to the native transport or inter-node messaging in Cassandra) determines whether the system enables TCP keepalive on RPC connections. From a system level, enabling or disabling keepalive directly impacts how the operating system manages socket states and connection persistence. If disabled or misconfigured, the system may experience increased overhead due to frequent connection establishment (TCP handshakes) and teardowns, or conversely, it may fail to timely reclaim resources from stale/dead connections. This affects network throughput, CPU utilization related to interrupt handling and context switching, and overall request latency, especially in environments with unstable networks or high connection churn.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'createMipMapInsteadOfDrawableDir' configuration determines whether the tool generates assets in the 'mipmap' directory versus the 'drawable' directory for Android applications. From a system performance perspective, this affects how the Android OS handles resource scaling and memory management. Assets in 'mipmap' folders are kept in the APK for all densities to allow for smooth scaling (e.g., for launcher icons), whereas 'drawable' assets are often stripped or optimized for specific device densities during installation. Choosing the wrong directory can lead to increased memory consumption (RAM) if the system has to scale large bitmaps at runtime, or increased CPU usage and visual stuttering if the scaling occurs during critical UI transitions.\"\n}\n```"
+}

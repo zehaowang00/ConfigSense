@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'truncate_request_timeout_in_ms' configuration defines the maximum time the coordinator node will wait for replicas to respond to a truncate operation before timing out. From a system level, this is performance-sensitive because truncate operations involve significant disk I/O and metadata overhead (clearing SSTables and commit logs). If this timeout is set too low, the system may prematurely fail valid operations under heavy load, leading to retries and increased system instability. Conversely, if set too high, it can cause client threads to hang for extended periods during failure scenarios, leading to thread pool exhaustion and increased latency for concurrent requests. Proper tuning is essential to balance system availability and resource utilization during heavy maintenance tasks.\"\n}\n```"
+}

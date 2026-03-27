@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The ANALYZE_SAMPLE configuration in H2 determines the number of rows sampled when the ANALYZE command is executed to update database statistics. These statistics are critical for the Cost-Based Optimizer (CBO) to generate efficient execution plans. If the sample size is too small, the optimizer may receive inaccurate data, leading to suboptimal query plans and significantly increased execution time. Conversely, a very large sample size increases the I/O and CPU overhead during the analysis process itself. Therefore, changes to this value directly impact both the maintenance overhead and the subsequent runtime performance of SQL queries.\"\n}\n```"
+}

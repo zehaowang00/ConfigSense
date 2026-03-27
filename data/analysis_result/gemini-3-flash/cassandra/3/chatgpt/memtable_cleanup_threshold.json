@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'memtable_cleanup_threshold' (often related to 'memtable_flush_writers' or the internal calculation of when memtables are flushed to disk in Cassandra) directly impacts the frequency and timing of I/O operations. In Cassandra, memtables are in-memory structures that store write data before it is persisted to SSTables on disk. This threshold determines the point at which the system must trigger a flush. If set too low, it causes frequent small flushes, leading to increased disk I/O overhead and a higher number of SSTables, which subsequently increases compaction load and read latency. If set too high, it increases memory pressure and risks triggering JVM Garbage Collection pauses or OutOfMemory errors, significantly impacting the system's throughput and stability.\"\n}\n```"
+}

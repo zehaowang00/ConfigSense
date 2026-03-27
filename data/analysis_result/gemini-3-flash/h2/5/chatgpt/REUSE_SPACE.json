@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The REUSE_SPACE configuration in H2 determines whether the database engine attempts to reuse space in the storage file that was previously occupied by deleted data. From a system level, enabling this option reduces disk space growth and improves storage efficiency but introduces overhead because the engine must track and search for free blocks within the file during write operations. Conversely, disabling it can lead to faster write performance (append-only behavior) at the cost of significant disk fragmentation and increased I/O overhead due to the ever-growing file size, which eventually impacts filesystem cache efficiency and disk seek times.\"\n}\n```"
+}

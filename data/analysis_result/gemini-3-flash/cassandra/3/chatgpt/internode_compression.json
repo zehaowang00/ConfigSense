@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'internode_compression' configuration determines whether and how data is compressed when transferred between nodes in a Cassandra cluster. This setting directly impacts two critical system resources: CPU and Network Bandwidth. Enabling compression reduces the amount of data transmitted over the network, which can significantly improve performance in bandwidth-constrained environments or across data centers. However, it introduces CPU overhead for the compression and decompression processes. Conversely, disabling it reduces CPU load but increases network traffic. Because changing this value shifts the bottleneck between CPU and Network and affects overall latency and throughput of inter-node operations (like replication and hints), it is highly performance-sensitive.\"\n}\n```"
+}

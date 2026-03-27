@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"In the context of the Catena password hashing framework, the '_lambda' parameter (often referred to as the lambda factor or m_cost) is a primary memory-cost or time-cost parameter. It directly dictates the number of iterations or the depth of the memory-hard graph construction during the hashing process. Increasing the value of _lambda linearly or exponentially increases the computational workload and the memory residency time required to compute a hash. This is a critical security feature designed to thwart brute-force attacks by intentionally consuming system resources (CPU cycles and memory bandwidth), making it highly performance-sensitive.\"\n}\n```"
+}

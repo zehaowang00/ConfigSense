@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The XML_PARSER_VALIDATING configuration determines whether the XML parser should validate the document against its DTD (Document Type Definition) or schema. When enabled, the parser must perform additional computational tasks, including fetching external resources (like DTD files), checking the structural integrity of the XML, and verifying data types. This significantly increases the execution time and CPU overhead during the parsing phase. In a graphics-heavy library like Batik, which processes complex SVG (XML) files, enabling validation can lead to measurable latency in rendering and increased memory consumption for storing validation metadata.\"\n}\n```"
+}

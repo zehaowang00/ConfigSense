@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'concurrent_counter_writes' configuration directly controls the number of concurrent threads dedicated to processing counter write operations in Cassandra. Since counter operations in Cassandra involve a read-before-write cycle (to increment the existing value), they are more resource-intensive than standard writes. Increasing this value allows for higher throughput of counter updates but increases CPU utilization and contention for the commit log and memtables. Conversely, setting this value too low can lead to bottlenecks and increased latency for counter-heavy workloads, as write requests will be queued or blocked waiting for an available thread.\"\n}\n```"
+}

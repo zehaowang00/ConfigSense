@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The MAX_QUERY_TIMEOUT configuration is performance-sensitive because it directly controls the maximum execution duration allowed for a database query before it is forcibly terminated. From a system level, this parameter acts as a safeguard for resource management. If set too high or to zero (infinite), long-running or inefficient queries can monopolize CPU cycles, hold locks for extended periods (causing contention), and consume significant memory and I/O bandwidth, leading to system-wide performance degradation. Conversely, a well-tuned timeout ensures that 'runaway' queries are killed, freeing up system resources for other concurrent tasks and maintaining predictable response times for the overall application.\"\n}\n```"
+}

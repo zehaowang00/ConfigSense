@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'commitlog_sync_period_in_ms' configuration determines the frequency at which Cassandra flushes its commit log from the operating system's page cache to the physical disk when using 'periodic' sync mode. From a system level, this setting directly controls the trade-off between write throughput and data durability. A smaller period increases the frequency of disk I/O operations (specifically fsync calls), which can lead to higher I/O wait times and reduced write performance due to disk contention. Conversely, a larger period improves performance by batching writes and reducing the overhead of disk synchronization, but it increases the window of potential data loss in the event of a power failure or system crash.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'start_native_transport' configuration in Cassandra controls whether the native transport server (the CQL binary protocol) is started. This is the primary mechanism through which clients interact with the database. From a system level, enabling this starts a networking stack based on Netty, which involves allocating memory for buffers, managing thread pools for asynchronous I/O, and consuming CPU cycles for request processing and serialization. If this is disabled, the node cannot serve client requests, resulting in zero throughput for external operations. If enabled, its presence directly impacts the system's resource footprint (CPU and RAM) and its ability to handle concurrent connections and high-frequency data operations.\"\n}\n```"
+}

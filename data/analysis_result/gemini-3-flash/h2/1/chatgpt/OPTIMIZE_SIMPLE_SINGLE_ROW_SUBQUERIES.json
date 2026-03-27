@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The OPTIMIZE_SIMPLE_SINGLE_ROW_SUBQUERIES configuration in H2 database directly influences the query execution plan by determining whether the optimizer should attempt to simplify subqueries that return a single row into a more efficient join or a direct value lookup. When enabled, it reduces the overhead of subquery execution, which typically involves repeated evaluations or materialization. This can lead to significant improvements in execution time and CPU cycles for complex SQL queries. Conversely, disabling it or the failure to optimize such queries can lead to suboptimal execution paths, increased I/O, and higher latency, making it a performance-sensitive setting.\"\n}\n```"
+}

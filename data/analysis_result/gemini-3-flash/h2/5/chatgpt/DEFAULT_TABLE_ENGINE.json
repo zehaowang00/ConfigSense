@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The DEFAULT_TABLE_ENGINE configuration in H2 determines the underlying storage architecture used for new tables (e.g., PageStore vs. MVStore in older versions, or custom implementations). Different table engines have significantly different mechanisms for data persistence, indexing, concurrency control, and memory management. Changing the engine directly affects how I/O operations are handled, how locks are acquired, and how memory is allocated for caching, which leads to substantial variations in transaction throughput, query execution time, and overall system resource consumption.\"\n}\n```"
+}

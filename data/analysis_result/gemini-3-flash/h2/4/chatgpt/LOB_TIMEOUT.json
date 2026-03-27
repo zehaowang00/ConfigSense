@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The LOB_TIMEOUT configuration in the H2 database determines how long temporary Large Objects (LOBs) are kept in the database before being automatically deleted. From a system level, this directly impacts memory and disk I/O. A high timeout value can lead to increased storage consumption and memory pressure as temporary data persists longer than necessary, potentially slowing down garbage collection and disk operations. Conversely, a very low timeout might cause issues if a long-running transaction or process still needs access to the LOB, leading to errors or the need for re-transmission/re-processing, which consumes additional CPU and network resources.\"\n}\n```"
+}

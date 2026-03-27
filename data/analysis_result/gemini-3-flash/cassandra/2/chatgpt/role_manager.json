@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'role_manager' configuration in Apache Cassandra determines the implementation used for managing roles and permissions (e.g., CassandraRoleManager). This setting is performance-sensitive because it dictates how authorization and role-based access control (RBAC) data is stored and retrieved. If configured to use a database-backed manager, every authentication or authorization check may involve internal distributed queries. The efficiency of these lookups directly impacts the latency of every client request, as well as the overhead on internal system tables. Choosing an inefficient implementation or one that requires frequent cross-node communication can lead to increased execution time and resource consumption during high-concurrency workloads.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'trickle_fsync_interval_in_kb' configuration controls the frequency at which Cassandra flushes dirty pages to disk during large sequential write operations (like compaction or flushing memtables). By setting a threshold in kilobytes, it determines how often the OS is instructed to sync data to the storage medium. If this value is too small, it can lead to excessive I/O overhead and system calls, increasing latency. If it is too large or disabled, it can lead to massive 'dirty page' accumulation in the OS page cache, causing significant I/O stalls and 'stuttering' when the OS eventually forces a massive flush, which negatively impacts the consistency of read/write latencies.\"\n}\n```"
+}

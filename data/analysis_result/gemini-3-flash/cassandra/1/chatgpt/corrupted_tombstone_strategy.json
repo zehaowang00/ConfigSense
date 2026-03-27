@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'corrupted_tombstone_strategy' configuration determines how Cassandra handles corrupted tombstone data during read operations and compactions. This is performance-sensitive because it dictates the error-handling path: if set to 'exception', the system will fail fast, potentially saving resources but causing availability issues; if set to 'warn', the system continues processing, which may involve additional CPU and I/O overhead to bypass or log the corrupted data. Furthermore, during compaction\u2014a resource-intensive background process\u2014the strategy chosen can significantly impact the duration and throughput of the process, as handling corruption requires specific logic that deviates from the optimized data merging path, thereby affecting overall system latency and resource utilization.\"\n}\n```"
+}

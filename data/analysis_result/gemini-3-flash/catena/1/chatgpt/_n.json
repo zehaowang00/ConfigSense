@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_n' parameter typically represents the memory cost or the number of iterations (time cost) for the underlying hash function (such as the Garlic function or the underlying DAG structure). Increasing the value of '_n' exponentially or linearly increases the amount of memory allocated and the number of computational operations required to compute the hash. This directly impacts execution time and memory consumption, which are the primary mechanisms used by Catena to provide resistance against GPU/ASIC attacks.\"\n}\n```"
+}

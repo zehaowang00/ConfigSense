@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'max_concurrent_automatic_sstable_upgrades' configuration controls the number of concurrent background tasks dedicated to upgrading SSTables (Sorted String Tables) to the latest version after a Cassandra version upgrade. From a system level, this is performance-sensitive because each upgrade task involves significant disk I/O (reading old files and writing new ones) and CPU cycles (for decompression, decoding, and re-encoding data). If set too high, these background tasks can contend with foreground read/write requests for system resources (IOPS and CPU), leading to increased latency and reduced throughput. Conversely, if set too low, the system may run on deprecated formats for longer, potentially missing out on performance improvements or storage efficiencies provided by newer versions.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The MAX_QUERY_TIMEOUT configuration in H2 directly impacts system performance and resource utilization by defining the maximum duration a database query is allowed to execute before being forcibly terminated. From a system level, this setting acts as a safeguard against 'runaway queries' that consume excessive CPU cycles and hold database locks for extended periods. If set too high or disabled, inefficient queries can saturate the thread pool and exhaust system resources, leading to increased latency for other operations and potential system instability. Conversely, a well-tuned timeout ensures better throughput and predictable execution times by reclaiming resources from stalled or inefficient processes.\"\n}\n```"
+}

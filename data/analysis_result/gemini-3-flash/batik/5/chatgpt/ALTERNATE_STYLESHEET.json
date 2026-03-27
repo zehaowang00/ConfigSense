@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The ALTERNATE_STYLESHEET configuration in the Batik SVG toolkit is used to specify a preferred or alternate CSS stylesheet for rendering SVG documents. While it dictates the visual appearance (styles, colors, fonts) of the rendered output, changing this value typically does not result in significant variations in system-level resource consumption such as CPU execution time or memory allocation compared to the default stylesheet. The overhead of parsing a different CSS file is negligible in the context of the overall SVG rendering pipeline, making it a functional/UI configuration rather than a performance-critical one.\"\n}\n```"
+}

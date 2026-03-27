@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_journalSerializer' configuration determines the mechanism used to serialize and deserialize every transaction written to the persistent journal in Prevayler. Since Prevayler is an in-memory prevalence system, the journal is the primary bottleneck for write operations. The choice of serializer directly impacts the CPU overhead and the size of the serialized data (I/O throughput). A slow or inefficient serializer will increase the latency of every transaction, while a verbose serializer will increase disk I/O and storage consumption, significantly affecting the overall system throughput and recovery time during startup.\"\n}\n```"
+}

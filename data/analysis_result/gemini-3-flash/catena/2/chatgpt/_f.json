@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_f' parameter (often representing the 'garbage collector' or the specific hash function/compression function used within the underlying graph-based hashing algorithm) directly dictates the computational intensity of the hashing process. Changing this function or its parameters affects the CPU cycles required for each iteration of the hash, thereby significantly impacting the overall execution time and throughput of the password hashing operation. Since Catena is designed to be memory-hard and computationally expensive to thwart brute-force attacks, any configuration affecting the core transformation function is inherently performance-sensitive.\"\n}\n```"
+}

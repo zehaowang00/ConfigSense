@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'outputCompressionMode' configuration in dconverter (a tool for batch converting images) directly determines the compression algorithm and level applied to the output files. From a system level, changing this mode significantly impacts CPU utilization and I/O throughput. Higher compression modes require more intensive CPU cycles for encoding, which increases execution time, while lower compression or no compression results in larger file sizes, increasing disk I/O overhead and storage consumption. Therefore, the choice of compression mode creates a direct trade-off between processing speed and resource usage.\"\n}\n```"
+}

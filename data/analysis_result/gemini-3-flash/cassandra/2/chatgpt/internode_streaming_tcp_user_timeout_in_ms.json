@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'internode_streaming_tcp_user_timeout_in_ms' configuration controls the TCP_USER_TIMEOUT for streaming connections between Cassandra nodes. This is performance-sensitive because it directly dictates how quickly the system detects and reacts to network failures or stalls during heavy data transfer operations like bootstrapping, repairing, or rebuilding nodes. If the timeout is too high, the system may hang for extended periods waiting for a dead connection, leading to resource exhaustion (threads and memory) and delayed recovery. If it is too low, transient network congestion could prematurely abort large data transfers, causing repeated retries and significantly increasing the overall time and overhead required to synchronize data across the cluster.\"\n}\n```"
+}

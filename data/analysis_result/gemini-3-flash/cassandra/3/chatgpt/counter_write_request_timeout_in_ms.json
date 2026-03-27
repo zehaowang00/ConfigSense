@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'counter_write_request_timeout_in_ms' configuration directly impacts the latency and throughput of counter write operations in Cassandra. From a system level, this parameter defines how long the coordinator node will wait for replicas to respond to a counter mutation before timing out. If set too low, it can lead to increased write failures and retries under heavy load, which consumes additional CPU and network resources. If set too high, it can cause worker threads (MutationStage) to be held for longer periods during network congestion or node instability, potentially leading to thread pool exhaustion, increased memory pressure due to accumulated request objects, and overall system backpressure.\"\n}\n```"
+}

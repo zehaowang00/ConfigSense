@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The USER_STYLESHEET_URI configuration specifies the location of a user-defined CSS stylesheet to be applied during the rendering of SVG documents. This is performance-sensitive for several reasons: 1) Network/IO Latency: If the URI points to a remote resource, the rendering engine must wait for the network fetch to complete before processing the document. 2) CSS Parsing and Cascading: A complex or large stylesheet increases the CPU time required for parsing and calculating the final computed styles for every element in the SVG DOM. 3) Rendering Pipeline: Changes in styles (like filters, complex gradients, or layout-affecting properties) can significantly increase the memory footprint and the time spent in the painting and rasterization phases of the Batik engine.\"\n}\n```"
+}

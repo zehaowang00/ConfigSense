@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The MAX_QUERY_TIMEOUT configuration directly impacts system resource utilization and throughput. By setting a limit on how long a query can execute, it prevents long-running or inefficient queries from monopolizing CPU cycles, memory, and database locks. From a system level, a lower timeout can improve overall responsiveness and prevent resource exhaustion (denial of service scenarios), while an excessively high or disabled timeout can lead to thread starvation and increased latency for concurrent operations if complex queries are allowed to run indefinitely.\"\n}\n```"
+}

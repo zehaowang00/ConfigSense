@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'internode_application_receive_queue_capacity_in_bytes' configuration directly controls the memory buffer size allocated for receiving messages between nodes in a Cassandra cluster. From a system level, this setting impacts both memory utilization and network throughput. If the capacity is set too low, it can lead to frequent queue overflows and backpressure, causing increased latency in inter-node communication (such as replication or hints delivery) and potentially triggering TCP retransmissions. Conversely, setting it too high increases the JVM heap or off-heap memory footprint, which can lead to higher memory pressure and more frequent or longer Garbage Collection (GC) pauses, directly affecting the overall execution time and stability of the database.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The DEFAULT_ESCAPE configuration in the H2 database defines the default escape character used in LIKE expressions when no ESCAPE clause is explicitly specified. From a system performance perspective, changing this character is a functional/semantic change rather than a resource-intensive one. It affects how the SQL parser and execution engine interpret string patterns, but it does not alter the underlying search algorithm's complexity, memory allocation patterns, or disk I/O behavior. The computational overhead of using one character versus another as an escape sequence is negligible and does not lead to measurable variations in execution time or system throughput.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'repair_session_space_in_mb' configuration directly controls the amount of memory allocated for Merkle tree calculations during the anti-entropy repair process in Cassandra. If this value is set too low, it can lead to increased disk I/O and CPU overhead due to more frequent streaming or smaller, more fragmented repair sessions. Conversely, setting it too high can lead to significant memory pressure on the JVM heap, potentially triggering frequent or long Garbage Collection (GC) pauses, which degrades the overall responsiveness and throughput of the database node.\"\n}\n```"
+}

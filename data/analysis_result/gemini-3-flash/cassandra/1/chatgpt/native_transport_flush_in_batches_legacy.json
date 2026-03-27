@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration directly impacts the network I/O efficiency and throughput of the Cassandra native transport layer. When enabled, it forces the system to flush data to the network in batches rather than immediately. From a system level, this affects the trade-off between latency and throughput: batching can reduce the overhead of system calls (syscalls) and context switching associated with frequent small network writes, potentially increasing overall throughput under high load. Conversely, it may introduce slight latency for individual requests. Because it alters the frequency and size of I/O operations and CPU utilization related to interrupt handling and packet processing, it is considered performance-sensitive.\"\n}\n```"
+}

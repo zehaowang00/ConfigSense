@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cas_contention_timeout_in_ms' configuration directly impacts the latency and throughput of Paxos-based Lightweight Transactions (LWT) in Cassandra. This parameter defines how long a node will wait when it encounters contention (multiple concurrent updates to the same row) before timing out. If set too low, the system may experience frequent timeout errors and retries under high contention, increasing overall tail latency. If set too high, it can lead to long-lived blocked threads and increased resource consumption (memory and CPU) as the system holds onto state for pending operations longer than necessary, potentially leading to thread pool exhaustion.\"\n}\n```"
+}

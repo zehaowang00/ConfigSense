@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'roundingHandler' configuration in dconverter (a UI image density converter) defines the mathematical strategy for rounding pixel values during image scaling (e.g., Floor, Ceil, or Round). From a system-level perspective, this setting influences a simple arithmetic operation performed on a per-resource basis. Since image conversion is typically I/O bound or bound by the underlying graphics library's resampling algorithms, the computational overhead of switching between different rounding modes is negligible. It does not significantly impact CPU cycles, memory allocation, or overall execution time compared to the actual image processing and file writing tasks.\"\n}\n```"
+}

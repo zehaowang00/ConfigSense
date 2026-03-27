@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'streaming_keep_alive_period_in_secs' configuration controls the frequency of keep-alive messages sent during data streaming operations (such as node repair, bootstrap, or decommissioning) in Cassandra. From a system level, this is performance-sensitive because it directly impacts network overhead and connection stability. If the period is set too short, the system generates excessive control traffic, which can consume CPU cycles and network bandwidth, potentially interfering with actual data transfer. Conversely, if set too long, the system may fail to detect hung or dead streaming sessions in a timely manner, leading to resource leakage (e.g., held file handles or memory buffers) and delaying the overall completion of critical maintenance tasks, which indirectly degrades the cluster's performance and availability.\"\n}\n```"
+}

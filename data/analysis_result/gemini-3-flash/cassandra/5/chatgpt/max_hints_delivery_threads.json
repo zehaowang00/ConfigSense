@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'max_hints_delivery_threads' configuration determines the number of concurrent threads dedicated to delivering 'hints' (stored write operations for temporarily unavailable nodes) to other nodes in the cluster. From a system level, increasing this value can significantly increase disk I/O and network throughput as more hints are read and transmitted simultaneously, which helps in faster data consistency (entropy reduction). However, if set too high, it can lead to resource contention, specifically saturating the disk I/O subsystem or the network interface, potentially degrading the performance of regular read/write requests. Conversely, a value too low can lead to a backlog of hints, consuming disk space and delaying eventual consistency.\"\n}\n```"
+}

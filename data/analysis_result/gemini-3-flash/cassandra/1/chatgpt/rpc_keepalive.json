@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'rpc_keepalive' configuration (often associated with the underlying Netty transport or Thrift in older versions) determines whether the system enables TCP keep-alive probes on RPC connections. From a system level, enabling this affects how the OS manages socket lifecycles and detects dead peers. While it helps in cleaning up stale connections, frequent keep-alive probes can increase network overhead and CPU interrupts. Conversely, disabling it or misconfiguring it can lead to resource exhaustion (socket leakage) and increased memory consumption due to the accumulation of 'zombie' connections that are never closed, directly impacting the stability and throughput of the Cassandra node.\"\n}\n```"
+}

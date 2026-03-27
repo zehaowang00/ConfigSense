@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'depths.refraction' configuration in the Sunflow rendering system controls the maximum recursion depth for refractive light rays. From a system level, each increment in this value potentially triggers additional ray-tracing calculations, intersection tests, and secondary ray generations for every transparent or translucent surface encountered. Increasing this depth leads to an exponential growth in the computational workload and execution time, especially in scenes with complex nested glass or liquid objects. Conversely, limiting this value reduces the CPU cycles spent on light transport simulation, directly impacting the overall rendering performance and latency.\"\n}\n```"
+}

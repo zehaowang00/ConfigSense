@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"Anti-aliasing is a computationally intensive graphical technique used to reduce 'jaggies' or aliasing artifacts by smoothing the edges of images. In the context of an image converter like dconverter, enabling this option requires the system to perform additional sampling and blending calculations for pixels during the rendering or scaling process. This increases the CPU/GPU workload and memory bandwidth usage, leading to measurable increases in execution time and resource consumption compared to aliasing-free processing.\"\n}\n```"
+}

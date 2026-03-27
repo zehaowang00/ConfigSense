@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'QUALITY' configuration in the Batik SVG toolkit directly controls the rendering fidelity and the computational complexity of the graphics processing pipeline. In computer graphics, higher quality settings typically enable features such as anti-aliasing, sophisticated interpolation algorithms (e.g., bicubic vs. nearest neighbor), and precise color management. These operations significantly increase the CPU workload and memory bandwidth usage during the rasterization process. Conversely, lowering the quality reduces the number of mathematical operations per pixel, leading to faster execution times and lower resource consumption at the cost of visual accuracy. Therefore, changes to this setting result in measurable variations in execution time and system throughput.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'compressionQuality' configuration in dconverter directly controls the trade-off between output file size and the computational intensity of the compression algorithm. From a system level, a higher quality setting typically requires more complex mathematical transformations and encoding passes, leading to increased CPU utilization and longer execution times. Conversely, lower quality settings reduce the computational load but may result in higher I/O overhead if the resulting files are significantly larger (though usually, lower quality means smaller files and less processing). Because this setting dictates the workload on the CPU and the duration of the image processing pipeline, it is classified as performance-sensitive.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_d' configuration (often representing the 'd' parameter or 'garlic' in some implementations, or specifically the output length/dimension in others) directly impacts the computational complexity of the hashing algorithm. If '_d' refers to the 'garlic' parameter (graph depth/iterations), increasing it exponentially increases the number of hash function calls and memory accesses required to compute the hash. If it refers to the output length, it affects the amount of data the underlying hash function (like BLAKE2b) must process and output. In either case, changing this value results in significant variations in execution time and CPU utilization, which are critical performance metrics for a password hashing scheme designed to be computationally expensive.\"\n}\n```"
+}

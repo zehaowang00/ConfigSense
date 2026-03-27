@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'max_hints_file_size_in_mb' configuration determines the maximum size of individual hint files stored on disk when a node is down. This is performance-sensitive for several reasons: 1. Disk I/O and Throughput: Larger hint files can lead to longer sequential write operations but may increase the overhead during the hint replay phase, as the system must read and process these files to synchronize data. 2. Memory Pressure: During the replay process, Cassandra buffers hint data; if files are excessively large, it can impact the JVM heap and garbage collection efficiency. 3. Replay Latency: If the size is set too high, the time taken to rotate and manage these files can introduce latency in the hint delivery mechanism, affecting how quickly a cluster returns to full consistency after a node failure.\"\n}\n```"
+}

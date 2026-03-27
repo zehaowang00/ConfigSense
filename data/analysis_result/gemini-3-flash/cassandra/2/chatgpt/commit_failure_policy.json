@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'commit_failure_policy' configuration determines how Cassandra responds when it encounters a failure while writing to the commit log (e.g., disk full, hardware error). This is performance-sensitive because it directly impacts the system's availability and throughput under error conditions. Depending on the policy (e.g., 'stop', 'die', 'ignore', or 'stop_commit'), the system might halt all write operations or shut down the node entirely. A policy that allows the node to continue in a degraded state or forces a shutdown significantly alters the execution flow, resource utilization, and the overall latency/throughput profile of the cluster during a failure event.\"\n}\n```"
+}

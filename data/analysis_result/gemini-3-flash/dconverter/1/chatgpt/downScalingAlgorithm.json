@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'downScalingAlgorithm' configuration determines the mathematical method used to resize images to smaller dimensions. Different algorithms (e.g., Lanczos3, Mitchell, Bilinear, or Nearest Neighbor) have significantly different computational complexities. For example, Lanczos3 involves high-order interpolation and sinc functions which require more CPU cycles and memory bandwidth compared to simpler algorithms like Nearest Neighbor. In a batch processing tool like dconverter, choosing a more complex algorithm will directly increase the execution time per image and overall CPU utilization, especially when processing high-resolution assets.\"\n}\n```"
+}

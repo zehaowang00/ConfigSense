@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The OPTIMIZE_IN_SELECT configuration in H2 database directly influences the query execution plan by determining how 'IN (SELECT ...)' subqueries are processed. When enabled, the database engine attempts to optimize these subqueries (e.g., by converting them into joins or using internal lookups) rather than executing them as independent, repeated evaluations for every row in the outer query. This optimization can lead to significant reductions in execution time and CPU cycles for complex queries. Conversely, if disabled or misapplied, it could lead to suboptimal execution paths, increasing the computational overhead and latency of data retrieval operations.\"\n}\n```"
+}

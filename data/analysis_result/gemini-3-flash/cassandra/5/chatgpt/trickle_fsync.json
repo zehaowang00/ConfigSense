@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'trickle_fsync' configuration in Cassandra controls whether the system performs incremental (trickled) fsyncs to disk during flush and compaction operations instead of a single large fsync at the end. From a system level, this directly impacts the I/O subsystem and the kernel's page cache management. Enabling this option helps prevent the OS from being overwhelmed by a massive write-back of dirty pages, which can lead to significant I/O latency spikes and 'stalls' in the application. By spreading the I/O load, it stabilizes throughput and reduces tail latency, making it a critical parameter for tuning disk performance and system responsiveness.\"\n}\n```"
+}

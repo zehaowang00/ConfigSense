@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'num_tokens' configuration determines the number of virtual nodes (vnodes) assigned to a physical node in a Cassandra cluster. This setting is highly performance-sensitive because it directly impacts data distribution, load balancing, and the overhead of cluster operations. A higher number of tokens leads to more granular data distribution, which can improve load balancing but increases the complexity of the cluster metadata and the overhead of operations like repair, streaming, and bootstrapping. Conversely, a value that is too low can lead to hotspots where certain nodes handle disproportionate amounts of data and traffic, leading to increased latency and potential resource exhaustion on those nodes.\"\n}\n```"
+}

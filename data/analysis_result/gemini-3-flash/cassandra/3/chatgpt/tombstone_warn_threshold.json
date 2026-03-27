@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'tombstone_warn_threshold' configuration in Cassandra is performance-sensitive because it directly impacts the execution of read queries and system stability. Tombstones are markers used to indicate deleted data; when a query scans a large number of tombstones, it consumes significant CPU cycles and memory overhead without returning actual data. This threshold defines the limit at which Cassandra logs a warning for a single query. If set too high, the system may allow inefficient queries to consume excessive resources (potentially leading to Garbage Collection pressure or Out-Of-Memory errors) before alerting administrators. Conversely, it serves as a critical diagnostic trigger for identifying performance bottlenecks caused by poor data modeling or high deletion rates, which can lead to increased latency and reduced throughput.\"\n}\n```"
+}

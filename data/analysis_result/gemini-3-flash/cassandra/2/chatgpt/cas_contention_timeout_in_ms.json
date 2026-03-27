@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cas_contention_timeout_in_ms' configuration directly impacts the performance of Compare-and-Set (CAS) operations, which are part of Cassandra's lightweight transactions (LWT). This parameter defines how long a node will wait for a response during a contention phase before timing out. If set too low, it can lead to frequent timeouts and retries under high contention, significantly increasing latency and reducing throughput. If set too high, it can cause threads to hang longer than necessary when resources are unavailable, leading to thread pool exhaustion and increased memory pressure. Adjusting this value directly affects the system's ability to handle concurrent transactional workloads and manage resource utilization under stress.\"\n}\n```"
+}

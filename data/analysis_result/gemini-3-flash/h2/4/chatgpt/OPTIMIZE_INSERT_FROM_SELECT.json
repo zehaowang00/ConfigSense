@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The OPTIMIZE_INSERT_FROM_SELECT configuration in H2 database directly impacts the execution path of data movement operations. When enabled, it allows the database to perform a direct copy of data from the source table to the target table without the overhead of generating individual INSERT statements or row-by-row processing in the application layer. This optimization significantly reduces CPU cycles, minimizes memory allocation for temporary objects, and reduces transaction log overhead. Disabling it forces the engine to use a more generic, less efficient processing path, leading to measurable increases in execution time and resource consumption during bulk data operations.\"\n}\n```"
+}

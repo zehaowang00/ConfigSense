@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'allocate_tokens_for_keyspace' configuration determines how Cassandra distributes data across the cluster nodes for a specific keyspace when using virtual nodes (vnodes). By specifying a keyspace, Cassandra uses its replication strategy and factor to optimize token allocation, aiming for an even distribution of data. From a system level, an improper or missing allocation strategy can lead to data hotspots where certain nodes handle significantly more traffic and storage than others. This imbalance directly impacts system performance by causing uneven CPU utilization, increased I/O contention on specific nodes, and unpredictable latency spikes during read/write operations.\"\n}\n```"
+}

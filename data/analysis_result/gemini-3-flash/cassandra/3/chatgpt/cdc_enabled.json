@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cdc_enabled' (Change Data Capture) configuration in Cassandra is performance-sensitive because it introduces additional I/O and CPU overhead to the write path. When enabled, every write operation to a CDC-enabled table must be mirrored to a dedicated CDC log on disk. This increases disk write amplification and can lead to I/O contention. Furthermore, if the CDC log capacity is reached and the 'cdc_free_space_check_interval_ms' is triggered, Cassandra may block incoming writes to prevent data loss, directly impacting the system's throughput and latency. The management of these commit logs and the background processes required to track and clear them consume system resources that would otherwise be available for standard database operations.\"\n}\n```"
+}

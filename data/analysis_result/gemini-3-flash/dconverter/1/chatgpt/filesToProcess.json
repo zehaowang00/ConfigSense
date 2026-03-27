@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'filesToProcess' configuration directly determines the workload size for the dconverter tool. From a system level, increasing the number of files to process leads to a linear or super-linear increase in CPU utilization and memory consumption, as each file requires individual parsing, conversion, and I/O operations. A larger value for this configuration will significantly extend the total execution time and increase the pressure on the file system and memory buffers, making it a critical factor in the overall performance profile of the application.\"\n}\n```"
+}

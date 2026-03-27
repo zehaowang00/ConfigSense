@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'request_timeout_in_ms' configuration in Cassandra is performance-sensitive because it directly controls the lifecycle of network requests and resource reclamation. From a system level, setting this value too low can lead to premature request failures and increased retry storms, which consume CPU and network bandwidth. Conversely, setting it too high can cause 'zombie' requests to occupy thread pool workers (like the Native-Transport-Requests or ReadStage threads) and memory buffers for extended periods during congestion or node instability. This can lead to thread exhaustion, increased garbage collection pressure, and overall system throughput degradation.\"\n}\n```"
+}

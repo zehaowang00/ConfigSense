@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'cluster_name' configuration in Cassandra is a logical identifier used to prevent nodes from joining the wrong cluster. From a system performance perspective, changing this value does not affect the execution path of data operations (reads/writes), memory allocation strategies, I/O throughput, or CPU utilization. It is primarily used during the gossip handshake process for cluster membership validation and does not impact the runtime performance characteristics of the database engine.\"\n}\n```"
+}

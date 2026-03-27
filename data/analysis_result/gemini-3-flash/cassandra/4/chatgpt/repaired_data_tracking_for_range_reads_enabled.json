@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'repaired_data_tracking_for_range_reads_enabled' configuration in Cassandra is performance-sensitive because it controls whether the system tracks and verifies the consistency of repaired data during range read operations. When enabled, it introduces additional overhead during read requests by requiring the system to compute and compare checksums of the data across replicas to ensure they are synchronized. This process consumes extra CPU cycles and can increase read latency, especially in clusters with high data density or frequent range scans. While it improves data integrity by identifying inconsistencies, the additional coordination and computation required directly impact the execution time and throughput of read operations.\"\n}\n```"
+}

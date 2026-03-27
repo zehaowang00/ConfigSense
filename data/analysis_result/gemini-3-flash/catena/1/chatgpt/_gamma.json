@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"In the context of the Catena password hashing framework, the '_gamma' parameter (often referred to as the garlic or memory cost factor) directly controls the memory-hard functions of the algorithm. It determines the size of the memory graph and the number of iterations performed during the hashing process. Increasing the value of gamma exponentially increases the memory footprint and the computational time required to compute or verify a hash. Because changes to this value lead to significant and measurable variations in execution time and RAM consumption, it is classified as performance-sensitive.\"\n}\n```"
+}

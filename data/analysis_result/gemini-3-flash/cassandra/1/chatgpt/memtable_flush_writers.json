@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'memtable_flush_writers' configuration determines the number of concurrent threads dedicated to flushing memtables (in-memory data) to SStables (on-disk storage). From a system level, this directly impacts the I/O throughput and CPU utilization of the Cassandra node. If the value is too low, memtables may fill up faster than they can be flushed, leading to 'backpressure' where the system throttles or blocks incoming writes to prevent out-of-memory (OOM) errors, significantly increasing write latency. Conversely, if the value is too high, it can lead to excessive disk contention and CPU context switching, particularly on systems with limited I/O bandwidth or fewer CPU cores, thereby degrading overall system responsiveness.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'range_request_timeout_in_ms' configuration in Cassandra defines the maximum time the coordinator node will wait for responses from replicas during a range scan (e.g., 'SELECT *' without a specific partition key). This is performance-sensitive because range scans are inherently resource-intensive operations that involve scanning multiple nodes and data partitions. If this value is set too low, it can lead to frequent 'TimeoutExceptions' under heavy load, causing application-level retries that further congest the network and increase CPU overhead. Conversely, if set too high, it can lead to increased latency and resource exhaustion (such as thread pool saturation and memory pressure) because the system holds onto resources for failing or slow requests for an extended period, preventing the system from failing fast and recovering.\"\n}\n```"
+}

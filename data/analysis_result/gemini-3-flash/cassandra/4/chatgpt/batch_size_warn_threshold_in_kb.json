@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'batch_size_warn_threshold_in_kb' configuration in Cassandra is performance-sensitive because it directly relates to the management of atomic batches and system stability. Large batches in Cassandra can lead to significant heap pressure, increased garbage collection (GC) activity, and potential node instability because the coordinator must manage the entire batch in memory before distributing it. While this setting is primarily a threshold for logging warnings, it serves as a critical guardrail against 'anti-patterns' that degrade system performance. If set too high, it allows excessively large batches that can cause long GC pauses or OutOfMemory (OOM) errors; if set too low, it may cause excessive logging overhead and noise, impacting the observability and disk I/O of the system.\"\n}\n```"
+}

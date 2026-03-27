@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"Materialized views in Cassandra significantly impact system performance across multiple dimensions. When enabled and utilized, every write to the base table triggers an additional write to the materialized view (often involving a read-before-write to ensure consistency), which increases write latency and doubles the I/O load. Furthermore, materialized views consume additional disk space and memory for caching, and they increase the overhead on the Java Virtual Machine (JVM) due to additional object allocations and garbage collection pressure. From a system level, they transform single write operations into distributed transactions, affecting the overall throughput and resource utilization of the cluster.\"\n}\n```"
+}

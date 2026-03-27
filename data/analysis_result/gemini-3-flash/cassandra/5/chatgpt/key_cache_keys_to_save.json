@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'key_cache_keys_to_save' configuration determines the number of keys from the key cache that Cassandra persists to disk during a graceful shutdown or periodic saving. This is performance-sensitive for two primary reasons: 1. Warm-up Time: It directly impacts the 'warm-up' time of the node after a restart; a higher value ensures that the key cache is pre-populated with frequently accessed keys, significantly reducing disk I/O and latency for initial read operations. 2. I/O and Memory Overhead: Saving a very large number of keys can increase the time required for shutdown and consume additional disk I/O and memory during the serialization process. Conversely, setting it too low can lead to a 'cold' cache, causing a performance spike in read latency as the system is forced to perform more disk seeks to locate row offsets.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'commitlog_segment_size_in_mb' configuration directly impacts Cassandra's write throughput, disk I/O patterns, and memory management. This parameter determines the size of individual commit log files; once a segment is full, a new one is created and the old one is eventually flushed to disk as an SSTable. If the size is too small, it triggers frequent disk syncs and memtable flushes, leading to increased I/O contention and potentially high CPU overhead due to frequent garbage collection and compaction cycles. Conversely, if the size is too large, it can lead to longer recovery times during startup after a crash and may consume excessive disk space before segments are recycled. Therefore, adjusting this value significantly affects the balance between write latency, throughput, and system recovery time.\"\n}\n```"
+}

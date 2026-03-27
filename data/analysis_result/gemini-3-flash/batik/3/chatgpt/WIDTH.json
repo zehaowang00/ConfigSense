@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the Batik SVG toolkit, the 'WIDTH' configuration (often associated with the canvas, image export, or viewport dimensions) is performance-sensitive because it directly dictates the number of pixels that must be processed during the rasterization and rendering pipeline. Increasing the width increases the total pixel count linearly (or quadratically if height scales proportionally), which leads to higher CPU consumption for path calculation, anti-aliasing, and color interpolation. Furthermore, larger dimensions require more memory allocation for the underlying image buffers and raster caches, potentially increasing garbage collection pressure and execution time.\"\n}\n```"
+}

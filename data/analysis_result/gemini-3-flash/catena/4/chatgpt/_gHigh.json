@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_gHigh' configuration in Catena (a password hashing framework) typically refers to the upper bound of the garlic parameter (memory/time cost) used during the hashing process. In Catena, the garlic parameter determines the exponential scale of memory and computational resources required for the hashing function. Increasing this value significantly increases the number of iterations and the amount of memory allocated and accessed, leading to a direct and substantial impact on execution time and system resource utilization. Therefore, it is a critical performance-sensitive parameter.\"\n}\n```"
+}

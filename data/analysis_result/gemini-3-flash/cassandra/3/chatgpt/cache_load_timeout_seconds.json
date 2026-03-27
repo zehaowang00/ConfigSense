@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cache_load_timeout_seconds' configuration in Cassandra determines the maximum time allowed for the system to load saved caches (such as the Key Cache or Row Cache) into memory during startup. This is performance-sensitive for two primary reasons: First, it directly impacts the 'Mean Time To Recovery' (MTTR) or startup time; if set too low, the system may skip loading large caches to meet the timeout, leading to a 'cold' cache state. Second, a cold cache significantly increases disk I/O and read latency for initial requests following a restart, as the system must fetch data from SSTables rather than memory. Conversely, a very high timeout might delay node availability in a cluster if the cache loading process encounters bottlenecks.\"\n}\n```"
+}

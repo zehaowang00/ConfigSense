@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'enable_transient_replication' configuration determines whether Cassandra allows the use of transient replicas, which are nodes that store only a subset of data (unrepaired mutations) rather than the full dataset. Enabling this feature significantly impacts system performance in several ways: 1) It reduces storage overhead and I/O pressure on transient nodes since they do not maintain full data copies. 2) It alters the read path, as the system may need to involve more nodes or perform 'read repairs' more frequently to ensure data consistency when transient replicas are involved. 3) It changes the write path dynamics by requiring specific quorum configurations (e.g., CheapQuorum). These architectural changes directly influence latency, throughput, and resource utilization across the cluster.\"\n}\n```"
+}

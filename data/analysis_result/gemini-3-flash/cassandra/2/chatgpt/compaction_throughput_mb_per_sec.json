@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'compaction_throughput_mb_per_sec' configuration directly throttles the rate at which Cassandra performs compaction operations, which are I/O-intensive background processes. Compaction is critical for merging SSTables, reclaiming disk space, and improving read performance by reducing the number of files to scan. If this value is set too low, compaction cannot keep up with write volume, leading to 'SSTable accumulation,' which significantly increases read latency and disk space usage. Conversely, if set too high, compaction can saturate disk I/O and consume excessive CPU cycles, starving foreground read/write requests and increasing overall system latency. Therefore, tuning this parameter is a direct trade-off between background maintenance efficiency and foreground request performance.\"\n}\n```"
+}

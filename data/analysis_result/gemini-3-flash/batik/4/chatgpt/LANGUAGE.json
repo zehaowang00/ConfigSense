@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'LANGUAGE' configuration in the Apache Batik project is primarily used for internationalization (i18n) and localization (l10n) purposes, such as determining the language of user interface elements or error messages. From a system-level perspective, changing this value involves loading different resource bundles or string constants, which occurs during initialization or specific UI events. This does not impact the core performance-critical paths of the SVG rendering engine, such as the layout calculation, rasterization, or animation processing. Consequently, it does not cause notable variations in execution time or memory consumption during the heavy-duty processing tasks for which Batik is designed.\"\n}\n```"
+}

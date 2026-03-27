@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the Batik SVG toolkit, the 'HEIGHT' configuration (often associated with the viewport or the output image dimensions) is performance-sensitive because it directly determines the number of pixels that need to be processed during the rasterization and rendering phases. From a system level, increasing the height increases the workload for the graphics engine, leading to higher CPU cycles for path calculation and pixel filling, as well as significantly higher memory consumption for the backing image buffer (framebuffer). Larger dimensions result in longer execution times for rendering tasks and can lead to OutOfMemory errors if the allocated heap space is insufficient for the resulting bitmap.\"\n}\n```"
+}

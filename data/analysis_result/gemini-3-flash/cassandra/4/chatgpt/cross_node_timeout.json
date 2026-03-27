@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cross_node_timeout' configuration in Cassandra determines whether the system uses the sender's timestamp to calculate the timeout for a request sent between nodes. When enabled, it allows the system to account for the time a request spent in the network or in the queue of the receiving node. This is performance-sensitive because it directly impacts request latency and system throughput: if set incorrectly or if clock skew exists, it can lead to premature request drops (increasing error rates) or excessive waiting for stale requests, which wastes CPU cycles and memory on the coordinator and replica nodes. Efficient timeout management is critical for maintaining stable performance under high-load or high-latency network conditions.\"\n}\n```"
+}

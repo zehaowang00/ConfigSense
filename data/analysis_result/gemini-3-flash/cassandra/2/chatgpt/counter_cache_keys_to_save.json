@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'counter_cache_keys_to_save' configuration determines the number of keys from the counter cache that are saved to disk during a shutdown or periodic save. This is performance-sensitive for two primary reasons: first, a larger value increases the I/O overhead and time required for the saving process, potentially delaying node shutdown or causing periodic I/O spikes. Second, and more importantly, it directly impacts the 'warm-up' time and read performance of the system after a restart. A larger cache save ensures that frequently accessed counter data is immediately available in memory, preventing expensive disk seeks and read-before-write operations required for counter increments, which are significantly slower than standard writes in Cassandra.\"\n}\n```"
+}

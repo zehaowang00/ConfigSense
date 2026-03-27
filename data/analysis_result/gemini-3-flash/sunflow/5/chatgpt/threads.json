@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the Sunflow rendering system, the 'threads' configuration directly controls the level of parallel execution during the image synthesis process. Rendering is a CPU-intensive task that involves complex ray-tracing calculations. By increasing the number of threads, the workload is distributed across more CPU cores, which typically results in a significant reduction in total execution time (speedup). Conversely, setting this value too low underutilizes hardware resources, while setting it too high can lead to performance degradation due to excessive context switching and contention for shared resources like the memory bus and cache. Therefore, this configuration has a direct and substantial impact on the system's execution time and resource utilization.\"\n}\n```"
+}

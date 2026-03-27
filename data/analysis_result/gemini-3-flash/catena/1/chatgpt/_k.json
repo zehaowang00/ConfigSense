@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, '_k' (often referred to as the memory cost or the number of iterations/garbling rounds) directly controls the computational complexity of the hashing algorithm. Increasing the value of _k increases the number of times the underlying compression function is invoked and how many times the internal state is transformed. From a system level, this results in a linear or exponential increase in CPU execution time and can also affect memory access patterns, making it a primary parameter for tuning the trade-off between security (resistance to brute-force attacks) and system resource consumption.\"\n}\n```"
+}

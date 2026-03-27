@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'row_cache_save_period' configuration determines how frequently Cassandra persists the row cache keys to disk. This is performance-sensitive for two main reasons: First, the saving process involves disk I/O operations; setting this period too short can lead to frequent disk writes, potentially causing I/O contention and impacting overall system throughput. Second, this setting directly affects the 'warm-up' time of the cache after a node restart. A longer save period or disabling it (setting it to 0) means the cache will be empty upon restart, leading to increased read latency as the system must fetch data from the SSTables on disk until the cache is repopulated. Balancing this value is crucial for maintaining consistent read performance across restarts while minimizing background I/O overhead.\"\n}\n```"
+}

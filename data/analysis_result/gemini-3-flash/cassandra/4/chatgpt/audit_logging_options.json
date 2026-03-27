@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'audit_logging_options' configuration in Apache Cassandra determines how database activities (like authentication, DDL, and DML operations) are recorded. Enabling audit logging introduces additional overhead to the request processing pipeline because every tracked event must be captured, formatted, and written to a storage medium (typically a log file or a database table). Depending on the 'logger' implementation and the 'included_keyspaces' or 'included_categories' filters, high-throughput workloads can experience increased latency and decreased throughput due to I/O contention and CPU cycles consumed by the logging framework. Furthermore, if the audit log is configured to block on write (synchronous logging), it can significantly impact the execution time of database queries.\"\n}\n```"
+}

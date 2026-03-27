@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_nullSnapshotManager' configuration (or the use of a NullSnapshotManager implementation) in Prevayler determines whether the system performs periodic snapshots of the prevalent system's state. Prevayler is an in-memory prevalence layer that relies on journals and snapshots for persistence. If a 'null' or dummy snapshot manager is used, the system will never save the state to disk. While this might improve write performance during runtime by avoiding I/O overhead, it significantly impacts recovery time (MTTR). Upon a system restart, Prevayler would have to re-execute every single transaction from the journal since the beginning of time rather than starting from the latest snapshot. This leads to massive variations in system startup time and memory initialization overhead, making it a critical performance-related configuration.\"\n}\n```"
+}

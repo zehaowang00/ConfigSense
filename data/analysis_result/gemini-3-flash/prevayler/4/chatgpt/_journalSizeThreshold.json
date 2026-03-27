@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The _journalSizeThreshold configuration in Prevayler determines the maximum size a journal file can reach before a new one is created or a snapshot is triggered. From a system level, this directly impacts I/O performance and recovery time. A smaller threshold leads to more frequent file rotations and potentially more frequent snapshots, which increases disk I/O overhead and CPU usage during the serialization process. Conversely, a very large threshold reduces the frequency of snapshots but increases the time required for system recovery (replay time) after a crash, as more transactions must be read from the journal into memory. Therefore, tuning this value involves a trade-off between runtime write performance and system recovery latency.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cache_load_timeout_seconds' configuration in Cassandra determines the maximum duration the system will wait for caches (such as the Key Cache or Row Cache) to be populated from disk during startup or restart. From a system level, this is performance-sensitive because it directly impacts the 'warm-up' time of the database. If the timeout is too short, the system may start with cold caches, leading to a significant spike in disk I/O and increased read latency as requests hit the disk instead of memory. Conversely, a very long timeout can delay the availability of the node. Proper tuning is essential to balance system availability with optimal steady-state throughput and latency.\"\n}\n```"
+}

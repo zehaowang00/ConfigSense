@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"In the context of the Catena password hashing framework (and similar cryptographic constructions), the '_lambda' parameter typically represents the time cost or the number of iterations/rounds the hashing algorithm performs. From a system level, increasing the value of _lambda linearly or exponentially increases the CPU cycles required to compute the hash. This directly impacts the execution time (latency) and throughput of authentication processes. High values of _lambda are used to increase the cost of brute-force attacks, but they also consume more system resources, making it a critical performance-sensitive configuration.\"\n}\n```"
+}

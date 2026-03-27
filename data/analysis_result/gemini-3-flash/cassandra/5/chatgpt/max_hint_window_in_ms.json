@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'max_hint_window_in_ms' configuration defines the maximum amount of time a node will store 'hints' (temporary write records) for a downed peer. From a system level, this directly impacts both disk I/O and storage overhead. If the window is too large, the system may accumulate a massive backlog of hints during a prolonged outage, leading to significant disk space consumption and a heavy I/O burst (hint replay) when the downed node returns, which can degrade the performance of the entire cluster. Conversely, if the window is too small, nodes will stop collecting hints sooner, forcing more expensive 'Anti-Entropy' repairs to maintain data consistency, which are significantly more resource-intensive in terms of CPU and network bandwidth than hint replays.\"\n}\n```"
+}

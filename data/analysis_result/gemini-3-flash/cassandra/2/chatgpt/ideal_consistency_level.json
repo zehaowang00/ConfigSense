@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'ideal_consistency_level' configuration in Cassandra directly dictates the number of replica nodes that must acknowledge a write operation before it is considered successful from an 'ideal' perspective (often used in conjunction with metrics and tracking). In the context of distributed systems, consistency levels represent a direct trade-off between consistency and performance. A higher consistency level (e.g., EACH_QUORUM vs. ONE) increases network I/O, disk I/O, and CPU utilization because the system must wait for more nodes to respond, thereby increasing request latency and reducing overall throughput. Conversely, a lower consistency level reduces the coordination overhead, leading to faster execution times but weaker consistency guarantees.\"\n}\n```"
+}

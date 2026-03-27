@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_prevalentSystem' configuration in Prevayler represents the core business object (the system state) that is being persisted and managed in-memory. Because Prevayler operates on the principle of 'Prevalent System' where all data resides in RAM to achieve high performance, the structure, size, and complexity of this specific object directly dictate the memory footprint of the application. Furthermore, since every transaction involves serializing/deserializing changes to this system and potentially taking snapshots of it, the efficiency and scale of the '_prevalentSystem' significantly impact execution time during recovery, snapshotting, and transaction processing.\"\n}\n```"
+}

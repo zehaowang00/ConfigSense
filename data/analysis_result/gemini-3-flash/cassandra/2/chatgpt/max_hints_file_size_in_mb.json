@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'max_hints_file_size_in_mb' configuration determines the maximum size of individual hint files stored on disk when a node is down. This is performance-sensitive for several reasons: First, it directly impacts disk I/O patterns; larger files can lead to more sequential writes but may increase the overhead during the hint replay process. Second, it affects the granularity of hint management; if the size is too large, it can lead to increased memory pressure and longer processing times during the 'hint delivery' phase, as the system must read and process these files to catch up on missed mutations. Conversely, very small files can lead to file system fragmentation and overhead from managing numerous small file handles, potentially slowing down both the storage and retrieval of hints.\"\n}\n```"
+}

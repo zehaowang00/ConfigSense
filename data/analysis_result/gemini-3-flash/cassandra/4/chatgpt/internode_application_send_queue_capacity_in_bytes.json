@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'internode_application_send_queue_capacity_in_bytes' configuration directly controls the size of the memory buffer used for outgoing messages between Cassandra nodes. From a system level, this impacts performance in two primary ways: memory consumption and throughput/latency. If the capacity is set too low, the system may experience backpressure or frequent blocking of threads attempting to send data, leading to increased latency and decreased throughput during heavy internode communication (like replication or hints). Conversely, setting it too high increases the heap memory footprint per connection, which can lead to higher memory pressure and more frequent or longer Garbage Collection (GC) pauses, potentially destabilizing the node under high load.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'hinted_handoff_enabled' configuration determines whether Cassandra stores 'hints' (write replay logs) for nodes that are temporarily unavailable. From a system level, enabling this feature introduces additional I/O and CPU overhead because the coordinator node must write these hints to local disk when a replica is down. Furthermore, when the unavailable node comes back online, the system initiates a 'handoff' process, which consumes network bandwidth and disk I/O to stream the missed data. While it ensures eventual consistency and reduces the need for full anti-entropy repairs, the background processing of hints can lead to performance fluctuations and increased latency during both the storage and replay phases.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'full_query_logging_options' configuration in Cassandra controls the behavior of the Full Query Logging (FQL) subsystem. Enabling and configuring this option is performance-sensitive because it involves capturing every incoming request and its metadata, which introduces overhead in terms of CPU cycles for processing the logs and significant I/O operations for writing the log data to disk. If the logging options (such as the log path, roll cycle, or blocking/non-blocking behavior) are not tuned correctly, it can lead to increased latency for client requests, disk I/O contention, and potential backpressure on the system if the logging buffer fills up faster than it can be flushed.\"\n}\n```"
+}

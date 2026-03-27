@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'disk_failure_policy' configuration in Cassandra determines how the system responds to disk I/O errors (e.g., die, stop, stop_paranoid, best_effort, or ignore). This is performance-sensitive because it directly impacts system availability and throughput under stress or hardware degradation. For instance, a policy like 'best_effort' might allow the node to continue serving requests from healthy disks while failing others, which can lead to unpredictable latency spikes and inconsistent performance profiles. Conversely, policies that shut down the node ('die' or 'stop') immediately halt all processing on that instance, forcing the cluster to redistribute load, which significantly impacts the performance and resource utilization of the remaining nodes in the cluster.\"\n}\n```"
+}

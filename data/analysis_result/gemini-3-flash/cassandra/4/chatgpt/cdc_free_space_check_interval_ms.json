@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cdc_free_space_check_interval_ms' configuration determines the frequency at which Cassandra checks the available disk space for Change Data Capture (CDC) logs. This is performance-sensitive for two primary reasons: First, if the interval is too short, the system incurs unnecessary CPU and I/O overhead from frequent disk metadata polling, which can jitter the performance of the write path. Second, if the interval is too long, the system may fail to detect that the CDC log capacity has been reached (cdc_total_space_in_mb), leading to a 'backpressure' scenario where writes to CDC-enabled tables are rejected or blocked until space is cleared. This directly impacts the throughput and latency of the database's write operations.\"\n}\n```"
+}

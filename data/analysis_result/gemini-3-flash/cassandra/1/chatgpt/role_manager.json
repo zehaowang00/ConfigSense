@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'role_manager' configuration in Apache Cassandra determines the implementation used for role management, including authentication and authorization (RBAC). While the default 'CassandraRoleManager' stores role data in system tables, changing this to a custom or external implementation can significantly impact the latency of every request that requires authorization. Furthermore, the efficiency of how roles are cached and looked up directly affects CPU overhead and request throughput, especially in environments with a high number of roles or complex permission structures. Inefficient role management can lead to increased latency in the authentication/authorization phase of the query lifecycle.\"\n}\n```"
+}

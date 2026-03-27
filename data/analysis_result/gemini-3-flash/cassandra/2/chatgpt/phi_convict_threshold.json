@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'phi_convict_threshold' configuration in Cassandra is performance-sensitive because it directly controls the sensitivity of the failure detector (Accrual Failure Detector). From a system level, this parameter determines how quickly the system marks a node as 'down' when it stops responding. A lower value makes the system more aggressive, which can lead to false positives (marking healthy nodes as dead due to transient network jitter or GC pauses), causing unnecessary data re-routing, increased hint generation, and expensive cluster re-sharding/re-balancing. Conversely, a higher value increases the time it takes to detect a real failure, leading to increased latency for client requests as the system waits for timeouts from an unresponsive node. Both scenarios significantly impact the overall throughput and latency of the cluster.\"\n}\n```"
+}

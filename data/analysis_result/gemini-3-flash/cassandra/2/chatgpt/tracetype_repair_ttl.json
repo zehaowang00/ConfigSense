@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'tracetype_repair_ttl' configuration determines the Time To Live (TTL) for data stored in the tracing tables specifically for repair operations in Cassandra. While the TTL itself is a duration, it directly impacts the volume of data retained in the system's internal tracing keyspaces. A higher TTL leads to larger SSTables for the tracing tables, which increases disk space usage and can intensify background maintenance tasks like compaction and garbage collection (GC) pressure. Conversely, frequent expiration of many small records can lead to tombstone accumulation, which affects read performance on those tracing tables. In high-throughput environments with frequent repairs, the management of this metadata can have a measurable impact on the overall system's resource utilization.\"\n}\n```"
+}

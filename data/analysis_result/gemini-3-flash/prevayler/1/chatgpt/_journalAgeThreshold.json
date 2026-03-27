@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The _journalAgeThreshold configuration in Prevayler determines the maximum age of a journal file before it is rolled over. In a prevalent system, all transactions are logged to a journal for persistence. If this threshold is set too low, the system will frequently close and open new journal files, increasing I/O overhead and file system metadata operations. If set too high, journal files can become excessively large, potentially leading to longer recovery times during system startup (as more transactions must be replayed from a single large file) and increased disk space management overhead. These factors directly impact the execution time of write operations and the overall latency of the persistence layer.\"\n}\n```"
+}

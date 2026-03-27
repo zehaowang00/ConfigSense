@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration defines the global reserve capacity for the internode application receive queue in Cassandra. At the system level, it directly controls the amount of memory allocated for buffering incoming messages from other nodes. If this value is set too low, the system may experience backpressure, dropped messages, or increased latency as the network stack struggles to handle bursts of traffic. Conversely, setting it too high can lead to excessive heap pressure and increased Garbage Collection (GC) activity, which negatively impacts execution time and overall system throughput. Therefore, changes to this value significantly influence both memory consumption and network processing performance.\"\n}\n```"
+}

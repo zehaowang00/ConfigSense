@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'snapshot_before_compaction' configuration in Cassandra determines whether the system takes a snapshot of the data before starting a compaction process. When enabled, this triggers additional I/O operations and disk writes to create the snapshot, which can consume significant disk space and increase I/O contention. During heavy compaction workloads, the overhead of creating these snapshots can lead to increased latency for concurrent read/write operations and may cause disk space exhaustion, directly impacting the overall system performance and stability.\"\n}\n```"
+}

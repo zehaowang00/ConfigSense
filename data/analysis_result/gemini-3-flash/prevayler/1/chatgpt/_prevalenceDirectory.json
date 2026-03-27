@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The _prevalenceDirectory configuration defines the file system location where Prevayler stores its transaction logs (journal) and snapshots. In a system based on the Prevalence pattern, every state-changing transaction must be serialized and persisted to this directory before it is considered complete. The performance of the underlying storage medium associated with this directory (e.g., SSD vs. HDD, local vs. network drive) directly impacts disk I/O latency and throughput. Furthermore, the time taken to recover the system state during startup is determined by reading the snapshots and replaying logs from this specific directory, making it a critical factor in both runtime transaction latency and system recovery time.\"\n}\n```"
+}

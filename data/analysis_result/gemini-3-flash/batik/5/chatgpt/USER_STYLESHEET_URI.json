@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The USER_STYLESHEET_URI configuration specifies the location of a user-defined CSS stylesheet to be applied during the rendering of SVG documents. This is performance-sensitive for several reasons: 1) Network/I/O Latency: If the URI points to a remote resource, the rendering engine must wait for the network request to complete before processing the document. 2) Parsing Overhead: A large or complex stylesheet requires additional CPU cycles and memory to parse and build the CSS Object Model (CSSOM). 3) Rendering Complexity: The rules defined in the stylesheet directly influence the complexity of the style resolution phase and the subsequent layout/painting operations. Inefficient selectors or heavy use of complex styles can significantly increase the time required to render a frame or document.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The _journalDiskSync configuration determines whether Prevayler forces a physical sync of the transaction journal to the disk (fsync) after every transaction. When enabled, the system must wait for the mechanical or electronic latency of the storage hardware to confirm the write before proceeding, which significantly increases I/O wait times and reduces transaction throughput. While this ensures high data durability, it creates a major performance bottleneck compared to allowing the operating system to buffer writes asynchronously.\"\n}\n```"
+}

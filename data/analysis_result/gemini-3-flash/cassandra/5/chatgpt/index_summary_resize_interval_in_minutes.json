@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'index_summary_resize_interval_in_minutes' configuration determines how frequently Cassandra recalculates and redistributes the memory pool allocated for index summaries across all SSTables. Index summaries are kept in-memory to speed up disk lookups by providing a sampling of the primary index. If this interval is too short, the system may experience frequent CPU and I/O overhead due to the recalculation process. If the interval is too long, the system may not adapt quickly enough to workload changes, leading to inefficient memory utilization or increased disk I/O (latency) if the index summary sampling becomes suboptimal for the current data distribution. Therefore, it directly impacts both memory management efficiency and read latency.\"\n}\n```"
+}

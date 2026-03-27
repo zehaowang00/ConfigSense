@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The _journalAgeThreshold configuration in Prevayler determines the maximum age of a journal file before it is rolled over. This is performance-sensitive because it directly impacts the frequency of disk I/O operations and the recovery time of the system. A lower threshold leads to more frequent file rotations and potentially more frequent snapshots, which increases write overhead and disk fragmentation. Conversely, a higher threshold results in larger journal files, which can significantly increase the time required for system recovery (replay) during startup, as more transactions must be processed from the log into memory.\"\n}\n```"
+}

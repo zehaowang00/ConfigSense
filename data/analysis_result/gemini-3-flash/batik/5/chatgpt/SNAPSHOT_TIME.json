@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The SNAPSHOT_TIME configuration in Apache Batik (often related to the SVG browser or animation engine components) determines the interval or frequency at which the system captures the state of a document or renders a frame for display/caching. From a system level, a smaller snapshot time increases the frequency of rendering operations and state serialization, leading to higher CPU utilization and increased memory bandwidth consumption. Conversely, a larger interval can reduce the overhead but may lead to visual lag or stale data in dynamic environments. Because changing this value directly impacts the trade-off between system resource consumption (CPU/Memory) and the responsiveness/accuracy of the output, it is classified as performance-sensitive.\"\n}\n```"
+}

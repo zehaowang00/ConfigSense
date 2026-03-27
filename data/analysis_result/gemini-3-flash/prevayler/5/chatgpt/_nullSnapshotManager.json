@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_nullSnapshotManager' configuration in Prevayler determines whether the system performs periodic snapshots of the prevalent system's state to disk. If this is set to a null or inactive implementation, the system will not persist state snapshots. From a performance perspective, snapshots are critical because they truncate the transaction logs. Without snapshots, the transaction log grows indefinitely, leading to significantly increased recovery times (execution time) during system startup as every historical transaction must be replayed. Conversely, the process of taking a snapshot consumes CPU and I/O resources; therefore, the choice of snapshot manager directly impacts the trade-off between runtime overhead and recovery latency.\"\n}\n```"
+}

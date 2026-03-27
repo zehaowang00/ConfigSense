@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'tombstone_failure_threshold' is a safety mechanism in Cassandra that prevents queries from scanning an excessive number of tombstones, which can lead to severe performance degradation or OutOfMemory (OOM) errors. When a query exceeds this threshold, Cassandra aborts the request to protect the node's stability. From a system level, scanning tombstones consumes significant CPU cycles and memory bandwidth without returning actual data. If this threshold is set too high, the system may experience long GC pauses and high latency due to the overhead of processing large amounts of deleted data. If set too low, it can cause legitimate queries to fail, impacting availability. Therefore, it directly influences the trade-off between system stability/performance and query success rates.\"\n}\n```"
+}

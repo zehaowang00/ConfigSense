@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The ESTIMATED_FUNCTION_TABLE_ROWS configuration is performance-sensitive because it directly influences the H2 database query optimizer's cost-based decision-making process. In H2, when a function returns a result set (a table-valued function), the optimizer needs to estimate the cost of joining or scanning that 'table'. Since the actual number of rows returned by a function is often unknown until execution, this configuration provides a default estimate. If this value is set incorrectly, the optimizer may choose an inefficient execution plan (e.g., choosing a nested loop join instead of a hash join, or vice versa), leading to significant variations in query execution time and CPU utilization.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The SNAPSHOT_TIME configuration in Apache Batik (often associated with the SVG browser or rasterizer components) determines the interval at which the system captures or renders snapshots of the document state during dynamic updates or animations. From a system level, a low value increases the frequency of rendering cycles and I/O operations, leading to higher CPU utilization and potential memory pressure due to frequent object allocation and garbage collection. Conversely, a very high value can reduce the responsiveness of the UI and the perceived performance of animations, although it lowers resource consumption. Because changing this value directly impacts the trade-off between system resource usage (CPU/Memory) and rendering throughput, it is classified as performance-sensitive.\"\n}\n```"
+}

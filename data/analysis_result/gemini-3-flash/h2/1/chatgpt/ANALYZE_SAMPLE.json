@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The ANALYZE_SAMPLE configuration in H2 determines the number of rows the database engine scans to generate table statistics (used by the query optimizer). From a system level, this is performance-sensitive for two reasons: First, during the execution of the ANALYZE command, a higher sample size increases I/O operations and CPU usage, leading to longer execution times for maintenance tasks. Second, the accuracy of the resulting statistics directly influences the Query Optimizer's choice of execution plans; insufficient sampling can lead to suboptimal plans (e.g., choosing a full table scan over an index scan), while excessive sampling provides diminishing returns at a high computational cost.\"\n}\n```"
+}

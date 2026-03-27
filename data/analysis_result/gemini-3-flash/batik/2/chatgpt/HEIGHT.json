@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the Batik SVG toolkit, the 'HEIGHT' configuration (typically referring to the height of the output image or the viewport during rendering) is performance-sensitive because it directly determines the number of pixels that must be processed, rasterized, and stored in memory. At the system level, increasing the height increases the workload for the rendering engine, leading to higher CPU cycles for path calculation and pixel filling. Furthermore, it significantly impacts memory consumption, as the size of the underlying image buffer (e.g., a BufferedImage) scales linearly with height, which can lead to increased garbage collection pressure or OutOfMemory errors if the value is excessively large.\"\n}\n```"
+}

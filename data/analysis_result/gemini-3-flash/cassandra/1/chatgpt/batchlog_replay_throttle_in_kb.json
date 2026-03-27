@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'batchlog_replay_throttle_in_kb' configuration directly controls the maximum throughput (in kilobytes per second) dedicated to replaying batchlogs in Cassandra. From a system level, this acts as a rate-limiter for background recovery tasks. If set too high, the replay process can saturate disk I/O and network bandwidth, competing with and potentially degrading the performance of foreground read/write operations (increasing latency). If set too low, the recovery of atomicity in logged batches takes longer, potentially leading to prolonged data inconsistency across nodes and increased memory/storage pressure from uncleared logs. Therefore, adjusting this value forces a trade-off between system recovery speed and active request throughput.\"\n}\n```"
+}

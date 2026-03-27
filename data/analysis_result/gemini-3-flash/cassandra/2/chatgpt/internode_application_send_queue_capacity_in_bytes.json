@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration controls the size of the memory buffer used for sending application-level messages between Cassandra nodes. From a system level, it directly impacts both memory consumption and network throughput. If the capacity is set too low, the system may experience frequent backpressure or blocking operations when the network cannot keep up with the message volume, leading to increased latency and decreased throughput. Conversely, setting it too high increases the heap or off-heap memory footprint per connection, which can lead to memory exhaustion or increased garbage collection pressure in clusters with many internode connections. Proper tuning is critical for balancing memory overhead against the efficiency of asynchronous message passing.\"\n}\n```"
+}

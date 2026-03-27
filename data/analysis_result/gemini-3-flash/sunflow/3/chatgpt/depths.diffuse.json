@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'depths.diffuse' configuration in the Sunflow rendering engine controls the maximum number of times a light ray can bounce off diffuse surfaces (indirect lighting). From a system level, increasing this value exponentially increases the number of ray-tracing calculations and intersection tests the CPU must perform. Each additional bounce requires spawning new rays to sample the scene's global illumination, which significantly impacts execution time and computational throughput. Conversely, limiting this depth can reduce rendering time at the cost of visual accuracy, making it a critical parameter for balancing performance and image quality.\"\n}\n```"
+}

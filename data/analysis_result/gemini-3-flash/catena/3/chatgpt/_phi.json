@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"In the context of the Catena password hashing framework, '_phi' (often referred to as the phi function or the graph-based hashing component) is a critical parameter that determines the complexity of the memory-hard function. It dictates how the internal state is transformed and how many times the underlying compression function is invoked during the hashing process. Changing this value directly impacts the computational overhead (CPU cycles) and the memory access patterns required to compute the hash. Increasing the complexity of the phi function increases the time required to process a password, which is a core mechanism for resisting brute-force attacks, thereby making it highly performance-sensitive.\"\n}\n```"
+}

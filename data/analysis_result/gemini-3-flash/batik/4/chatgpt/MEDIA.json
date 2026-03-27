@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The MEDIA configuration in Apache Batik determines the target medium (e.g., 'screen', 'print', 'projection') for which the SVG document is rendered. This setting directly triggers CSS media queries and affects which stylesheets and graphical resources are loaded and processed. From a system level, changing this value can significantly impact performance by altering the complexity of the DOM tree, the number of styling rules to be calculated, and the resolution or type of assets to be rasterized. For instance, a 'print' media type might trigger high-resolution rendering or additional layout calculations compared to 'screen', leading to variations in CPU execution time and memory consumption during the transcoding or rendering process.\"\n}\n```"
+}

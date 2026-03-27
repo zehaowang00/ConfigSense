@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_snapshotSerializers' configuration in Prevayler determines the serialization mechanism used for creating system snapshots. Snapshots are a critical part of Prevayler's prevalence architecture, as they involve writing the entire state of the system to disk to allow for faster recovery. The choice of serializer directly impacts the execution time of the snapshot process (CPU overhead), the size of the resulting snapshot file (I/O throughput and storage), and the memory consumption during the serialization/deserialization process. A slow or inefficient serializer can lead to significant latency spikes during snapshotting and longer system recovery times.\"\n}\n```"
+}

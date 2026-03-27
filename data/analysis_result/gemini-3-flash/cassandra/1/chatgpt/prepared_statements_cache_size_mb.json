@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'prepared_statements_cache_size_mb' configuration directly impacts both memory utilization and CPU overhead in Cassandra. Prepared statements are pre-compiled queries that save the overhead of parsing and planning for every execution. If this cache is too small, frequent cache evictions occur, forcing the system to re-parse and re-plan incoming queries, which significantly increases CPU cycles and latency. Conversely, setting this value too high consumes a portion of the JVM heap that could otherwise be used for memtables or the key cache, potentially leading to increased Garbage Collection (GC) pressure and memory exhaustion. Therefore, tuning this value is critical for balancing query throughput and memory stability.\"\n}\n```"
+}

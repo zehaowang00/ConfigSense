@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'native_transport_max_concurrent_connections' configuration directly controls the maximum number of simultaneous client connections allowed to a Cassandra node. From a system level, each connection consumes resources including file descriptors, memory for buffers, and CPU cycles for managing the connection state and processing requests. If set too low, it can lead to connection throttling or rejection, causing increased latency and decreased throughput for applications. If set too high, it can lead to resource exhaustion (such as 'too many open files' or excessive memory pressure), potentially causing system instability or performance degradation due to high context switching and overhead.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The ANALYZE_AUTO configuration in H2 determines how frequently the database automatically runs the ANALYZE command to update table statistics. These statistics are critical for the Query Optimizer to generate efficient execution plans. If this value is set too high (infrequent updates), the optimizer may use stale statistics leading to suboptimal join orders and slow query execution. Conversely, if set too low (frequent updates), the system incurs significant CPU and I/O overhead from constant background scanning of table data, which can degrade overall transaction throughput and increase latency.\"\n}\n```"
+}

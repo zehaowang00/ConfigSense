@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'postConvertWebp' configuration in dconverter determines whether an additional image encoding process (converting to WebP format) is triggered after the initial conversion. From a system level, enabling this option significantly increases CPU utilization and execution time because WebP compression is computationally intensive, especially when using high-effort compression settings. Furthermore, it involves additional I/O operations and memory allocation to handle the buffer for the new image format, directly impacting the overall throughput and latency of the image processing pipeline.\"\n}\n```"
+}

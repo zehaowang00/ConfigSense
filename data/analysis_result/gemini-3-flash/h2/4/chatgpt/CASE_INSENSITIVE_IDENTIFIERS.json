@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n \"performance_sensitive\": \"No\",\n \"reason\": \"The CASE_INSENSITIVE_IDENTIFIERS configuration in H2 determines whether database identifiers (like table or column names) are treated as case-insensitive. From a system performance perspective, this setting primarily affects the string comparison logic during the SQL parsing and metadata lookup phases. While case-insensitive comparisons (typically involving a 'toUpper' or 'toLower' conversion) are technically more computationally expensive than binary string comparisons, the overhead is negligible compared to the overall cost of query execution, disk I/O, and transaction management. This setting is a functional/behavioral configuration rather than a performance-tuning parameter, as it does not lead to notable variations in execution time or memory consumption under standard workloads.\"\n}\n```"
+}

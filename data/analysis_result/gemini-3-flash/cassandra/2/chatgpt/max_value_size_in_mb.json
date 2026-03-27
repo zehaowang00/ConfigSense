@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'max_value_size_in_mb' configuration in Cassandra directly impacts memory management and I/O efficiency. It defines the maximum size allowed for a single column value. Large values significantly increase heap pressure and garbage collection (GC) overhead, as these values must be buffered in memory during read and write operations. Furthermore, processing very large values can lead to increased disk I/O latency and network congestion when replicating data across nodes, potentially causing request timeouts or system instability if the value exceeds the allocated buffer capacities.\"\n}\n```"
+}

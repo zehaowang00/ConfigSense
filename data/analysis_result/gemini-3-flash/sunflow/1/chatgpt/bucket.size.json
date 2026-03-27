@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the Sunflow rendering system, the 'bucket.size' configuration determines the dimensions (in pixels) of the image tiles (buckets) processed by individual threads during the rendering phase. This is performance-sensitive for two primary reasons: 1) Load Balancing: Smaller bucket sizes allow for finer-grained task distribution across multiple CPU cores, preventing 'straggler' threads from idling while one thread finishes a complex region, but very small sizes increase scheduling overhead. 2) Cache Locality: The bucket size influences the spatial locality of geometry and texture data access; if a bucket is too large, it may exceed the CPU L1/L2 cache capacity, leading to increased cache misses and memory bus contention. Adjusting this value directly impacts the total execution time and CPU utilization efficiency.\"\n}\n```"
+}

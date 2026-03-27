@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, '_k' typically represents the 'garlic' parameter or a related iteration/memory cost factor. This parameter determines the number of iterations or the depth of the memory-hard function used during the hashing process. Increasing the value of _k exponentially or significantly increases the computational time and memory resources required to compute the hash. Because small changes to this value directly and substantially impact execution time and CPU/memory utilization, it is classified as performance-sensitive.\"\n}\n```"
+}

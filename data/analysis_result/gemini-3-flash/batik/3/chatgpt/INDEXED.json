@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'INDEXED' configuration in the context of Batik (specifically within its image processing and SVG rendering pipelines) determines whether an image is represented using an indexed color model (a palette) rather than a direct color model (like ARGB). This is performance-sensitive because using an indexed model significantly reduces memory consumption by storing pixel data as byte indices rather than multi-byte color values. Furthermore, it affects the computational complexity of rendering operations: while it can speed up processing by reducing data throughput, it may introduce overhead during the initial quantization/indexing phase or when performing complex alpha blending that requires conversion back to a direct color space.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'slow_query_log_timeout_in_ms' configuration determines the threshold at which Cassandra logs queries that exceed a specific execution time. From a system level, this is performance-sensitive for two primary reasons: First, setting this value too low can trigger excessive logging operations, which increases I/O overhead and contention on the logging subsystem, potentially slowing down the entire database engine. Second, while the logging itself is a diagnostic tool, the overhead of capturing and processing the metadata for a high volume of 'slow' queries can consume CPU cycles and memory, impacting the throughput of the system under heavy loads.\"\n}\n```"
+}

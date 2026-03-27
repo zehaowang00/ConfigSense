@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The OPTIMIZE_EVALUATABLE_SUBQUERIES configuration in H2 determines whether the query optimizer attempts to evaluate subqueries ahead of time if they are deemed constant or independent of the outer query. When enabled, this optimization can significantly reduce execution time by replacing a complex subquery with its literal result, avoiding repeated execution for every row of the outer query. Conversely, if disabled, the system may perform redundant computations, leading to increased CPU cycles and higher latency. From a system level, this affects the query execution plan's efficiency and the overall throughput of database operations.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The MAX_QUERY_TIMEOUT configuration directly controls the maximum execution time allowed for a database query before it is forcibly terminated. From a system level, this is performance-sensitive for several reasons: 1) Resource Contention: Long-running queries consume CPU cycles, memory, and I/O bandwidth; setting a timeout prevents a single inefficient query from monopolizing system resources. 2) Lock Duration: Queries often hold database locks; by terminating slow queries, the system ensures that locks are released, preventing transaction bottlenecks and improving overall system throughput. 3) Latency Management: It acts as a safeguard against 'stop-the-world' scenarios where a complex or poorly optimized query could degrade the response time for all other concurrent users.\"\n}\n```"
+}

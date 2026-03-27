@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_n' parameter (often representing the memory cost or the number of rows in the underlying memory grid) directly dictates the memory footprint and the number of computational iterations required for the hashing process. Increasing this value exponentially or linearly increases the amount of RAM consumed and the CPU cycles needed to compute the hash, which is a fundamental mechanism to resist GPU/ASIC hardware attacks. Therefore, changes to this configuration significantly impact execution time and memory throughput.\"\n}\n```"
+}

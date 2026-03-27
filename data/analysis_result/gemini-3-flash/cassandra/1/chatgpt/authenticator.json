@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'authenticator' configuration in Cassandra determines the mechanism used to verify user credentials during the connection phase. While it primarily serves a security function, it is performance-sensitive because every new client connection must be processed by the chosen authenticator. For example, using the 'PasswordAuthenticator' involves querying internal system tables (system_auth), which incurs disk I/O and CPU overhead. In environments with high connection churn or many short-lived sessions, a heavy or poorly optimized authentication process can significantly increase connection latency and consume system resources, potentially becoming a bottleneck for the overall throughput of the database cluster.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'concurrent_materialized_view_writes' configuration directly controls the number of concurrent threads dedicated to processing materialized view updates in Cassandra. From a system level, this parameter governs the concurrency level of the view mutation stage. If set too low, it can become a bottleneck, increasing backpressure on the base table write operations and increasing overall write latency. Conversely, if set too high, it can lead to excessive context switching, thread contention, and high memory consumption (due to more in-flight mutations), potentially destabilizing the JVM through increased Garbage Collection pressure or CPU exhaustion. Since it directly impacts throughput, latency, and resource utilization during write-heavy workloads involving materialized views, it is highly performance-sensitive.\"\n}\n```"
+}

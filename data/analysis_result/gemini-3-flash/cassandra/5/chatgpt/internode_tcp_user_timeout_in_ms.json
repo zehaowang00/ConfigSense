@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'internode_tcp_user_timeout_in_ms' configuration determines the amount of time a TCP connection will wait for an acknowledgment of transmitted data before forcibly closing the connection. In a distributed system like Cassandra, this directly impacts network resilience and failure detection. If set too low, transient network congestion can cause premature connection drops, leading to expensive reconnection overhead, increased CPU usage for handshake processing, and potential re-streaming of data. If set too high, the system may hang or experience significant latency when attempting to communicate with a failed or unresponsive node, delaying the failover process and impacting overall request throughput and tail latency.\"\n}\n```"
+}

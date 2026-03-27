@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'outputCompressionMode' configuration in dconverter (a tool for converting and scaling images) directly determines the algorithm and intensity used to compress output files. From a system level, changing the compression mode significantly impacts both CPU utilization and I/O throughput. Higher compression levels or more complex modes require more CPU cycles for encoding, which increases execution time, while simultaneously reducing the size of the output data written to disk. Conversely, disabling or using low compression reduces CPU overhead but increases disk I/O and storage consumption. These trade-offs between computational latency and resource utilization make this a performance-sensitive setting.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_h' parameter typically refers to the 'hash length' or the output length of the underlying hash function. This configuration is performance-sensitive because it directly dictates the amount of data the cryptographic primitive must process and output. Increasing the hash length can lead to higher computational overhead and increased memory bandwidth usage during the hashing process. Furthermore, in memory-hard functions like Catena, the output size can influence the internal state management and the total execution time required to compute the final hash, thereby impacting the system's overall throughput and latency.\"\n}\n```"
+}

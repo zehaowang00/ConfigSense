@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The DATABASE_TO_LOWER configuration in H2 is a compatibility setting that determines how unquoted identifiers are handled (converting them to lower case instead of the default upper case). This is a logical/semantic setting used during the parsing and metadata lookup phase. While it affects how strings are compared or stored in the schema metadata, it does not impact the core execution engine, data processing throughput, or memory management in a way that would lead to measurable performance variations. It is primarily a functional setting for cross-database compatibility.\"\n}\n```"
+}

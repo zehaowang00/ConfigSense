@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'read_request_timeout_in_ms' configuration directly impacts the system's latency and resource utilization during read operations. From a system level, this parameter defines how long a coordinator node waits for responses from replicas before timing out a request. If set too low, it can lead to premature request failures and increased error rates under transient load, forcing clients to retry and potentially exacerbating congestion. If set too high, it can cause threads (specifically the ReadStage thread pool) to be held for extended periods waiting for unresponsive or slow nodes, leading to thread exhaustion, increased memory pressure from accumulated request metadata, and higher tail latency (P99) for the overall system.\"\n}\n```"
+}

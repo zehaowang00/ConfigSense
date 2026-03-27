@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'counter_cache_size_in_mb' configuration directly impacts the performance of counter-type operations in Cassandra. Counters require a read-before-write cycle; the counter cache stores the most recent values to avoid expensive disk I/O during these operations. If the cache size is too small, it leads to increased cache misses, forcing the system to perform more frequent reads from SSTables, which significantly increases latency and disk pressure. Conversely, allocating too much memory to this cache reduces the heap available for other critical structures like memtables or the key cache, potentially leading to increased garbage collection (GC) activity and system instability.\"\n}\n```"
+}

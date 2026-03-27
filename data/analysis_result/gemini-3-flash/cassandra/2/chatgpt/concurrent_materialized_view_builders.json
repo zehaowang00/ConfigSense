@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'concurrent_materialized_view_builders' configuration determines the number of simultaneous threads dedicated to building materialized views in Cassandra. From a system level, this directly impacts CPU and I/O utilization. Increasing this value can speed up the view-building process (reducing execution time for view synchronization) but risks saturating system resources, which can lead to increased latency for foreground read/write operations and higher memory pressure. Conversely, setting it too low can result in significant delays in data consistency between the base table and the materialized view, making it a critical parameter for balancing background maintenance tasks against active workload performance.\"\n}\n```"
+}

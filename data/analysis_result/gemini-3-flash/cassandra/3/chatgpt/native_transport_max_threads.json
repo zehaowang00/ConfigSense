@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'native_transport_max_threads' configuration determines the maximum number of threads dedicated to handling client requests (CQL native transport) in Cassandra. From a system level, this directly impacts the concurrency model and resource utilization of the JVM. If set too low, the system may experience request queuing, increased latency, and reduced throughput as the server cannot process incoming requests fast enough. If set too high, it can lead to excessive context switching overhead, increased memory consumption (stack space per thread), and potential thread contention, which degrades overall system stability and performance.\"\n}\n```"
+}

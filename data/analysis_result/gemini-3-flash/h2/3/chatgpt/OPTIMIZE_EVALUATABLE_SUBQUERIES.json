@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The OPTIMIZE_EVALUATABLE_SUBQUERIES configuration in H2 determines whether the query optimizer attempts to pre-evaluate subqueries that are independent of the outer query (deterministic subqueries). When enabled, the system evaluates the subquery once and replaces it with a constant value, significantly reducing the execution time of the main query by avoiding repeated subquery executions for every row processed. From a system level, this affects the CPU utilization and the overall query execution plan complexity. Disabling it can lead to a 'nested loop' effect where the subquery is re-executed many times, causing a drastic increase in execution time and resource consumption.\"\n}\n```"
+}

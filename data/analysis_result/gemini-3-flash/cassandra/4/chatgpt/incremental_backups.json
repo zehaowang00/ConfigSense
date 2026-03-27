@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'incremental_backups' configuration in Cassandra is performance-sensitive because it directly impacts the system's I/O and CPU utilization. When enabled, Cassandra creates hard links to each new SSTable as it is flushed from memory to disk. While hard-linking is a relatively cheap operation, the cumulative effect of managing these additional files, especially in write-heavy workloads, increases disk I/O overhead and consumes additional storage space. Furthermore, the presence of many incremental backup files can increase the complexity of disk management and backup processes, potentially leading to increased latency during peak operations and affecting the overall throughput of the database.\"\n}\n```"
+}

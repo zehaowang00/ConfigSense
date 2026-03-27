@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration defines the global memory limit for the receive queues used in internode communication (application-level messages) within a Cassandra cluster. From a system level, it acts as a backpressure and resource management mechanism. If the value is set too low, the system may prematurely throttle incoming requests or drop connections under heavy load, leading to increased latency and reduced throughput. Conversely, if set too high, it can lead to excessive heap memory consumption and potential OutOfMemory (OOM) errors or increased Garbage Collection (GC) pressure, as the system buffers more data than it can process efficiently. Therefore, it directly impacts both the stability and the execution performance of the node.\"\n}\n```"
+}

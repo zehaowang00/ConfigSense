@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cached_rows_fail_threshold' configuration in Cassandra is performance-sensitive because it acts as a safety circuit breaker for memory consumption during read operations. It defines the maximum number of rows that can be cached in memory for a single query before the operation is aborted to prevent OutOfMemory (OOM) errors. If set too low, it can cause legitimate heavy queries to fail, impacting availability and requiring retries (increasing latency). If set too high, it allows queries to consume excessive heap memory, leading to increased Garbage Collection (GC) pressure, longer GC pauses, and potential system instability or crashes, all of which directly degrade the overall performance and throughput of the database node.\"\n}\n```"
+}

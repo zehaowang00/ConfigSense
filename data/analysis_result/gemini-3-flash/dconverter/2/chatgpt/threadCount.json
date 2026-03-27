@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The 'threadCount' configuration directly controls the level of parallelism in the dconverter tool, which is used for batch image resizing and conversion. From a system level, this parameter determines the number of concurrent worker threads dispatched to the CPU. Increasing the thread count can significantly reduce total execution time by utilizing multiple CPU cores; however, setting it too high can lead to resource contention, increased context switching overhead, and higher peak memory consumption. Conversely, a low thread count will result in under-utilization of system resources and longer processing times, making it a critical factor for system performance.\"\n}\n```"
+}

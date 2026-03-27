@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'enablePngCrush' configuration controls the activation of 'pngcrush', which is a compute-intensive optimization tool used to reduce the size of PNG files. When enabled, the system performs an exhaustive search through various compression levels and filter methods to find the most efficient representation of the image. This process significantly increases CPU utilization and extends the execution time of the image conversion pipeline. Conversely, disabling it speeds up the processing time at the cost of larger output file sizes. Therefore, changing this value directly impacts the system's execution latency and resource consumption.\"\n}\n```"
+}

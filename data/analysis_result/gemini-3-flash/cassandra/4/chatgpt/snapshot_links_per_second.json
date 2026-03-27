@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'snapshot_links_per_second' configuration in Cassandra is a throttling mechanism that controls the rate at which hard links are created during snapshot operations. Snapshots are frequently used for backups and during repair processes. If this value is set too high, the rapid creation of hard links can lead to significant I/O spikes and metadata overhead on the filesystem, potentially contending with active read/write operations and increasing tail latency. Conversely, if set too low, the time required to complete a snapshot increases, which can delay backup windows or prolong the duration of maintenance tasks, impacting the overall operational efficiency and resource availability of the node.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_gLow' configuration in Catena (a password hashing and data-hardening framework) defines the lower bound of the 'garlic' parameter, which directly controls the memory and time cost of the hashing process. In Catena, the garlic parameter determines the exponential scale of memory consumption and the number of iterations performed during the hashing operation. By setting the minimum threshold for this value, '_gLow' ensures a baseline level of computational complexity; increasing this value forces the system to use more RAM and CPU cycles per hash, while decreasing it allows for faster but less secure operations. Because it dictates the minimum resource utilization floor for the cryptographic functions, it is highly performance-sensitive.\"\n}\n```"
+}

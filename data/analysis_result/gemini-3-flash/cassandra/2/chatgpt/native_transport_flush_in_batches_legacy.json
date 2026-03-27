@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"This configuration determines how Cassandra flushes responses to the native transport (client-side connections). When enabled, it allows the system to batch multiple responses together before flushing them to the network socket, rather than flushing each response individually. From a system level, this directly impacts the trade-off between throughput and latency: batching can significantly reduce the overhead of system calls (context switching) and network packet headers, thereby increasing overall throughput under high load. Conversely, it can introduce slight increases in tail latency for individual requests. Because it alters the I/O path and CPU utilization related to network communication, it is considered performance-sensitive.\"\n}\n```"
+}

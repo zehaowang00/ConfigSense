@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'native_transport_max_frame_size_in_mb' configuration determines the maximum size of a single frame allowed in the Cassandra native protocol. From a system level, this directly impacts memory management and network throughput. Large frames require the allocation of large contiguous memory buffers (often off-heap or via the JVM's direct memory), which can lead to increased memory pressure and potential OutOfMemory (OOM) errors if many concurrent connections send large payloads. Conversely, if the limit is set too low, large queries or result sets may be rejected, impacting system availability and requiring application-level fragmentation. Tuning this value affects the efficiency of data serialization/deserialization and the overhead of the network stack, making it a critical parameter for performance and stability.\"\n}\n```"
+}

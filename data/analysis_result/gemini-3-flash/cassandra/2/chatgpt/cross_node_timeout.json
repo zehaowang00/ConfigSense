@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cross_node_timeout' configuration in Cassandra determines whether the system uses a global (network-aware) timeout for requests spanning multiple nodes. When enabled, it accounts for network latency by using a synchronized clock to track how long a request has lived across the cluster. If disabled or misconfigured, it can lead to 'zombie' requests\u2014operations that have already timed out on the coordinator node but continue to consume CPU, memory, and I/O resources on replica nodes. This directly impacts system throughput and latency, especially under high load or network congestion, as it prevents the early shedding of doomed requests.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Apache Batik SVG toolkit, 'AREA' (often associated with rendering area, tile size, or bounding box calculations in the rasterizer and tiling engines) is performance-sensitive. The size of the area being processed directly dictates the workload of the rendering engine. Larger areas increase the number of pixels to be calculated, rasterized, and stored in memory, leading to higher CPU utilization and increased heap memory consumption. Conversely, optimizing the area through efficient tiling or clipping can significantly reduce execution time and memory overhead during the conversion of SVG to raster formats.\"\n}\n```"
+}

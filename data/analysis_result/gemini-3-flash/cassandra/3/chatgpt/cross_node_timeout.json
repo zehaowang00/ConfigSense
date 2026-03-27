@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cross_node_timeout' configuration in Cassandra determines whether the system uses the sender's timestamp to calculate the age of a request across different nodes in a cluster. When enabled, it allows the system to drop requests that have already timed out relative to the coordinator's start time, preventing the processing of 'stale' requests. From a system level, this is highly performance-sensitive because it directly impacts resource utilization (CPU and I/O) by avoiding unnecessary work on requests that the client has already abandoned. If misconfigured or disabled in a high-latency network, it can lead to 'cascading failures' where nodes waste resources processing expired tasks, further increasing queue depths and overall system latency.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_f' parameter typically refers to the 'Garlic' or cost factor (often denoted as 'f' or 'g' in various implementations of the Catena/Argon2 family). This parameter determines the memory and time complexity of the hashing process. Specifically, it controls the number of iterations or the size of the memory graph used during the hash calculation. Increasing this value exponentially or linearly increases the CPU cycles required and the memory footprint, directly impacting execution time and system resource utilization. Therefore, it is a critical performance-sensitive configuration.\"\n}\n```"
+}

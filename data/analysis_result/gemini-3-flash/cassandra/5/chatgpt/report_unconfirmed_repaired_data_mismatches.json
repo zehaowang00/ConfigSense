@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'report_unconfirmed_repaired_data_mismatches' configuration is a diagnostic and observability setting rather than a performance-tuning parameter. It controls whether Cassandra logs or reports instances where data mismatches are detected during read repairs but cannot be conclusively verified. While enabling it might result in a negligible amount of additional logging or metric incrementing when a mismatch occurs, it does not alter the core data processing logic, I/O path, memory allocation, or concurrency models of the database. Therefore, changing its value does not lead to notable variations in system execution time or resource consumption.\"\n}\n```"
+}

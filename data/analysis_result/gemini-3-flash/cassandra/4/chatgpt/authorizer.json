@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'authorizer' configuration in Cassandra determines the implementation used to handle permissions and access control for database resources. While a simple 'AllowAllAuthorizer' has negligible overhead, a functional authorizer (like 'CassandraAuthorizer') introduces additional latency to every client request because it must perform permission checks against internal tables. If the authorization metadata is not properly cached or if the underlying storage for permissions experiences contention, it can significantly increase request execution time and decrease overall system throughput. Furthermore, the complexity of the authorization logic and the frequency of cache refreshes directly impact CPU and memory utilization.\"\n}\n```"
+}

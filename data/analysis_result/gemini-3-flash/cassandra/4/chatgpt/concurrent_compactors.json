@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'concurrent_compactors' configuration directly controls the number of concurrent compaction threads running on a Cassandra node. Compaction is a resource-intensive background process that involves reading multiple SSTables, merging them, and writing out new ones. Increasing this value can improve the speed at which the system reclaims disk space and reduces the number of SSTables (which improves read performance), but it consumes significant CPU cycles and I/O bandwidth. Conversely, setting this value too low can lead to an accumulation of SSTables, causing 'compaction debt' and severely degrading read latency. Therefore, tuning this value is critical for balancing background maintenance overhead with foreground request processing performance.\"\n}\n```"
+}

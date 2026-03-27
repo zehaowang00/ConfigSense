@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'concurrent_materialized_view_writes' configuration directly controls the maximum number of concurrent write operations allowed for materialized views. From a system level, this parameter governs the concurrency of the internal thread pool responsible for propagating updates from base tables to their corresponding materialized views. If this value is set too low, it can become a bottleneck, causing backpressure on the main write path and increasing latency for client requests. Conversely, if set too high, it can lead to excessive resource contention (CPU and I/O), increased memory pressure due to many pending mutations, and potential instability or 'OutOfMemory' errors under heavy write loads. Therefore, tuning this value is critical for balancing write throughput and system stability.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'initial_token' configuration determines the specific range of data (the token range) for which a node is responsible within a Cassandra cluster. From a system level, this directly impacts data distribution and load balancing. If tokens are not assigned optimally (especially in clusters not using virtual nodes/vnodes), it can lead to 'hotspots' where a single node handles a disproportionate amount of read/write traffic and storage volume compared to others. This imbalance results in uneven CPU utilization, disk I/O saturation, and increased latency on specific nodes, thereby affecting the overall throughput and performance stability of the entire cluster.\"\n}\n```"
+}

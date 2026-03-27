@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"CONSTRAIN_SCRIPT_ORIGIN is a security-related configuration in Apache Batik used to enforce the same-origin policy for scripts within SVG documents. Its primary purpose is to restrict script execution based on the source location for security reasons. From a system performance perspective, the overhead of performing an origin check (typically involving URI string comparisons) is negligible compared to the overall tasks of SVG parsing, rendering, and script execution. It does not control resource allocation, such as memory buffers, thread pools, or cache sizes, and therefore does not cause notable variations in system execution time or memory consumption.\"\n}\n```"
+}

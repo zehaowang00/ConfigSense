@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'internode_socket_send_buffer_size_in_bytes' configuration directly influences the TCP send buffer size for communication between Cassandra nodes. At the system level, this setting dictates how much data the operating system can buffer before blocking the application thread or requiring an acknowledgment from the receiving node. In high-throughput environments or networks with high latency (long-fat pipes), an undersized buffer can lead to frequent TCP window exhaustion, causing increased network I/O wait times, reduced throughput, and higher latency for inter-node operations like data replication, hints delivery, and cluster rebalancing. Conversely, excessively large buffers can increase memory overhead per connection, potentially leading to increased memory pressure on the system.\"\n}\n```"
+}

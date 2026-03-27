@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cdc_total_space_in_mb' configuration controls the maximum amount of disk space allocated for Change Data Capture (CDC) logs in Cassandra. This is performance-sensitive for several reasons: 1. Throughput Bottleneck: When the CDC log space reaches this limit, Cassandra will reject writes to CDC-enabled tables until the logs are consumed and cleared. This can lead to sudden spikes in write latency or total write unavailability. 2. Disk I/O: The size of this buffer influences how frequently the system must manage log segments on disk. 3. System Stability: If set too low, it causes frequent backpressure on write operations; if set too high without proper monitoring, it can lead to disk exhaustion, impacting the overall stability and performance of the node.\"\n}\n```"
+}

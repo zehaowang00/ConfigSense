@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'hinted_handoff_throttle_in_kb' configuration directly controls the maximum throughput (in kilobytes per second) allowed for replaying 'hints' (data stored temporarily when a replica is down) to a recovered node. From a system level, this acts as a traffic shaper for internal cluster communication. If set too high, the background hint delivery process can saturate the network bandwidth and disk I/O, competing with and degrading the performance of foreground client read/write requests. If set too low, the recovery of data consistency across the cluster will be significantly delayed, potentially leading to stale reads or increased resource pressure on the nodes holding the hints for extended periods.\"\n}\n```"
+}

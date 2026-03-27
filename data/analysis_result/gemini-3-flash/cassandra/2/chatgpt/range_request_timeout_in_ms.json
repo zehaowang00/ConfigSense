@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'range_request_timeout_in_ms' configuration determines the maximum time the coordinator node will wait for responses from replicas during range scan operations (e.g., 'SELECT *' without a specific partition key). From a system level, this is performance-sensitive for two main reasons: First, it directly impacts the tail latency of distributed queries; if set too high, slow or hanging replicas can cause significant delays in query completion and tie up coordinator resources (thread pools). Second, it affects system throughput and stability under load; if set too low, it may cause premature timeouts and retries during heavy I/O or compaction periods, leading to increased CPU overhead and potential cascading failures across the cluster.\"\n}\n```"
+}

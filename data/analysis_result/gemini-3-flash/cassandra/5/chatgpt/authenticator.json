@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'authenticator' configuration in Cassandra determines the mechanism used to verify user credentials during the connection phase. Choosing a complex authenticator, such as 'PasswordAuthenticator', involves computationally expensive hashing operations (like BCrypt) and internal database lookups to the 'system_auth' tables. This adds latency to every new connection request and consumes CPU cycles. In high-churn environments where connections are frequently opened and closed, or during a 'connection storm,' the overhead of the authentication process can significantly impact the system's throughput and response time. Furthermore, if the underlying authentication backend (like LDAP or Kerberos) experiences latency, it directly bottlenecks the database's ability to accept new requests.\"\n}\n```"
+}

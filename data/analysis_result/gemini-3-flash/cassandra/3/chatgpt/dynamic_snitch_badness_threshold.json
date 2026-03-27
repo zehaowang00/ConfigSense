@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'dynamic_snitch_badness_threshold' configuration determines how aggressively Cassandra's Dynamic Snitch redirects requests away from a poorly performing node. It defines the threshold (as a percentage) by which a node's performance must degrade compared to the best-performing node before the snitch prefers an alternative. If set too low, the system may react too sensitively to minor fluctuations, causing frequent and unnecessary routing changes (flapping), which increases overhead and can lead to inconsistent latency. If set too high, the system will continue to send requests to a 'bad' or slow node for too long, significantly increasing the tail latency (P99) of the cluster. This directly impacts the execution time of read/write operations and the overall throughput of the system.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'skipExistingFiles' configuration directly impacts the I/O workload and CPU utilization of the system. When set to false, the software will re-process and overwrite existing files, leading to redundant disk write operations, increased file system metadata updates, and unnecessary consumption of CPU cycles for image conversion or data processing. Conversely, enabling this option allows the system to bypass these operations, significantly reducing execution time and resource consumption, especially in large-scale batch processing scenarios where many files may already be present.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'auto_snapshot' configuration in Cassandra determines whether the system automatically takes a snapshot (a hard link to the data files) before a table is truncated or dropped. While the snapshot process itself is relatively fast due to the use of hard links, it has significant downstream performance implications. Specifically, it prevents the immediate reclamation of disk space by the operating system after a deletion. In high-throughput environments with frequent schema changes or truncations, this can lead to disk space exhaustion, increased I/O pressure during background cleanup processes, and potential performance degradation of the underlying filesystem as it manages a large number of hard links and metadata.\"\n}\n```"
+}

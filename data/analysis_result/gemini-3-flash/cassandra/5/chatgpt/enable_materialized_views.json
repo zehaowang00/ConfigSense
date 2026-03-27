@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'enable_materialized_views' configuration in Cassandra is highly performance-sensitive because it controls a feature that introduces significant write-side overhead and background resource consumption. When enabled and used, every write to a base table must be synchronously or asynchronously propagated to the corresponding materialized views. This involves additional read-before-write operations to maintain consistency, increased CPU cycles for data processing, higher disk I/O for storing redundant data, and increased network traffic across the cluster. Furthermore, materialized views add pressure to the compaction strategy and JVM heap memory, potentially leading to increased garbage collection pauses and overall system latency.\"\n}\n```"
+}

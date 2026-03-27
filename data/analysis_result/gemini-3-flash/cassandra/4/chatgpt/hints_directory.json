@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'hints_directory' configuration defines the storage location for hint files in Cassandra, which are used to store mutations for nodes that are temporarily unavailable. This setting is performance-sensitive because it determines the I/O path for hint write and read operations. If this directory is placed on a slow storage device or a disk shared with high-utilization data files (like SSTables or CommitLogs), it can lead to I/O contention. During periods of node instability, a high volume of hints can be generated; efficient disk throughput and low latency in this directory are critical to ensure that the 'hinted handoff' process does not bottleneck the system or delay the eventual consistency of the cluster.\"\n}\n```"
+}

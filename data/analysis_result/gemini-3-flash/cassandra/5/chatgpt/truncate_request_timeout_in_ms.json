@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'truncate_request_timeout_in_ms' configuration defines the maximum time the coordinator node will wait for replicas to respond to a truncate operation before timing out. From a system level, this is performance-sensitive because truncate operations in Cassandra involve clearing data files (SSTables) and committing logs across the cluster. If the timeout is set too low, it can lead to frequent operation failures and retries under heavy I/O load, increasing system overhead. If set too high, it can cause client threads to hang for extended periods during resource contention or hardware stalls, leading to increased latency and potential thread pool exhaustion (e.g., in the RequestResponseStage), which degrades the overall responsiveness of the cluster.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'request_timeout_in_ms' configuration (and its specific variants like read_request_timeout_in_ms or write_request_timeout_in_ms in Cassandra) directly impacts system throughput, resource utilization, and tail latency. From a system level, if the timeout is set too low, the system may prematurely abort requests that would have otherwise succeeded under load, leading to increased error rates and wasted work (as the system may have already partially processed the request). Conversely, if the timeout is set too high, threads and memory associated with stalled or slow requests are held for longer periods, potentially leading to thread pool exhaustion (e.g., in the Native-Transport-Requests pool), increased memory pressure, and a 'cascading failure' effect where the system cannot recover from transient spikes in latency.\"\n}\n```"
+}

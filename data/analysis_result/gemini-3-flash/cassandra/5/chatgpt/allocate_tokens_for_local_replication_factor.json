@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'allocate_tokens_for_local_replication_factor' configuration in Cassandra directly influences the token allocation algorithm during node startup or expansion. By specifying a local replication factor for token calculation, it determines how data ranges are distributed across the cluster. If misconfigured, it can lead to data imbalance (hotspots), where certain nodes handle significantly more read/write traffic and storage than others. This imbalance results in increased tail latency, uneven CPU utilization, and inconsistent memory pressure across the cluster, all of which are critical performance metrics in a distributed database.\"\n}\n```"
+}

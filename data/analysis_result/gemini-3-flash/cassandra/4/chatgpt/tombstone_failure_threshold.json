@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'tombstone_failure_threshold' configuration in Cassandra is performance-sensitive because it acts as a safety mechanism to prevent excessive resource consumption during read operations. When a query scans a large number of tombstones (markers for deleted data), it consumes significant CPU cycles and memory to filter these records before returning results. If this threshold is reached, Cassandra aborts the query to prevent a single inefficient read from causing Heap pressure, long Garbage Collection (GC) pauses, or potential OutOfMemory (OOM) errors that could degrade the performance of the entire node or cluster.\"\n}\n```"
+}

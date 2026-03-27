@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'keyspace_count_warn_threshold' configuration in Cassandra is performance-sensitive because it acts as a safeguard against schema bloat. In Cassandra, having an excessive number of keyspaces (and by extension, tables) significantly impacts system performance by increasing JVM heap pressure due to the accumulation of metadata, memtables, and index summaries. While this specific setting is a 'warning threshold,' it directly relates to the management of the schema's footprint. Exceeding reasonable limits for keyspace/table counts leads to increased garbage collection (GC) activity, longer startup times, and slower schema synchronization across the cluster, all of which are critical performance metrics.\"\n}\n```"
+}

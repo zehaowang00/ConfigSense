@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of Apache Batik (a Java-based toolkit for SVG), AOI (Area of Interest) defines the specific spatial region of an SVG document that needs to be rendered or processed. This configuration is performance-sensitive because it directly determines the workload of the rendering engine. A larger AOI increases the number of graphical primitives, paths, and pixels that must be calculated, rasterized, and stored in memory. Conversely, a smaller AOI allows the system to perform view-frustum culling, reducing CPU cycles spent on rendering off-screen elements and significantly lowering memory consumption for the resulting image buffer.\"\n}\n```"
+}

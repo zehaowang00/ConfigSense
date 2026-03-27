@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The GET_SORTED_SETTINGS configuration in H2 determines whether setting values are returned in a sorted order when queried (e.g., via metadata or system tables). While the overhead for a small number of settings is minimal, in environments with many dynamic settings or frequent metadata queries, the sorting process introduces additional CPU cycles and memory overhead for collection and comparison. From a system level, sorting is an O(n log n) operation; if this configuration is enabled, it forces the engine to perform data reorganization before returning results, which can impact the latency of administrative or diagnostic queries compared to returning the raw, unsorted internal map.\"\n}\n```"
+}

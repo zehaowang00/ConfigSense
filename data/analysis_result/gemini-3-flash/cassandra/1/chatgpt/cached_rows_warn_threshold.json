@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cached_rows_warn_threshold' configuration in Cassandra is performance-sensitive because it acts as a monitoring threshold for memory-intensive operations. When a query retrieves a number of rows from the cache that exceeds this threshold, Cassandra logs a warning. From a system level, while the logging itself has a minor overhead, this parameter is a direct indicator of potential heap pressure and GC (Garbage Collection) instability. High values or frequent triggering of this threshold suggest that large chunks of data are being loaded into memory, which can lead to increased memory consumption, longer GC pauses, and potential latency spikes for read operations. It serves as a critical guardrail for identifying inefficient data access patterns that degrade overall system throughput.\"\n}\n```"
+}

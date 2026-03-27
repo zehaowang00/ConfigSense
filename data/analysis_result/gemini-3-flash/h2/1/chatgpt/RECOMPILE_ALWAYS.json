@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The RECOMPILE_ALWAYS configuration in H2 determines whether a prepared statement should be recompiled every time it is executed. When enabled, the database engine bypasses the execution plan cache and forces the query optimizer to re-analyze the SQL, generate a new parse tree, and determine a new execution plan for every call. This significantly increases CPU overhead and latency for query execution, especially in high-throughput environments or for complex queries. While it can be useful for queries where data distribution changes rapidly (ensuring the most optimal plan), the constant overhead of recompilation typically leads to a measurable decrease in system performance compared to reusing cached plans.\"\n}\n```"
+}

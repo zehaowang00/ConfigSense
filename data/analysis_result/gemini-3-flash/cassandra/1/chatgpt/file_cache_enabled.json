@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'file_cache_enabled' configuration in Cassandra (often associated with the ChunkCache or specific file-based caching mechanisms) directly dictates whether the system utilizes an in-memory buffer to cache data read from the SSTables on disk. When enabled, it significantly reduces the I/O overhead by serving read requests from memory, which decreases latency and increases throughput. When disabled, the system must rely on direct disk I/O or the OS page cache, which can lead to increased disk contention and higher latency, especially in read-heavy workloads. This toggle fundamentally changes the memory consumption profile and the execution time of read operations.\"\n}\n```"
+}

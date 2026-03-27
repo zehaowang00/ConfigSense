@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'cas_contention_timeout_in_ms' configuration controls the maximum time the coordinator will wait for Paxos (Compare-and-Set) operations to resolve contention before timing out. In Cassandra, CAS operations involve multiple phases (prepare, propose, commit) and are inherently more expensive than standard reads or writes. If this timeout is set too low, the system may prematurely abort transactions under heavy load, leading to high error rates and retries which further increase latency. If set too high, it can lead to resource exhaustion (thread blocking) and increased tail latency during periods of high contention, as requests occupy coordinator resources for longer periods. Adjusting this value directly impacts the throughput and latency characteristics of lightweight transactions (LWTs).\"\n}\n```"
+}

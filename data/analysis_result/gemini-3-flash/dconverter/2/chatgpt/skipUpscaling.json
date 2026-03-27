@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'skipUpscaling' configuration in dconverter (a density converter tool for images) directly controls whether the system performs image scaling operations when the target resolution is higher than the source. From a system level, image upscaling is a computationally intensive task involving interpolation algorithms (like Bilinear or Lanczos) that consume significant CPU cycles and memory bandwidth. By enabling this skip, the system avoids these heavy mathematical transformations and reduces the memory footprint required to store larger, upscaled bitmaps in RAM. Consequently, toggling this setting leads to notable variations in execution time and peak memory consumption during the image processing pipeline.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'network_authorizer' configuration in Cassandra determines the implementation used to authorize network-level permissions. While the authorization check itself might seem like a simple security gate, it is performance-sensitive because it is invoked during the connection establishment and potentially during request routing phases. If a custom or complex authorizer is used (e.g., one that performs external lookups, LDAP queries, or intensive database hits to verify permissions), it introduces latency into the request processing pipeline. Furthermore, since Cassandra is a high-throughput distributed system, any overhead in the authorization layer can bottleneck the number of concurrent connections the system can handle and increase the overall tail latency of client requests.\"\n}\n```"
+}

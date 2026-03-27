@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'max_concurrent_automatic_sstable_upgrades' configuration controls the number of concurrent background tasks dedicated to upgrading SSTables (Sorted String Tables) to the latest version. From a system level, this directly impacts resource contention. Increasing this value can accelerate the transition to more efficient data formats, potentially improving long-term read performance; however, it simultaneously consumes significant CPU cycles, disk I/O bandwidth, and memory for the compaction-like upgrade process. If set too high, it can starve the system's resources, leading to increased latency for client read/write requests and higher garbage collection pressure. Conversely, setting it too low may lead to an accumulation of outdated SSTable formats, which can degrade performance over time due to lack of optimization.\"\n}\n```"
+}

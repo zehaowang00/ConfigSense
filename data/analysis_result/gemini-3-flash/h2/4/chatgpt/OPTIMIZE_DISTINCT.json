@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The OPTIMIZE_DISTINCT configuration in H2 directly impacts the query execution plan for 'SELECT DISTINCT' queries. When enabled, the database engine attempts to optimize these queries, often by utilizing existing indexes to avoid full result set scanning and expensive in-memory or disk-based sorting/deduplication processes. If disabled or improperly configured for complex datasets, the system may resort to more resource-intensive operations, leading to significant increases in CPU usage, memory consumption for temporary tables, and overall query execution time.\"\n}\n```"
+}

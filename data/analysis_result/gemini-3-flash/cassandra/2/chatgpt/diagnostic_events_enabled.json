@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'diagnostic_events_enabled' configuration in Cassandra is a global toggle used to enable or disable the emission of diagnostic events to external subscribers (typically via JMX or internal diagnostic listeners). While it enables observability, the events themselves are usually emitted for specific lifecycle or management tasks rather than on the critical path of every read or write request. Under normal operating conditions, the overhead of checking this boolean flag and the subsequent event dispatching is negligible compared to the heavy I/O and CPU operations involved in database transactions. It is primarily a control-plane feature rather than a data-plane performance lever.\"\n}\n```"
+}

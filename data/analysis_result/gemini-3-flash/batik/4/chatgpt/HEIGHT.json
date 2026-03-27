@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the Apache Batik SVG toolkit, the 'HEIGHT' configuration (often used in the context of rasterizers or SVG canvas components) directly determines the vertical resolution of the output image or the rendering viewport. From a system level, increasing the height increases the total number of pixels that must be processed, calculated, and stored in memory. This leads to a linear or super-linear increase in memory consumption for the image buffer and significantly impacts the execution time of the rasterization process, as the rendering engine must perform more scanline conversions, anti-aliasing calculations, and pixel-pushing operations.\"\n}\n```"
+}

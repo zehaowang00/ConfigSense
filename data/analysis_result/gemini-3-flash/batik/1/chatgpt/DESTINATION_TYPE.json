@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The DESTINATION_TYPE configuration in Apache Batik determines the output format and the corresponding processing pipeline used during the transcoding process (e.g., converting SVG to JPEG, PNG, or PDF). Different destination types trigger different encoders and compression algorithms. For instance, generating a highly compressed JPEG requires different CPU cycles and memory buffers compared to a lossless PNG or a complex PDF structure. Choosing a specific destination type directly impacts the execution time of the transcoding task and the peak memory consumption required to buffer the image data before writing to the output stream.\"\n}\n```"
+}

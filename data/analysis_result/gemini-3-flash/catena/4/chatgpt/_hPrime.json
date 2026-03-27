@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The _hPrime configuration in Catena (a password hashing framework) typically refers to the number of iterations or the depth of the hashing function used during the password stretching process. In cryptographic hashing and memory-hard functions, this parameter directly controls the computational complexity. Increasing the value of _hPrime increases the CPU cycles required to compute the hash, thereby directly impacting the execution time and latency of the authentication process. Because it dictates the workload of the hashing algorithm, it is a critical performance-tuning parameter used to balance security (resistance to brute-force attacks) against system throughput and response time.\"\n}\n```"
+}

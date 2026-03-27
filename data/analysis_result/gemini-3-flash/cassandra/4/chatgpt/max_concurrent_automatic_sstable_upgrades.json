@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'max_concurrent_automatic_sstable_upgrades' configuration controls the number of concurrent background tasks dedicated to upgrading SSTables to the latest version. From a system level, this directly impacts CPU utilization and Disk I/O bandwidth. If set too high, the concurrent upgrade processes can compete with client read/write requests for system resources, leading to increased latency and reduced throughput. Conversely, if set too low, the system may accumulate stale SSTable formats, potentially leading to suboptimal read performance or delayed benefits from newer storage engine improvements. Therefore, it requires careful tuning to balance background maintenance overhead with foreground application performance.\"\n}\n```"
+}

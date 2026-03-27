@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_clock' configuration in Prevayler determines the time-source used for timestamping transactions. In a prevalent system, every transaction is encapsulated with a timestamp to ensure deterministic recovery and execution. If the clock implementation is inefficient (e.g., involving high-latency system calls or synchronization overhead) or if it is called frequently in a high-throughput environment, it directly impacts the transaction processing latency and overall system throughput. Furthermore, the precision and resolution of the clock can affect how the system handles rapid bursts of transactions, potentially leading to bottlenecks in the sequencing and logging of events.\"\n}\n```"
+}

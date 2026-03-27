@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'full_query_logging_options' configuration in Cassandra controls the Full Query Logging (FQL) feature, which captures every query processed by the node. Enabling or misconfiguring this option is highly performance-sensitive because it introduces significant I/O overhead and CPU cycles for serializing and writing query data to disk. From a system level, high-frequency logging can lead to disk contention, increased garbage collection pressure due to object allocation for log events, and potential throughput degradation as the system must manage the overhead of recording metadata for every request alongside actual data processing.\"\n}\n```"
+}

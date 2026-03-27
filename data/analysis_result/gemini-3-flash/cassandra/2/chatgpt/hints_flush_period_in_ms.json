@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'hints_flush_period_in_ms' configuration determines the frequency at which 'hints' (data stored temporarily when a replica node is down) are flushed from memory to disk in Cassandra. From a system level, this impacts performance in two primary ways: I/O throughput and memory pressure. A shorter period leads to more frequent disk writes, which can increase I/O contention and potentially slow down other database operations. Conversely, a longer period keeps hints in memory for a more extended duration, increasing memory consumption and the risk of data loss in the event of an unexpected crash. Balancing this value is critical for optimizing the trade-off between write durability, memory overhead, and disk I/O utilization.\"\n}\n```"
+}

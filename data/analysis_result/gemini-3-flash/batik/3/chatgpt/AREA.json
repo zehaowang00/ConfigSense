@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Apache Batik SVG toolkit, 'AREA' (often associated with rendering area, tile size, or buffer dimensions in the rasterizer and graphics engine) is performance-sensitive. This configuration dictates the granularity of the rendering process. Smaller areas can lead to increased overhead due to more frequent context switching and management of numerous small tiles, while excessively large areas can lead to significant spikes in memory consumption and potential 'OutOfMemory' errors, especially when processing complex SVG documents. Adjusting this value directly impacts the trade-off between memory footprint and CPU throughput during the rasterization and rendering pipeline.\"\n}\n```"
+}

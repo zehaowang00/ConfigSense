@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The _transientMode configuration in Prevayler determines whether the system persists its state to disk or operates entirely in-memory. When transient mode is enabled, the overhead of disk I/O, including writing transaction logs (journaling) and taking snapshots, is bypassed. This leads to a significant increase in throughput and a reduction in latency for write operations. Conversely, disabling transient mode (enabling persistence) introduces synchronous or asynchronous disk writes, which are orders of magnitude slower than memory access and can become a primary bottleneck for the system's execution time and resource utilization.\"\n}\n```"
+}

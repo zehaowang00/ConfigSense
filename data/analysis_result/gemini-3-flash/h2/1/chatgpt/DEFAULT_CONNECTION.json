@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n \"performance_sensitive\": \"No\",\n \"reason\": \"The DEFAULT_CONNECTION configuration in H2 is a setting primarily used within the internal command-line tools and shell environments to manage the current active connection context. It acts as a pointer or a reference to a connection object rather than a parameter that tunes the database engine's execution logic, memory allocation, or I/O behavior. Changing this value switches which connection is being addressed but does not inherently alter the throughput, latency, or resource consumption of the database operations themselves.\"\n}\n```"
+}

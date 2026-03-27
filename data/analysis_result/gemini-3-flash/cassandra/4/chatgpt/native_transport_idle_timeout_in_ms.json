@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'native_transport_idle_timeout_in_ms' configuration controls the duration for which an idle client connection remains open before being closed by the server. From a system level, this is performance-sensitive for two primary reasons: resource utilization and connection overhead. If the timeout is set too high, the system may accumulate a large number of idle TCP connections, consuming significant memory (socket buffers) and file descriptors, which can lead to resource exhaustion and increased overhead for the operating system's network stack. Conversely, if the timeout is set too low, clients may experience frequent disconnections, forcing the system to repeatedly perform expensive TCP and TLS handshakes, which increases CPU cycles and latency for incoming requests.\"\n}\n```"
+}

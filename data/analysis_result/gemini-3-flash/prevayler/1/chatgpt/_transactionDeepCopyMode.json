@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The '_transactionDeepCopyMode' configuration determines how Prevayler handles transaction objects to ensure system prevalence and data integrity. When enabled, it performs a deep copy of transaction objects to prevent accidental modification of the state by the application after a transaction is submitted. From a system level, deep copying is a computationally expensive operation that involves object graph traversal and serialization/deserialization. Frequent deep copies increase CPU cycles and memory allocation rates, leading to higher GC (Garbage Collection) pressure and increased latency in transaction processing. Conversely, disabling it improves throughput and reduces execution time but risks state corruption if the application is not carefully designed.\"\n}\n```"
+}

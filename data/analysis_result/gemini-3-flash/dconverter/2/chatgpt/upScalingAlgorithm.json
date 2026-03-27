@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'upScalingAlgorithm' configuration determines the mathematical method used to interpolate pixels when increasing the resolution of an image. Different algorithms (such as Lanczos, Mitchell, or Bicubic) have varying levels of computational complexity. Choosing a high-quality algorithm like Lanczos involves more complex floating-point calculations and a larger sampling kernel compared to simpler algorithms, which directly impacts the CPU execution time and latency of the image processing pipeline, especially when batch processing large sets of images.\"\n}\n```"
+}

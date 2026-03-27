@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'depths.reflection' configuration in the Sunflow rendering engine controls the maximum number of times a light ray can be reflected off surfaces in a scene. From a system level, increasing this value significantly increases the computational workload of the ray-tracing algorithm. Each additional level of reflection requires the system to perform more intersection tests, shading calculations, and recursive ray generation. This leads to a direct increase in CPU execution time and can impact memory bandwidth as more scene data is accessed for each bounce. Conversely, limiting this depth can reduce rendering time at the cost of visual accuracy in scenes with many reflective surfaces.\"\n}\n```"
+}

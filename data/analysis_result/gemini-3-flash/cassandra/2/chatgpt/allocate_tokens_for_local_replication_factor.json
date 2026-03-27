@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'allocate_tokens_for_local_replication_factor' configuration in Cassandra is performance-sensitive because it directly influences the distribution of data across the nodes in a cluster during the token allocation process. When a new node joins a cluster, this setting helps determine how many tokens (virtual nodes or vnodes) are assigned to it based on a target replication factor. Improper data distribution leads to 'hotspots' where specific nodes handle disproportionately more read/write traffic and storage load than others. From a system level, uneven data distribution results in increased tail latency, unpredictable throughput, and inefficient utilization of CPU and I/O resources across the cluster, significantly impacting overall system performance and scalability.\"\n}\n```"
+}

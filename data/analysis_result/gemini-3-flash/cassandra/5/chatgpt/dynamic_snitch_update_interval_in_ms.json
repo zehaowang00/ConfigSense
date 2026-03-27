@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'dynamic_snitch_update_interval_in_ms' configuration controls how frequently Cassandra's dynamic snitch recalculates and updates the performance scores of nodes in the cluster. These scores are used to route read requests to the best-performing replicas. If the interval is set too high, the system may continue to route traffic to degraded or slow nodes, increasing latency. If set too low, the overhead of frequent score recalculation and the potential for 'flapping' (rapidly switching between nodes) can consume CPU resources and cause instability in request routing, directly impacting the overall throughput and response time of the system.\"\n}\n```"
+}

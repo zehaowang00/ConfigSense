@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'roundingHandler' configuration in dconverter (a tool for converting images to various Android/iOS densities) determines the mathematical strategy used when calculating pixel dimensions (e.g., Round, Floor, or Ceil). While this affects the visual output and precision of the resulting image assets, the computational overhead of switching between these basic arithmetic rounding methods is negligible. It does not significantly impact the system's execution time, memory throughput, or CPU utilization during the image processing pipeline compared to the actual image scaling and encoding operations.\"\n}\n```"
+}

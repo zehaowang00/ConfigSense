@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'enableMozJpeg' configuration determines whether the MozJPEG encoder is used instead of the standard JPEG encoder during image conversion. MozJPEG is specifically designed to reduce file sizes through advanced compression techniques and optimization algorithms (such as trellis quantization). While it produces smaller files, these optimizations are significantly more computationally intensive, leading to increased CPU utilization and longer execution times during the encoding process. Therefore, toggling this setting directly impacts the system's throughput and resource consumption.\"\n}\n```"
+}

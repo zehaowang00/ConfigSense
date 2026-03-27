@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'streaming_connections_per_host' configuration determines the number of concurrent network connections used for streaming data between nodes during operations like bootstrap, repair, or decommission. Increasing this value allows for higher parallelism in data transfer, which can significantly reduce the time required for cluster maintenance tasks. However, it also increases the overhead on the network stack and CPU, potentially leading to resource contention and impacting the latency of regular read/write requests. Conversely, setting this value too low can bottleneck data synchronization, extending the duration of high-load maintenance operations and delaying the restoration of data consistency or node availability.\"\n}\n```"
+}

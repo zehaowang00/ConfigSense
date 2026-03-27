@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'server_encryption_options' configuration controls the encryption of internode communication (TLS/SSL) in a Cassandra cluster. Enabling encryption introduces significant computational overhead due to the cryptographic operations (encryption/decryption) required for every packet sent between nodes. This directly impacts CPU utilization and increases network latency. Furthermore, the choice of cipher suites and the overhead of the TLS handshake can affect throughput and execution time for distributed queries and data replication, making it a critical factor in overall system performance.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'diagnostic_events_enabled' configuration in Cassandra is a global toggle used to enable or disable the emission of diagnostic events via the Diagnostic Event Service. While it allows internal system events (like SSTable flushing or compaction progress) to be published to external listeners, the mechanism itself is designed to be lightweight. Under normal operating conditions, simply enabling this toggle does not significantly consume CPU or memory resources, nor does it alter the core execution path of database operations. Performance impact would only occur if a third-party listener attached to this service performs heavy processing, but the configuration itself is a control plane setting rather than a data plane performance tuner.\"\n}\n```"
+}

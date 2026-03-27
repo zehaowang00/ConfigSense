@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'periodic_commitlog_sync_lag_block_in_ms' configuration directly impacts the I/O throughput and latency of write operations in Cassandra when using the 'periodic' commitlog sync mode. This parameter defines the maximum amount of time the system will allow the commitlog sync to fall behind before blocking incoming writes. From a system level, if this value is set too low, it can cause frequent 'backpressure' by blocking client threads, leading to increased request latency and reduced write throughput. Conversely, a higher value allows for more asynchronous I/O buffering, improving performance at the cost of potential data loss in the event of a crash. Because it controls the synchronization point between memory and disk I/O for every write, it is a critical performance-tuning knob.\"\n}\n```"
+}

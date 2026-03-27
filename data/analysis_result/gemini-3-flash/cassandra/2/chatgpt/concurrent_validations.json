@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'concurrent_validations' configuration in Cassandra controls the maximum number of validation compactions (the process of reading data to generate Merkle trees for anti-entropy repair) that can run concurrently. From a system level, validation compactions are highly I/O and CPU intensive because they require scanning large portions of the SSTables. Increasing this value allows more simultaneous repair operations, which can lead to higher disk I/O utilization and increased CPU overhead, potentially starving regular read/write requests and increasing tail latency. Conversely, setting this value too low can cause repair operations to queue up, leading to data inconsistency or prolonged repair cycles, which indirectly affects system stability and performance during recovery scenarios.\"\n}\n```"
+}

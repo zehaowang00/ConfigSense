@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, '_vId' (Version ID) determines the specific version of the algorithm or the underlying hash function/graph construction being used. Changes to this value can lead the system to execute different computational paths, such as switching between different memory-hard functions or changing the number of iterations and memory access patterns. Because Catena is designed to be a memory-hard and CPU-intensive function, even minor changes in the logic associated with a version ID can result in significant variations in execution time, CPU utilization, and memory footprint during the hashing process.\"\n}\n```"
+}

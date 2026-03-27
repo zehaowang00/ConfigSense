@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'createMipMapInsteadOfDrawableDir' configuration in dconverter determines whether images are placed in 'mipmap' or 'drawable' resource directories for Android builds. From a system performance perspective, this affects how the Android operating system handles image scaling and memory management. Mipmaps are specifically optimized for scaling and are kept in memory at multiple resolutions to provide smoother transitions during animations (like launcher icon scaling). Choosing one over the other impacts the runtime memory footprint and the CPU/GPU overhead required for image resampling and rendering during UI transitions.\"\n}\n```"
+}

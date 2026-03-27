@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'auto_snapshot' configuration in Cassandra determines whether the system automatically takes a snapshot (a hard link to the current data files) before performing operations like truncating a table or dropping a keyspace/table. From a system level, while the snapshot operation itself is relatively fast due to the use of hard links, it has significant downstream performance implications. Specifically, it increases disk space utilization and can lead to I/O overhead during the snapshot process. More importantly, if snapshots are not managed or cleared, they can lead to disk exhaustion, which severely impacts the write performance and stability of the node. Furthermore, the presence of many snapshots can complicate file system metadata management and impact the speed of certain administrative operations.\"\n}\n```"
+}

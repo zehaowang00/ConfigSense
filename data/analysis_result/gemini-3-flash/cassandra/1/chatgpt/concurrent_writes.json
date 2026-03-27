@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'concurrent_writes' configuration in Cassandra directly controls the number of concurrent write threads available to process incoming write requests. From a system level, this parameter dictates the level of parallelism in the write stage. If set too low, the system may experience write bottlenecks and increased latency as requests queue up, failing to fully utilize available CPU and I/O resources. If set too high, it can lead to excessive context switching, thread contention, and high memory consumption (due to thread stacks and associated objects), which can degrade overall system throughput and stability. Therefore, tuning this value is critical for balancing CPU utilization and write throughput.\"\n}\n```"
+}

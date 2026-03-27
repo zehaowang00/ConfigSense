@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'key_cache_size_in_mb' configuration directly impacts the efficiency of read operations in Cassandra by determining how many partition keys are stored in memory. At the system level, a larger key cache reduces the need for disk I/O and CPU cycles required to scan SSTable index files, significantly decreasing read latency and improving throughput. Conversely, if the cache is too small, the system experiences higher disk seek rates; if it is too large, it consumes excessive heap memory, which can lead to increased Garbage Collection (GC) pressure and potential system instability.\"\n}\n```"
+}

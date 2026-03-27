@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'depths.reflection' configuration in the Sunflow rendering engine controls the maximum recursion depth for reflective light rays. From a system level, each increment in reflection depth potentially triggers additional ray-surface intersection tests and shading computations for every pixel. As the depth increases, the computational complexity grows significantly, leading to a direct and often exponential increase in CPU execution time and memory overhead for managing the ray stack. Conversely, limiting this depth can significantly speed up rendering at the cost of visual accuracy in complex scenes with multiple reflective surfaces.\"\n}\n```"
+}

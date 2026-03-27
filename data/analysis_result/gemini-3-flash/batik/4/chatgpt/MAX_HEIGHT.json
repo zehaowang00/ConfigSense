@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The MAX_HEIGHT configuration in Apache Batik (a toolkit for processing SVG) directly limits the vertical dimension of the rasterized output or the internal buffers used during rendering. Increasing this value allows for larger image processing, which linearly or quadratically increases memory allocation for pixel arrays and buffers. High values can lead to significant memory pressure, increased Garbage Collection (GC) overhead, or even OutOfMemoryErrors. Conversely, very low values may restrict the rendering engine's ability to process complex SVG documents, potentially leading to increased I/O or tiling overhead if the system attempts to compensate for small buffer sizes.\"\n}\n```"
+}

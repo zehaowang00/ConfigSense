@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The EXECUTE_ONLOAD configuration in Apache Batik determines whether scripts associated with an SVG document (such as ECMAScript/JavaScript) are executed when the document is loaded. Enabling this option triggers the initialization of the scripting engine, the parsing of script blocks, and the execution of event handlers. From a system perspective, this significantly impacts performance by increasing CPU utilization for script processing and memory consumption for the scripting environment's runtime state. If a document contains complex logic or heavy computational scripts, the execution time for rendering or processing the SVG can increase substantially compared to a static load where scripts are ignored.\"\n}\n```"
+}

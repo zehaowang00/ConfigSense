@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n \"performance_sensitive\": \"No\",\n \"reason\": \"The 'dryRun' configuration in dconverter is a control flag used to simulate the execution of the program without actually performing any file operations (like image conversion or writing to disk). When enabled, it typically skips the most resource-intensive tasks such as I/O operations and CPU-heavy image processing. While it technically changes the execution time (making it faster by doing less), it is considered a diagnostic or safety feature rather than a performance-tuning parameter. Its purpose is to validate settings rather than to optimize the system's operational efficiency or resource utilization during normal production runs.\"\n}\n```"
+}

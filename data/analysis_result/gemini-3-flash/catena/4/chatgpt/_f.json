@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_f' parameter (often representing the 'garbage collector' or 'memory-hard function' component depending on the specific implementation variant) directly controls the computational complexity and memory access patterns of the hashing process. Catena is designed to be a memory-hard function, and parameters that define the internal function 'f' or its iterations determine how many times the underlying cryptographic primitives (like Blake2b) are invoked and how memory is traversed. A change in this configuration significantly impacts the execution time (CPU cycles) and the resistance to GPU/ASIC acceleration by altering the workload's intensity.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'MAX_WIDTH' configuration in Apache Batik directly controls the maximum allowable dimension for image rendering and rasterization processes. From a system level, increasing this value allows for the processing of larger images, which leads to a linear or even exponential increase in memory allocation (heap usage) and CPU cycles required for pixel calculations, filtering, and rendering. If set too high, it can lead to OutOfMemoryErrors or significant performance degradation due to garbage collection overhead. Conversely, a lower value caps resource consumption but limits the output resolution, demonstrating a direct trade-off between system resource utilization and functional output.\"\n}\n```"
+}

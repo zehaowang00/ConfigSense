@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n \"performance_sensitive\": \"Yes\",\n \"reason\": \"The 'clearDirBeforeConvert' configuration determines whether the output directory is recursively deleted and recreated before the image conversion process begins. From a system level, enabling this option triggers intensive File System I/O operations, specifically metadata updates and recursive deletions of files and subdirectories. If the output directory contains a large number of files, this can lead to significant execution time overhead due to disk latency and file system locking. Furthermore, it impacts the OS page cache and storage throughput, potentially delaying the start of the actual conversion task compared to a direct overwrite or incremental update approach.\"\n}\n```"
+}

@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'memtable_heap_space_in_mb' configuration directly controls the amount of JVM heap memory allocated for memtables in Cassandra. Memtables are the in-memory structures where write operations are initially stored before being flushed to disk as SSTables. If this value is set too low, it triggers frequent flushes to disk, significantly increasing I/O overhead and write latency while potentially causing compaction pressure. If set too high, it consumes a large portion of the JVM heap, which can lead to increased garbage collection (GC) pressure, longer GC pauses, and potential OutOfMemory (OOM) errors. Therefore, tuning this parameter is critical for balancing write throughput, memory utilization, and system stability.\"\n}\n```"
+}

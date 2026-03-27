@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'read_request_timeout_in_ms' configuration directly impacts the latency and resource utilization of the Cassandra cluster. From a system level, this parameter defines how long a coordinator node will wait for replies from replicas before timing out a read request. If set too low, it can lead to premature request failures and increased error rates under transient network or disk spikes, forcing clients to retry and potentially exacerbating congestion (retry storms). If set too high, it can cause threads (RequestResponseStage) to be held open longer than necessary during periods of node instability or 'zombie' replicas, leading to thread pool exhaustion, increased memory pressure from accumulated request metadata, and higher tail latency (P99) for the application.\"\n}\n```"
+}

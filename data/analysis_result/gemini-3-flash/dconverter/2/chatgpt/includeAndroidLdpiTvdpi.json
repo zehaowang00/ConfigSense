@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'includeAndroidLdpiTvdpi' configuration in dconverter (a density converter tool) determines whether the tool generates additional image assets for specific Android screen densities (ldpi and tvdpi). Enabling this option increases the total number of image processing operations (scaling, filtering, and compression) performed during the conversion process. From a system level, this directly impacts execution time (CPU cycles) and memory consumption (RAM used for image buffers) during the build or conversion phase. While these densities are less common in modern Android development, including them increases the I/O overhead and processing load proportional to the number of input assets.\"\n}\n```"
+}

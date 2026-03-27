@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"In the context of the Catena password hashing framework, the '_h' parameter (often representing the 'h' or 'height' parameter in the underlying hash tree structures like the BRG or Double-Butterfly Graphs) directly dictates the memory and time complexity of the hashing process. Increasing this value exponentially increases the number of nodes in the graph that must be computed and stored, leading to significant variations in execution time and peak memory consumption. This parameter is a primary tuning knob for the algorithm's resistance against GPU/ASIC attacks by intentionally scaling performance costs.\"\n}\n```"
+}

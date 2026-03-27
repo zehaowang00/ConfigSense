@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'row_cache_size_in_mb' configuration directly impacts the system's memory allocation and I/O efficiency. By caching the most frequently accessed rows in memory, it significantly reduces the need for disk I/O and the overhead of merging data from multiple SSTables during read operations. Increasing this value can lead to lower read latency and higher throughput for hot data sets. However, because this memory is allocated off-heap, setting it too high can lead to memory pressure on the operating system, potentially causing swapping or impacting the memory available for the OS page cache, while setting it too low may result in frequent cache misses and increased disk activity.\"\n}\n```"
+}

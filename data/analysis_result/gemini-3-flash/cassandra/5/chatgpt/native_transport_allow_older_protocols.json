@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "No",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"No\",\n  \"reason\": \"The 'native_transport_allow_older_protocols' configuration in Cassandra is a compatibility flag that determines whether the server accepts connections from clients using legacy versions of the native protocol. From a system performance perspective, this setting acts as a gatekeeper during the connection handshake phase. It does not influence the data path, resource allocation (CPU/Memory), or the efficiency of query execution once a connection is established. While it affects connectivity and interoperability, it does not cause notable variations in execution time or memory consumption during the steady-state operation of the database.\"\n}\n```"
+}

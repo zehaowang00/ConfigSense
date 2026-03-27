@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'dynamic_snitch_badness_threshold' configuration determines how aggressively the Dynamic Snitch redirects requests away from a node that is performing poorly. It defines the threshold of 'badness' (a metric based on latency and severity) required before the snitch prefers a different replica. If set too low, the system may frequently switch between replicas, causing instability and overhead in request routing; if set too high, the system may continue to send requests to a degraded or slow node, leading to increased tail latency and reduced overall throughput. Because it directly influences load balancing and request routing decisions based on real-time performance metrics, it significantly impacts execution time and system responsiveness.\"\n}\n```"
+}

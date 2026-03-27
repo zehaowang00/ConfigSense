@@ -1,0 +1,4 @@
+{
+    "performance_sensitive": "Yes",
+    "reason": "```json\n{\n  \"performance_sensitive\": \"Yes\",\n  \"reason\": \"The 'upScalingAlgorithm' configuration determines the mathematical method used to interpolate pixels when increasing the resolution of an image. Different algorithms (such as Lanczos, Bicubic, or Bilinear) have varying computational complexities. For example, Lanczos requires more floating-point operations and memory accesses per pixel compared to Bilinear interpolation. In a batch processing tool like dconverter, choosing a more complex algorithm significantly increases the CPU execution time and can impact the overall throughput of the image conversion process, especially when processing high-resolution images or large datasets.\"\n}\n```"
+}
