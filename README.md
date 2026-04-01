@@ -8,7 +8,7 @@ The project directory includes the following main folders:
 
 - **data/**: Contains the data required for the project.
   - **analysis_result/**: Stores the evaluation results for RQ1 and RQ2.
-  - **analysis_result/misclassification/misclassification_labeling.csv**: Contains the misclassification labeling data for analysis.
+  - **analysis_result/misclassification/misclassification_labeling.csv**: Contains the misclassification labeling data for analysis in RQ3.
   - **baseline/**: Contains baseline data.
   - **method_context/**: Includes the code context for configurations across various systems.
   - **method_index/**: Contains method bodies and method signature indices for method retrieval purposes.
