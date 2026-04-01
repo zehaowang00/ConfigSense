@@ -1,6 +1,6 @@
 # ConfigSense
 
-This repository contains the replication package for the paper: Leveraging LLM-Based Agents to Identify Performance-Sensitive Configurations in Software Systems
+This repository contains the replication package for the paper: Identifying Performance-Sensitive Configurations in Software Systems with LLM-Based Agents
 
 ## Project Structure
 
